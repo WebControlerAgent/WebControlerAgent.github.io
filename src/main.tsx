@@ -108,6 +108,14 @@ function App(){
     <div className="scene-title"><b>AI AGENT WORKSPACE</b><span>Isometric Operations Floor</span></div>
     <div className="scene-controls"><button onClick={()=>setSelected("manager")}>⌖ Focus Agent</button><button onClick={()=>setSelected(null)}>◎ Overview</button></div>
     <div className="activity"><b>LIVE ACTIVITY</b><span><i className="pulse"/> {selectedAgent.name} — {selectedAgent.task}</span><small>One active site at a time • state-driven workspace</small></div>
+    {chatOpen&&<div className="chat-panel">
+      <div className="chat-head"><div><b>MANAGER CHAT</b><small>Talk to the Agent Studio team</small></div><button onClick={()=>setChatOpen(false)}>×</button></div>
+      <div className="chat-messages">{messages.map((m,i)=><div key={i} className={"chat-msg "+(m.from==="You"?"you":"")}><span>{m.from}</span><p>{m.text}</p></div>)}</div>
+      <form className="chat-input" onSubmit={e=>{e.preventDefault();sendChat()}}>
+        <input value={chatInput} onChange={e=>setChatInput(e.target.value)} placeholder="Ask Manager..." aria-label="Message Manager"/>
+        <button type="submit" aria-label="Send message">➤</button>
+      </form>
+    </div>}
    </main>
    <aside className="inspector"><div className="inspector-head"><span>SELECTED AGENT</span><button onClick={()=>setSelected(null)}>×</button></div><div className="portrait" style={{background:selectedAgent.color}}><span>{selectedAgent.icon}</span><i style={{background:statusTone(selectedAgent.status)}}/></div><h2>{selectedAgent.name}</h2><p>{selectedAgent.role}</p><div className="status-card"><span>STATUS</span><b style={{color:statusTone(selectedAgent.status)}}>● {selectedAgent.status}</b></div><div className="task-card"><span>CURRENT TASK</span><b>{selectedAgent.task}</b></div><div className="detail"><span>Destination</span><b>{selectedAgent.status==="WALKING"?"Moving through office":"Assigned workstation"}</b></div><div className="detail"><span>Workspace</span><b>Agent Studio</b></div><button className="talk" onClick={()=>setChatOpen(true)}>💬 Open employee channel</button><div className="timeline"><b>RECENT ACTIVITY</b><div>● Task started <small>now</small></div><div>● State → {selectedAgent.status} <small>live</small></div><div>● Next checkpoint <small>queued</small></div></div></aside>
   </div>
