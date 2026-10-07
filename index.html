@@ -1,23 +1,52 @@
 <!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Web Controller Agent</title>
-<meta name="description" content="Central GitHub automation controller dashboard.">
+<title>Agent Studio — Web Controller</title>
+<meta name="description" content="Agent Studio control room for authorized GitHub projects.">
 <link rel="stylesheet" href="style.css"></head>
-<body><main class="wrap">
-<header><div><span class="eyebrow">GITHUB AUTOMATION</span><h1>Web Controller Agent</h1>
-<p>Central control and monitoring dashboard for authorized repositories.</p></div><span id="status" class="pill">● Waiting</span></header>
-<section class="grid">
-<article class="card"><h2>System</h2>
-<div class="row"><span>Controller</span><b id="controller">Waiting</b></div>
-<div class="row"><span>Last run</span><b id="lastRun">—</b></div>
-<div class="row"><span>Repositories</span><b id="repos">0</b></div>
-<div class="row"><span>Sources checked</span><b id="sources">0</b></div>
-<div class="row"><span>Discovered</span><b id="discovered">0</b></div></article>
-<article class="card"><h2>Actions</h2>
-<button id="run">Open Run Monitor</button><button id="refresh" class="secondary">Refresh Status</button>
-<p class="muted">The worker runs in GitHub Actions, so your PC can be offline.</p></article>
-<article class="card wide"><h2>Activity</h2><pre id="log" class="log">Loading…</pre></article>
-</section>
-<footer>Secrets stay in GitHub Actions. No GitHub token is stored in this website.</footer>
-</main><script src="app.js"></script></body></html>
+<body>
+<div class="studio">
+  <header class="topbar">
+    <div class="brand"><div class="logo">⚙</div><div><div class="eyebrow">WEB CONTROLLER</div><h1>AGENT STUDIO</h1><span>Digital operations room</span></div></div>
+    <div class="top-actions"><span id="status" class="pill online">● SYSTEM READY</span><button id="refresh" class="ghost">↻ Refresh</button></div>
+  </header>
+
+  <main class="stage">
+    <section class="hero">
+      <div><span class="eyebrow">CONTROL ROOM</span><h2>Welcome to the Studio</h2><p>The Manager coordinates one site at a time. Employees work inside the selected site, verify their work, then the queue moves forward.</p></div>
+      <div class="queue-card"><span>NEXT SITE</span><strong id="nextSite">Waiting for queue</strong><small>Single-site execution mode</small></div>
+    </section>
+
+    <section class="office">
+      <div class="office-sign">🏢 <b>AGENT STUDIO</b><span>AUTHORIZED WORKSPACE</span></div>
+      <div class="office-floor">
+        <div class="desk manager-desk">
+          <div class="character manager">🧑‍💼</div><div class="name">Manager</div><div class="role">Team Lead</div>
+          <div class="monitor"><span>QUEUE</span><b id="managerStatus">READY</b></div>
+        </div>
+        <div class="desk"><div class="character">🧑‍💻</div><div class="name">Researcher</div><div class="role">Research & Discovery</div><div class="monitor"><span>RESEARCH</span><b>STANDBY</b></div></div>
+        <div class="desk"><div class="character">👩‍💻</div><div class="name">Image Agent</div><div class="role">Media Worker</div><div class="monitor"><span>IMAGES</span><b>STANDBY</b></div></div>
+        <div class="desk"><div class="character">🧑‍🔧</div><div class="name">Bug Hunter</div><div class="role">Find & Diagnose</div><div class="monitor"><span>BUGS</span><b>STANDBY</b></div></div>
+        <div class="desk"><div class="character">👩‍🔬</div><div class="name">SEO Agent</div><div class="role">Search Specialist</div><div class="monitor"><span>SEO</span><b>STANDBY</b></div></div>
+        <div class="desk"><div class="character">🧑‍🎨</div><div class="name">Idea Builder</div><div class="role">New Site Ideas</div><div class="monitor"><span>IDEAS</span><b>STANDBY</b></div></div>
+        <div class="desk"><div class="character">👨‍💻</div><div class="name">Publisher</div><div class="role">Build & Deploy</div><div class="monitor"><span>DEPLOY</span><b>STANDBY</b></div></div>
+        <div class="desk"><div class="character">🧪</div><div class="name">QA Agent</div><div class="role">Final Verification</div><div class="monitor"><span>QA</span><b>STANDBY</b></div></div>
+      </div>
+    </section>
+
+    <section class="lower">
+      <div class="panel"><div class="panel-title"><h3>🧭 Site Queue</h3><span id="queueCount">0 sites</span></div><div id="queue" class="queue-list"><div class="empty">No sites configured yet.</div></div></div>
+      <div class="panel chat"><div class="panel-title"><h3>💬 Studio Chat</h3><span>Manager + all employees</span></div>
+        <div id="chatLog" class="chat-log">
+          <div class="bubble manager-bubble"><b>Manager</b><p>Assalam-o-alaikum, Boss. Studio is ready. Add authorized sites and I’ll coordinate the team one site at a time.</p></div>
+        </div>
+        <form id="chatForm"><input id="chatInput" autocomplete="off" placeholder="Talk to the Studio… e.g. “show status”"><button>Send</button></form>
+      </div>
+      <div class="panel stats"><div class="panel-title"><h3>📊 Control Board</h3></div>
+        <div class="stat"><span>Controller</span><b id="controller">Waiting</b></div><div class="stat"><span>Last run</span><b id="lastRun">—</b></div><div class="stat"><span>Sites</span><b id="repos">0</b></div><div class="stat"><span>Sources</span><b id="sources">0</b></div><div class="stat"><span>Discovered</span><b id="discovered">0</b></div>
+        <button id="run" class="primary">▶ Open Run Monitor</button>
+      </div>
+    </section>
+  </main>
+  <footer>Studio UI is static and safe for GitHub Pages. Privileged credentials stay in GitHub Actions.</footer>
+</div><script src="app.js"></script></body></html>
