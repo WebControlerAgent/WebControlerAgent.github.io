@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "runtime": "github-actions",
+  "manager": "manager",
+  "execution": {
+    "max_active_sites": 1,
+    "complete_before_next": true,
+    "failure_blocks_queue": true,
+    "max_retries": 3
+  },
+  "agents": [
+    {"id":"manager","name":"Manager","role":"Team Lead","mission":"Receive user instructions, inspect runtime state, choose the next authorized task, delegate work and report results.","can_delegate":["researcher","image-agent","publisher","seo-agent","qa","bug-hunter","bug-solver","idea-builder"]},
+    {"id":"researcher","name":"Researcher","role":"Research & Discovery","mission":"Research only authorized sources and prepare structured work for the active site."},
+    {"id":"image-agent","name":"Image Agent","role":"Authorized Media Worker","mission":"Collect and prepare media only from explicitly authorized sources; never bypass access controls."},
+    {"id":"publisher","name":"Publisher","role":"Build & Deploy","mission":"Build, update and deploy the active authorized site through deterministic GitHub Actions."},
+    {"id":"seo-agent","name":"SEO Agent","role":"Search Specialist","mission":"Generate and validate metadata, internal links, sitemap and indexing-ready technical SEO."},
+    {"id":"qa","name":"QA Agent","role":"Final Verification","mission":"Verify the active site and only mark completion after required checks pass."},
+    {"id":"bug-hunter","name":"Bug Hunter","role":"Find & Diagnose","mission":"Inspect a failed verification, identify the root cause and create a structured repair task."},
+    {"id":"bug-solver","name":"Bug Solver","role":"Repair & Fix","mission":"Apply the smallest safe repair, run verification and return the result to QA."},
+    {"id":"idea-builder","name":"Idea Builder","role":"New Site Ideas","mission":"Develop future site ideas without interrupting the active-site queue."}
+  ],
+  "failure_flow":["qa","bug-hunter","bug-solver","qa"],
+  "completion_flow":["manager","researcher","image-agent","publisher","seo-agent","qa","manager"]
+}
