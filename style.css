@@ -96,3 +96,18 @@ linear-gradient(180deg,#1d2935 0,#121a22 23%,#0c1218 23%,#111923 100%)!important
 @keyframes officeRunner{0%{transform:translate(0,0)}25%{transform:translate(-270px,20px)}50%{transform:translate(-230px,410px)}75%{transform:translate(250px,390px)}100%{transform:translate(0,0)}}
 @media(max-width:1200px){.office-v2{min-height:980px!important}.office-v2 .desk{width:180px!important}.office-v2 .manager-desk{left:2%;}.office-v2 .desk[data-agent="researcher"]{left:20%}.office-v2 .desk[data-agent="image-agent"]{left:37%}.office-v2 .desk[data-agent="bug-hunter"]{left:54%}.office-v2 .desk[data-agent="seo-agent"]{left:71%}.office-v2 .desk[data-agent="idea-builder"]{left:20%;top:650px}.office-v2 .desk[data-agent="publisher"]{left:37%;top:650px}.office-v2 .desk[data-agent="qa"]{left:54%;top:650px}.office-v2 .desk[data-agent="bug-solver"]{left:71%;top:650px}.office-v2 .office-wall{width:16%}.back-wall{left:18%;right:18%}}
 @media(max-width:900px){.office-v2{min-height:1500px!important}.office-v2 .desk{position:absolute!important;width:210px!important}.office-v2 .manager-desk{left:5%;top:290px}.office-v2 .desk[data-agent="researcher"]{left:52%;top:290px}.office-v2 .desk[data-agent="image-agent"]{left:5%;top:600px}.office-v2 .desk[data-agent="bug-hunter"]{left:52%;top:600px}.office-v2 .desk[data-agent="seo-agent"]{left:5%;top:910px}.office-v2 .desk[data-agent="idea-builder"]{left:52%;top:910px}.office-v2 .desk[data-agent="publisher"]{left:5%;top:1220px}.office-v2 .desk[data-agent="qa"]{left:52%;top:1220px}.office-v2 .desk[data-agent="bug-solver"]{display:none}.office-wall{display:none}.back-wall{left:5%;right:5%}.big-board{left:20%;width:60%}.server-corner{bottom:15px}.file-corner{bottom:15px}.coffee-corner{display:none}.walking-file{display:none}}
+
+
+/* FINAL EMOJI CHARACTER FIX */
+.office-v2 .desk .character{
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  position:relative!important;z-index:30!important;width:100%!important;
+  height:112px!important;min-height:112px!important;margin:0 0 4px!important;padding:0!important;
+  font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif!important;
+  font-size:82px!important;line-height:1!important;text-align:center!important;
+  visibility:visible!important;opacity:1!important;transform:none!important;
+  filter:drop-shadow(0 8px 6px rgba(0,0,0,.65))!important;
+  animation:emojiFloat 2.2s ease-in-out infinite!important;pointer-events:none!important;
+}
+.office-v2 .desk .name,.office-v2 .desk .role,.office-v2 .desk .workstation,.office-v2 .desk .monitor{position:relative;z-index:35!important}
+@keyframes emojiFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-5px) scale(1.02)}}
