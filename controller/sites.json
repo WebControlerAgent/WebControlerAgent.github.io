@@ -16,7 +16,8 @@
         "enabled": true,
         "authorized_source": true,
         "path": "chapter-images/"
-      }
+      },
+      "description": "Primary authorized test site for the GitHub-native Agent Runtime."
     }
   ],
   "policy": {
