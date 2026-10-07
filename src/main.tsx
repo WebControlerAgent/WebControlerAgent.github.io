@@ -110,7 +110,7 @@ function App(){
     <div className="activity"><b>LIVE ACTIVITY</b><span><i className="pulse"/> {selectedAgent.name} — {selectedAgent.task}</span><small>One active site at a time • state-driven workspace</small></div>
     {chatOpen&&<div className="chat-panel">
       <div className="chat-head"><div><b>MANAGER CHAT</b><small>Talk to the Agent Studio team • GitHub Runtime</small></div><button onClick={()=>setChatOpen(false)}>×</button></div>
-      <div className="chat-messages">{messages.map((m,i)=><div key={i} className={"chat-msg "+(m.from==="You"?"you":"")}><span>{m.from}</span><p>{m.text}</p>{m.runtimeAction&&<a className="runtime-action" href="https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/workflows/agent-dispatch.yml" target="_blank" rel="noreferrer">⚡ Open GitHub Runtime</a>}</div>)}</div>
+      <div className="chat-messages">{messages.map((m,i)=><div key={i} className={"chat-msg "+(m.from==="You"?"you":"")}><span>{m.from}</span><p>{m.text}</p>{m.runtimeAction&&<a className="runtime-action" href={m.runtimeAction?`https://github.com/WebControlerAgent/WebControlerAgent.github.io/issues/new?title=${encodeURIComponent("[Agent Runtime] "+m.runtimeAction.action)}&body=${encodeURIComponent("<!-- agent-runtime-command\n"+JSON.stringify(m.runtimeAction,null,2)+"\n-->")}`:"#"} target="_blank" rel="noreferrer">⚡ Send to GitHub Runtime</a>}</div>)}</div>
       <form className="chat-input" onSubmit={e=>{e.preventDefault();sendChat()}}>
         <input value={chatInput} onChange={e=>setChatInput(e.target.value)} placeholder="Ask Manager..." aria-label="Message Manager"/>
         <button type="submit" aria-label="Send message">➤</button>
