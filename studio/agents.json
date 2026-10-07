@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "execution": {"max_active_sites": 1, "complete_before_next": true},
+  "agents": [
+    {"id":"manager","name":"Manager","role":"Team Lead","character":"🧑‍💼"},
+    {"id":"researcher","name":"Researcher","role":"Research & Discovery","character":"🧑‍🔬"},
+    {"id":"image-agent","name":"Image Agent","role":"Authorized Media Worker","character":"🧑‍🎨"},
+    {"id":"seo-agent","name":"SEO Agent","role":"Search Specialist","character":"👩‍💻"},
+    {"id":"bug-hunter","name":"Bug Hunter","role":"Find & Diagnose","character":"🕵️"},
+    {"id":"bug-solver","name":"Bug Solver","role":"Repair & Fix","character":"🧑‍🔧"},
+    {"id":"idea-builder","name":"Idea Builder","role":"New Site Ideas","character":"💡"},
+    {"id":"publisher","name":"Publisher","role":"Build & Deploy","character":"📤"},
+    {"id":"qa","name":"QA Agent","role":"Final Verification","character":"🧪"}
+  ]
+}
