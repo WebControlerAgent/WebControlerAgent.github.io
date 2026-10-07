@@ -1,0 +1,82 @@
+name: Manager AI Brain
+
+on:
+  workflow_dispatch:
+    inputs:
+      instruction:
+        description: Natural-language instruction for the Manager
+        required: true
+        type: string
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+  actions: write
+
+concurrency:
+  group: manager-ai
+  cancel-in-progress: false
+
+jobs:
+  manager:
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.issue.user.login == 'WebControlerAgent' && startsWith(github.event.issue.title, '[Manager AI]')) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read instruction
+        env:
+          MANUAL_INSTRUCTION: ${{ inputs.instruction }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            printf '%s' "$MANUAL_INSTRUCTION" > /tmp/manager-instruction.txt
+          else
+            python3 - <<'PY'
+          import json, os
+          e=json.load(open(os.environ['GITHUB_EVENT_PATH'],encoding='utf-8'))
+          open('/tmp/manager-instruction.txt','w',encoding='utf-8').write((e['issue'].get('body') or '').strip())
+          PY
+          fi
+
+      - name: Think with Manager AI
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: gemini-3.8-flash
+        run: |
+          python3 controller/manager_ai.py "$(cat /tmp/manager-instruction.txt)" > /tmp/manager-plan.json
+          cat /tmp/manager-plan.json
+
+      - name: Persist Manager plan
+        run: |
+          cp /tmp/manager-plan.json controller/manager_plan.json
+          git config user.name 'Web Controller Agent'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add controller/manager_plan.json
+          git diff --cached --quiet || git commit -m 'chore: persist manager AI plan'
+          git push
+
+      - name: Dispatch deterministic runtime
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          action=$(python3 -c 'import json; print(json.load(open("/tmp/manager-plan.json"))["action"])')
+          command=$(cat /tmp/manager-plan.json)
+          if [ "$action" = "none" ]; then
+            echo "Manager chose no runtime action."
+            exit 0
+          fi
+          gh workflow run agent-command.yml --ref main -f command="$command"
+          echo "Runtime workflow dispatched."
+
+      - name: Report to issue
+        if: ${{ github.event_name == 'issues' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          reply=$(python3 -c 'import json; print(json.load(open("/tmp/manager-plan.json")).get("reply","Manager plan created."))')
+          gh issue comment '${{ github.event.issue.number }}' --body "🤖 **Manager AI:** $reply"
+          gh issue close '${{ github.event.issue.number }}'
