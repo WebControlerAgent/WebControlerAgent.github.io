@@ -4,6 +4,7 @@ import {Canvas,useFrame,useThree} from "@react-three/fiber";
 import {Html,OrbitControls,Text,useCursor} from "@react-three/drei";
 import * as THREE from "three";
 import "./styles.css";
+import {managerReply} from "./chat/managerChat";
 
 type Status="IDLE"|"WALKING"|"WORKING"|"THINKING"|"MEETING"|"SUCCESS"|"ERROR";
 type Agent={id:string;name:string;role:string;color:string;accent:string;desk:[number,number,number];waypoints:[number,number,number][];task:string;status:Status;icon:string};
@@ -91,6 +92,10 @@ function CameraRig({focus}:{focus:string|null}){
 
 function App(){
  const [selected,setSelected]=useState<string|null>("manager"); const [now,setNow]=useState(new Date()); const [status,setStatus]=useState<any>(null);
+ const [chatOpen,setChatOpen]=useState(true);
+ const [chatInput,setChatInput]=useState("");
+ const [messages,setMessages]=useState<{from:string;text:string}[]>([{from:"Manager",text:"Studio online hai. Status, queue, bug, ya kisi employee ka naam bolo."}]);
+ const sendChat=()=>{const text=chatInput.trim();if(!text)return;const reply=managerReply(text,agents,status);setMessages(m=>[...m,{from:"You",text},{from:agents.find(a=>a.id===reply.agentId)?.name??"Manager",text:reply.text}]);setChatInput("");setSelected(reply.agentId);};
  useEffect(()=>{const t=setInterval(()=>setNow(new Date()),1000);return()=>clearInterval(t)},[]);
  useEffect(()=>{fetch("./status.json?ts="+Date.now()).then(r=>r.ok?r.json():null).then(setStatus).catch(()=>{})},[]);
  const selectedAgent=agents.find(a=>a.id===selected)??agents[0];
@@ -104,7 +109,7 @@ function App(){
     <div className="scene-controls"><button onClick={()=>setSelected("manager")}>⌖ Focus Agent</button><button onClick={()=>setSelected(null)}>◎ Overview</button></div>
     <div className="activity"><b>LIVE ACTIVITY</b><span><i className="pulse"/> {selectedAgent.name} — {selectedAgent.task}</span><small>One active site at a time • state-driven workspace</small></div>
    </main>
-   <aside className="inspector"><div className="inspector-head"><span>SELECTED AGENT</span><button onClick={()=>setSelected(null)}>×</button></div><div className="portrait" style={{background:selectedAgent.color}}><span>{selectedAgent.icon}</span><i style={{background:statusTone(selectedAgent.status)}}/></div><h2>{selectedAgent.name}</h2><p>{selectedAgent.role}</p><div className="status-card"><span>STATUS</span><b style={{color:statusTone(selectedAgent.status)}}>● {selectedAgent.status}</b></div><div className="task-card"><span>CURRENT TASK</span><b>{selectedAgent.task}</b></div><div className="detail"><span>Destination</span><b>{selectedAgent.status==="WALKING"?"Moving through office":"Assigned workstation"}</b></div><div className="detail"><span>Workspace</span><b>Agent Studio</b></div><button className="talk" onClick={()=>alert("Manager channel is available in the Studio runtime.")}>💬 Open employee channel</button><div className="timeline"><b>RECENT ACTIVITY</b><div>● Task started <small>now</small></div><div>● State → {selectedAgent.status} <small>live</small></div><div>● Next checkpoint <small>queued</small></div></div></aside>
+   <aside className="inspector"><div className="inspector-head"><span>SELECTED AGENT</span><button onClick={()=>setSelected(null)}>×</button></div><div className="portrait" style={{background:selectedAgent.color}}><span>{selectedAgent.icon}</span><i style={{background:statusTone(selectedAgent.status)}}/></div><h2>{selectedAgent.name}</h2><p>{selectedAgent.role}</p><div className="status-card"><span>STATUS</span><b style={{color:statusTone(selectedAgent.status)}}>● {selectedAgent.status}</b></div><div className="task-card"><span>CURRENT TASK</span><b>{selectedAgent.task}</b></div><div className="detail"><span>Destination</span><b>{selectedAgent.status==="WALKING"?"Moving through office":"Assigned workstation"}</b></div><div className="detail"><span>Workspace</span><b>Agent Studio</b></div><button className="talk" onClick={()=>setChatOpen(true)}>💬 Open employee channel</button><div className="timeline"><b>RECENT ACTIVITY</b><div>● Task started <small>now</small></div><div>● State → {selectedAgent.status} <small>live</small></div><div>● Next checkpoint <small>queued</small></div></div></aside>
   </div>
  </div>
 }
