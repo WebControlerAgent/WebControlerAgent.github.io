@@ -2,7 +2,7 @@ export type RuntimeAction = {
   action:"claim"|"assign"|"verify"|"complete"|"fail";
   site?:string; agent?:string; task?:string; passed?:boolean; error?:string;
 };
-export type ChatReply = { text:string; agentId:string; runtimeAction?:RuntimeAction };
+export type ChatReply = { text:string; agentId:string; runtimeAction?:RuntimeAction; aiRequest?:string };
 
 type AgentSnapshot = { id:string; name:string; role:string; status:string; task:string };
 
@@ -47,5 +47,5 @@ export function managerReply(input:string, agents:AgentSnapshot[], runtime:any):
     return {agentId:"manager",text:site?"Current site "+site+" must complete/verify before the next site starts.":"Queue is ready; Manager will claim the next authorized site when available."};
   }
 
-  return {agentId:"manager",text:"Command received by Manager. I can read the actual Agent Runtime state; execution commands are sent through the protected GitHub Actions dispatcher."};
+  return {agentId:"manager",text:"Instruction received. For real Manager reasoning, send this instruction to the protected Manager AI workflow; the public page never receives the AI secret.",aiRequest:input};
 }
