@@ -45,6 +45,13 @@ jobs:
         with:
           path: ./dist
 
+      - name: Allow Pages artifact to finalize
+        run: sleep 15
+
       - name: Deploy to GitHub Pages
         id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Retry GitHub Pages deployment
+        if: failure()
         uses: actions/deploy-pages@v4
