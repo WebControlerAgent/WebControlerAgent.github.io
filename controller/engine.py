@@ -42,7 +42,7 @@ def fetch_json(source):
         return json.loads(response.read().decode("utf-8"))
 
 def main():
-    from controller.agent_runtime import normalize
+    from agent_runtime import normalize
     started = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     cfg = load(CONFIG, {})
     state = load(STATE, {"seen": {}})
