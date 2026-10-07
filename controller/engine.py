@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parent.parent
 CONFIG = ROOT / "controller" / "config.json"
 STATE = ROOT / "controller" / "state.json"
 STATUS = ROOT / "public" / "status.json"
+AGENT_STATE = ROOT / "controller" / "agent_state.json"
 
 def load(path, default):
     if not path.exists():
@@ -41,9 +42,11 @@ def fetch_json(source):
         return json.loads(response.read().decode("utf-8"))
 
 def main():
+    from controller.agent_runtime import normalize
     started = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     cfg = load(CONFIG, {})
     state = load(STATE, {"seen": {}})
+    agent_state = normalize(load(AGENT_STATE, None))
     errors, discovered = [], []
     sources = {s["id"]: s for s in cfg.get("sources", []) if s.get("enabled")}
     targets = {t["id"]: t for t in cfg.get("targets", []) if t.get("enabled")}
@@ -87,9 +90,11 @@ def main():
         "targets_configured": len(targets),
         "discovered": discovered,
         "errors": errors,
-        "note": "Discovery only. Publishing requires an explicit authorized target adapter."
+        "note": "Discovery only. Publishing requires an explicit authorized target adapter.",
+        "agent_runtime": agent_state,
     }
     save(STATE, state)
+    save(AGENT_STATE, agent_state)
     save(STATUS, status)
     print(json.dumps(status, indent=2))
     return 0 if not errors else 1
