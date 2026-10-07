@@ -1,5 +1,26 @@
 {
   "version": 1,
-  "sites": [],
-  "policy": {"one_active_site": true, "authorized_only": true}
+  "sites": [
+    {
+      "id": "kingdom-raw",
+      "name": "Kingdom Raw",
+      "repository": "kindgommangaraw/kindgommangaraw.github.io",
+      "branch": "main",
+      "live_url": "https://jpmangaatlis.online/",
+      "enabled": true,
+      "authorized": true,
+      "routes": [
+        "authorized-github-repository"
+      ],
+      "media": {
+        "enabled": true,
+        "authorized_source": true,
+        "path": "chapter-images/"
+      }
+    }
+  ],
+  "policy": {
+    "one_active_site": true,
+    "authorized_only": true
+  }
 }
