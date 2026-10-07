@@ -23,14 +23,14 @@ const statusTone=(s:Status)=>({IDLE:"#718096",WALKING:"#60a5fa",WORKING:"#4ade80
 function Label({children,color="#dce8f2"}:{children:React.ReactNode;color?:string}){return <Html center distanceFactor={10} position={[0,1.9,0]}><div className="world-label" style={{borderColor:color+"55"}}>{children}</div></Html>}
 
 function Character({agent,selected,onSelect}:{agent:Agent;selected:boolean;onSelect:()=>void}){
- const ref=useRef<THREE.Group>(null); const [i,setI]=useState(0); const [pos]=useState(()=>new THREE.Vector3(...agent.waypoints[0])); const [rot,setRot]=useState(0); const [hover,setHover]=useState(false);
+ const ref=useRef<THREE.Group>(null); const [i,setI]=useState(0); const [pos]=useState(()=>new THREE.Vector3(...agent.waypoints[0])); const rot=useRef(0); const [hover,setHover]=useState(false);
  useCursor(hover);
  useEffect(()=>{const t=setInterval(()=>setI(v=>(v+1)%agent.waypoints.length),4200);return()=>clearInterval(t)},[agent.waypoints.length]);
  useFrame((_,dt)=>{
    if(!ref.current)return;
    const target=new THREE.Vector3(...agent.waypoints[i]); const d=target.clone().sub(pos); const moving=d.length()>0.06;
-   if(moving){const step=Math.min(d.length(),dt*1.7);d.normalize();pos.addScaledVector(d,step);setRot(Math.atan2(d.x,d.z));}
-   ref.current.position.copy(pos); ref.current.rotation.y=THREE.MathUtils.lerp(ref.current.rotation.y,rot,.12);
+   if(moving){const step=Math.min(d.length(),dt*1.7);d.normalize();pos.addScaledVector(d,step);rot.current=Math.atan2(d.x,d.z);}
+   ref.current.position.copy(pos); ref.current.rotation.y=THREE.MathUtils.lerp(ref.current.rotation.y,rot.current,.12);
    const bob=agent.status==="WORKING"||moving?Math.sin(performance.now()/170)*.035:Math.sin(performance.now()/850)*.012;
    ref.current.position.y=bob;
  });
