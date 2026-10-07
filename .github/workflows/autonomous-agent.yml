@@ -1,36 +1,67 @@
 name: Autonomous Agent Run
 on:
+  push:
+    paths:
+      - "controller/sites.json"
   workflow_dispatch:
     inputs:
       site:
-        description: "Enabled authorized site id"
-        required: true
+        description: "Enabled authorized site id (leave empty to use the only enabled site)"
+        required: false
+        default: ""
         type: string
+
 permissions:
   contents: write
   pages: write
   id-token: write
+
 concurrency:
   group: autonomous-agent-run
   cancel-in-progress: false
+
 jobs:
   run:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+
       - name: Validate runtime
         run: python3 controller/verify_runtime.py
+
+      - name: Select site
+        id: site
+        env:
+          REQUESTED_SITE: ${{ inputs.site }}
+        run: |
+          set -e
+          if [ -n "$REQUESTED_SITE" ]; then
+            echo "site=$REQUESTED_SITE" >> "$GITHUB_OUTPUT"
+          else
+            python3 - <<'PY' >> "$GITHUB_OUTPUT"
+            import json
+            data=json.load(open("controller/sites.json", encoding="utf-8"))
+            enabled=[s["id"] for s in data.get("sites", []) if s.get("enabled") and s.get("authorized")]
+            if len(enabled) != 1:
+                raise SystemExit("Expected exactly one enabled authorized site; found: "+str(enabled))
+            print("site="+enabled[0])
+            PY
+          fi
+
       - name: Run sequential pipeline
+        env:
+          SITE_ID: ${{ steps.site.outputs.site }}
         run: |
           set -e
           for i in 1 2 3 4 5 6 7 8 9; do
-            python3 controller/agent_worker.py "${{ inputs.site }}" || exit 1
+            python3 controller/agent_worker.py "$SITE_ID"
             active=$(python3 -c 'import json; print(bool(json.load(open("controller/agent_state.json")).get("active_site")))')
             if [ "$active" != "True" ]; then exit 0; fi
           done
           echo "Agent pipeline did not finish within the allowed steps."
           exit 1
+
       - name: Persist runtime state
         if: always()
         run: |
