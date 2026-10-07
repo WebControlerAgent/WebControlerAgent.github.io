@@ -20,7 +20,7 @@
 <section class="office">
   <div class="office-sign"><span class="sign-lamp">●</span> 🏢 <b>AGENT STUDIO</b><span>AUTHORIZED WORKSPACE</span></div>
   <div class="office-floor">
-    <div class="room-label">OPERATIONS FLOOR</div>
+    <div class="room-label">OPERATIONS FLOOR</div><div class="studio-decor"><div class="ceiling-lamps"><i></i><i></i><i></i><i></i></div><div class="manager-cabin"><b>MANAGER CABIN</b><span>QUEUE CONTROL</span></div><div class="meeting-zone"><b>TEAM MEETING</b><div class="meeting-table"></div><i></i><i></i><i></i><i></i></div><div class="coffee-station"><b>☕ COFFEE</b><span>HOT • READY</span></div><div class="file-wall"><b>FILE ROOM</b><span>📁 📁 📁</span><span>📄 📄 📄</span></div><div class="server-rack"><b>SERVER</b><i></i><i></i><i></i></div><div class="whiteboard"><b>TODAY’S PLAN</b><span>① CLAIM</span><span>② WORK</span><span>③ VERIFY</span><span>④ COMPLETE</span></div><div class="wall-clock" id="officeClock">--:--</div></div>
     <div class="walking-zone"><div class="floor-light l1"></div><div class="floor-light l2"></div><div class="plant p1">🌿</div><div class="plant p2">🪴</div><div class="coffee">☕</div>
       <div class="file-runner"><div class="pixel-person tiny"><span class="head"></span><span class="body"></span><span class="arm a1"></span><span class="arm a2"></span><span class="leg l1"></span><span class="leg l2"></span></div><div class="folder-stack">📁📄</div><b>FILE COORDINATOR</b></div>
     </div>
@@ -50,4 +50,4 @@
 <footer>Agent characters are original UI representations. Privileged credentials stay in GitHub Actions.</footer>
 </div>
 <div id="agentModal" class="modal hidden"><div class="modal-card"><button id="closeModal" class="modal-close">×</button><div id="modalAvatar" class="modal-avatar">🧑‍💼</div><div id="modalName" class="modal-name">Manager</div><div id="modalRole" class="modal-role">Team Lead</div><div class="modal-state">● <span id="modalState">READY</span></div><div class="modal-task"><span>Current task</span><b id="modalTask">Waiting for assignment</b></div><button id="modalChat" class="primary">💬 Talk to employee</button></div></div>
-<script src="app.js"><script>window.addEventListener("load",()=>{const c=document.getElementById("officeClock");if(c){const tick=()=>c.textContent=new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});tick();setInterval(tick,1000);}});</script></body></html>
+<script src="app.js"></script><script>window.addEventListener("load",()=>{const c=document.getElementById("officeClock");if(c){const tick=()=>c.textContent=new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});tick();setInterval(tick,1000);}});</script></body></html>
