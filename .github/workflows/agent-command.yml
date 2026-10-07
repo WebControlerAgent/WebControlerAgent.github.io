@@ -16,12 +16,14 @@ jobs:
   command:
     if: github.event.issue.user.login == 'WebControlerAgent' && startsWith(github.event.issue.title, '[Agent Runtime]')
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Parse command
         run: python3 controller/issue_command.py > /tmp/runtime-command.json
+
       - name: Apply runtime command
         run: |
           python3 - <<'PY'
@@ -32,27 +34,61 @@ jobs:
               args += ['--'+k,str(c.get(k,''))]
           subprocess.run(args,check=True)
           PY
-      - name: Commit runtime state
+
+      - name: Run autonomous pipeline in this GitHub job
+        run: |
+          set -u
+          action=$(python3 -c 'import json;print(json.load(open("/tmp/runtime-command.json"))["action"])')
+          site=$(python3 -c 'import json;print(json.load(open("/tmp/runtime-command.json")).get("site",""))')
+
+          if [ "$action" != "claim" ] || [ -z "$site" ]; then
+            echo "No autonomous pipeline required for action=$action"
+            exit 0
+          fi
+
+          for i in 1 2 3 4 5 6 7 8 9; do
+            echo "=== Agent pipeline step $i ==="
+            set +e
+            python3 controller/agent_worker.py "$site"
+            rc=$?
+            set -e
+
+            active=$(python3 -c 'import json; print(bool(json.load(open("controller/agent_state.json")).get("active_site")))')
+            retries=$(python3 -c 'import json; print(int(json.load(open("controller/agent_state.json")).get("active_site",{}).get("retries",0)))')
+
+            echo "worker_exit=$rc active_site=$active retries=$retries"
+
+            if [ "$retries" -gt 3 ]; then
+              echo "Retry limit exceeded."
+              exit 1
+            fi
+
+            if [ "$active" != "True" ]; then
+              echo "Agent pipeline completed."
+              exit 0
+            fi
+          done
+
+          echo "Agent pipeline did not finish within the allowed steps."
+          exit 1
+
+      - name: Persist final runtime state
+        if: always()
         run: |
           git config user.name 'Web Controller Agent'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add controller/agent_state.json public/status.json
-          git diff --cached --quiet || git commit -m 'chore: apply GitHub Agent Runtime command'
+          git diff --cached --quiet || git commit -m 'chore: persist autonomous agent pipeline state'
           git push
-      - name: Start autonomous agent pipeline
-        if: success()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          action=$(python3 -c 'import json;print(json.load(open("/tmp/runtime-command.json"))["action"])')
-          site=$(python3 -c 'import json;print(json.load(open("/tmp/runtime-command.json")).get("site",""))')
-          if [ "$action" = "claim" ] && [ -n "$site" ]; then
-            gh workflow run autonomous-agent.yml --ref main -f site="$site"
-          fi
 
       - name: Report result
+        if: always()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh issue comment '${{ github.event.issue.number }}' --body '✅ **Agent Runtime command accepted and applied by GitHub Actions.**'
+          if [ "${{ job.status }}" = "success" ]; then
+            gh issue comment '${{ github.event.issue.number }}' --body '✅ **Agent Runtime command completed successfully.** The autonomous pipeline finished in GitHub Actions.'
+          else
+            gh issue comment '${{ github.event.issue.number }}' --body '❌ **Agent Runtime command failed.** Runtime state and diagnostics were persisted in the repository.'
+          fi
           gh issue close '${{ github.event.issue.number }}'
