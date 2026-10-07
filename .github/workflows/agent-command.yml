@@ -39,6 +39,17 @@ jobs:
           git add controller/agent_state.json public/status.json
           git diff --cached --quiet || git commit -m 'chore: apply GitHub Agent Runtime command'
           git push
+      - name: Start autonomous agent pipeline
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          action=$(python3 -c 'import json;print(json.load(open("/tmp/runtime-command.json"))["action"])')
+          site=$(python3 -c 'import json;print(json.load(open("/tmp/runtime-command.json")).get("site",""))')
+          if [ "$action" = "claim" ] && [ -n "$site" ]; then
+            gh workflow run autonomous-agent.yml --ref main -f site="$site"
+          fi
+
       - name: Report result
         env:
           GH_TOKEN: ${{ github.token }}
