@@ -25,9 +25,9 @@ AGENTS = {
 }
 
 PIPELINE = [
-    "manager", "researcher", "image-agent", "publisher",
-    "seo-agent", "qa", "bug-hunter", "bug-solver",
+    "manager", "researcher", "image-agent", "publisher", "seo-agent", "qa",
 ]
+FAILURE_PIPELINE = ["bug-hunter", "bug-solver", "qa"]
 
 def new_runtime_state():
     return {
