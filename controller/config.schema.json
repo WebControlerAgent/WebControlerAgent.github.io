@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "interval_minutes": 60,
+  "sources": [
+    {
+      "id": "example-api",
+      "type": "json_api",
+      "url": "https://example.com/authorized-feed.json",
+      "enabled": false,
+      "auth_secret": "",
+      "items_path": "items",
+      "id_field": "id",
+      "title_field": "title",
+      "updated_field": "updated",
+      "content_url_field": "content_url"
+    }
+  ],
+  "targets": [
+    {
+      "id": "example-site",
+      "repository": "OWNER/REPO",
+      "enabled": false,
+      "branch": "main",
+      "manifest_path": "automation/incoming.json"
+    }
+  ],
+  "routes": [
+    {"source_id": "example-api", "target_id": "example-site"}
+  ],
+  "limits": {"max_items_per_run": 20, "max_retries": 3},
+  "policy": {
+    "authorized_sources_only": true,
+    "require_explicit_route": true
+  }
+}
