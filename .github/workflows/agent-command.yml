@@ -1,0 +1,47 @@
+name: Agent Runtime Command
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: agent-runtime-command
+  cancel-in-progress: false
+
+jobs:
+  command:
+    if: github.event.issue.user.login == 'WebControlerAgent' && startsWith(github.event.issue.title, '[Agent Runtime]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Parse command
+        run: python3 controller/issue_command.py > /tmp/runtime-command.json
+      - name: Apply runtime command
+        run: |
+          python3 - <<'PY'
+          import json, subprocess
+          c=json.load(open('/tmp/runtime-command.json'))
+          args=['python3','controller/dispatch.py','--action',c['action']]
+          for k in ('site','agent','task','passed','error'):
+              args += ['--'+k,str(c.get(k,''))]
+          subprocess.run(args,check=True)
+          PY
+      - name: Commit runtime state
+        run: |
+          git config user.name 'Web Controller Agent'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add controller/agent_state.json public/status.json
+          git diff --cached --quiet || git commit -m 'chore: apply GitHub Agent Runtime command'
+          git push
+      - name: Report result
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue comment '${{ github.event.issue.number }}' --body '✅ **Agent Runtime command accepted and applied by GitHub Actions.**'
+          gh issue close '${{ github.event.issue.number }}'
