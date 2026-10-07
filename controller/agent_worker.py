@@ -94,6 +94,16 @@ def main():
         })
 
         if agent=="qa":
+            # QA is the final gate. Reset all agents involved in this
+            # completed flow so the persistent state matches the UI.
+            for completed_agent in flow:
+                agent_state = states.setdefault(completed_agent,{})
+                agent_state.update({
+                    "state":"IDLE",
+                    "site":None,
+                    "task":None,
+                    "error":None
+                })
             states[agent]["state"]="COMPLETED"
             st["active_site"]=None
             st["events"].append({
