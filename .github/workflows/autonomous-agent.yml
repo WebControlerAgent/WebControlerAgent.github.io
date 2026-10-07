@@ -20,13 +20,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run agent pipeline
+        continue-on-error: true
         run: |
-          python3 controller/agent_worker.py "${{ inputs.site }}"
-          python3 controller/agent_worker.py "${{ inputs.site }}"
-          python3 controller/agent_worker.py "${{ inputs.site }}"
-          python3 controller/agent_worker.py "${{ inputs.site }}"
-          python3 controller/agent_worker.py "${{ inputs.site }}"
-          python3 controller/agent_worker.py "${{ inputs.site }}"
+          set +e
+          for i in 1 2 3 4 5 6 7 8 9; do
+            python3 controller/agent_worker.py "${{ inputs.site }}"
+            if [ ! -f controller/agent_state.json ]; then break; fi
+            active=$(python3 -c 'import json; s=json.load(open("controller/agent_state.json")); print(bool(s.get("active_site")))')
+            if [ "$active" != "True" ]; then break; fi
+          done
+
       - name: Commit runtime state
         run: |
           git config user.name "Web Controller Agent"
