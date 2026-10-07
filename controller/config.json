@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "interval_minutes": 60,
+  "sources": [],
+  "targets": [],
+  "routes": [],
+  "limits": {"max_items_per_run": 20, "max_retries": 3},
+  "policy": {
+    "authorized_sources_only": true,
+    "require_explicit_route": true
+  }
+}
