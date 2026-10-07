@@ -247,6 +247,57 @@
       "type": "site_completed",
       "site": "kingdom-raw",
       "at": "2026-10-07T17:07:10Z"
+    },
+    {
+      "type": "site_claimed",
+      "site": "kingdom-raw"
+    },
+    {
+      "type": "agent_step",
+      "agent": "manager",
+      "site": "kingdom-raw",
+      "task": "Validate and coordinate the active site",
+      "at": "2026-10-07T18:10:05Z"
+    },
+    {
+      "type": "agent_step",
+      "agent": "researcher",
+      "site": "kingdom-raw",
+      "task": "Validate authorized research routes",
+      "at": "2026-10-07T18:10:06Z"
+    },
+    {
+      "type": "agent_step",
+      "agent": "image-agent",
+      "site": "kingdom-raw",
+      "task": "Validate authorized media policy",
+      "at": "2026-10-07T18:10:06Z"
+    },
+    {
+      "type": "agent_step",
+      "agent": "publisher",
+      "site": "kingdom-raw",
+      "task": "Validate publication workspace",
+      "at": "2026-10-07T18:10:06Z"
+    },
+    {
+      "type": "agent_step",
+      "agent": "seo-agent",
+      "site": "kingdom-raw",
+      "task": "Validate core SEO and deployable files",
+      "at": "2026-10-07T18:10:06Z"
+    },
+    {
+      "type": "agent_step",
+      "agent": "qa",
+      "site": "kingdom-raw",
+      "task": "Run final verification",
+      "at": "2026-10-07T18:10:06Z"
+    },
+    {
+      "type": "site_completed",
+      "site": "kingdom-raw",
+      "at": "2026-10-07T18:10:06Z"
     }
   ]
 }
