@@ -1,0 +1,62 @@
+name: Agent Runtime Dispatch
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Runtime action"
+        required: true
+        type: choice
+        options: [claim, assign, verify, complete, fail]
+      site:
+        description: "Active site id"
+        required: false
+        type: string
+      agent:
+        description: "Agent id"
+        required: false
+        type: string
+      task:
+        description: "Task assigned to the agent"
+        required: false
+        type: string
+      passed:
+        description: "Verification passed?"
+        required: false
+        default: "false"
+        type: boolean
+      error:
+        description: "Failure/verification message"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: agent-runtime-dispatch
+  cancel-in-progress: false
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout runtime
+        uses: actions/checkout@v4
+      - name: Apply runtime command
+        run: |
+          python3 controller/dispatch.py \
+            --action "${{ inputs.action }}" \
+            --site "${{ inputs.site }}" \
+            --agent "${{ inputs.agent }}" \
+            --task "${{ inputs.task }}" \
+            --passed "${{ inputs.passed }}" \
+            --error "${{ inputs.error }}"
+      - name: Commit runtime state
+        run: |
+          git config user.name "Web Controller Agent"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add controller/agent_state.json public/status.json
+          git diff --cached --quiet || git commit -m "chore: apply agent runtime command"
+          git push
