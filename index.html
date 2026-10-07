@@ -1,58 +1,7 @@
 <!doctype html>
-<html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Agent Studio — Web Controller</title>
-<meta name="description" content="Agent Studio control room for authorized GitHub projects.">
-<link rel="stylesheet" href="style.css"></head>
-<body>
-<div class="studio">
-<header class="topbar">
-  <div class="brand"><div class="logo">⚙</div><div><div class="eyebrow">WEB CONTROLLER</div><h1>AGENT STUDIO</h1><span>Digital operations room</span></div></div>
-  <div class="top-actions"><span id="status" class="pill online">● SYSTEM READY</span><button id="refresh" class="ghost">↻ Refresh</button></div>
-</header>
-
-<main class="stage">
-<section class="hero">
-  <div><span class="eyebrow">CONTROL ROOM</span><h2>Welcome to the Studio</h2><p>The Manager coordinates one site at a time. Watch the team move, work, think and report like a living game office.</p></div>
-  <div class="queue-card"><span>NEXT SITE</span><strong id="nextSite">Waiting for queue</strong><small>Single-site execution mode</small></div>
-</section>
-
-<section class="office">
-  <div class="office-sign"><span class="sign-lamp">●</span> 🏢 <b>AGENT STUDIO</b><span>AUTHORIZED WORKSPACE</span></div>
-  <div class="office-floor office-v2">
-  <div class="ceiling"><i></i><i></i><i></i><i></i><span>AGENT STUDIO • OPERATIONS CENTER</span></div>
-  <div class="office-wall wall-left"><b>MANAGER CABIN</b><small>TEAM LEAD • CONTROL</small><div class="glass"></div></div>
-  <div class="office-wall wall-right"><b>MEETING ROOM</b><small>TEAM BRIEFING</small><div class="meeting-table"><i></i><i></i><i></i><i></i></div></div>
-  <div class="back-wall"><div class="big-board"><b>TODAY'S OPERATIONS</b><span>01 — CLAIM SITE</span><span>02 — WORK</span><span>03 — VERIFY</span><span>04 — COMPLETE</span></div><div class="clock" id="officeClock">--:--</div></div>
-  <div class="server-corner"><b>SERVER ROOM</b><span>● ONLINE</span><i></i><i></i><i></i></div>
-  <div class="file-corner"><b>FILE ROOM</b><span>INBOX&nbsp; 📥</span><span>OUTBOX 📤</span><span>ARCHIVE 📁</span></div>
-  <div class="coffee-corner"><b>BREAK AREA</b><div class="coffee-machine">☕</div><span>COFFEE READY</span></div>
-  <div class="floor-aisle"><span>ACTIVE WORK ZONE</span></div>
-  <div class="walking-file"><div class="file-person">🧑‍💼</div><b>FILE RUNNER</b><span>DELIVERING</span></div>
-  <div class="desk manager-desk" data-agent="manager"><div class="character" aria-hidden="true">🧑‍💼</div><div class="name">Manager</div><div class="role">Team Lead</div><div class="workstation"><div class="screen"><span>MANAGER</span><i>QUEUE CONTROL</i></div><div class="keyboard"></div><div class="desk-top"></div></div><div class="monitor"><span>STATUS</span><b id="managerStatus">READY</b></div></div>
-  <div class="desk" data-agent="researcher"><div class="character" aria-hidden="true">🧑‍🔬</div><div class="name">Researcher</div><div class="role">Research & Discovery</div><div class="workstation"><div class="screen"><span>RESEARCH</span><i>SEARCHING...</i></div><div class="keyboard"></div><div class="desk-top"></div></div><div class="monitor"><span>WORK</span><b>READY</b></div></div>
-  <div class="desk" data-agent="image-agent"><div class="character" aria-hidden="true">🧑‍🎨</div><div class="name">Image Agent</div><div class="role">Authorized Media</div><div class="workstation"><div class="screen"><span>MEDIA</span><i>PROCESSING...</i></div><div class="keyboard"></div><div class="desk-top"></div></div><div class="monitor"><span>FILES</span><b>READY</b></div></div>
-  <div class="desk" data-agent="bug-hunter"><div class="character" aria-hidden="true">🕵️</div><div class="name">Bug Hunter</div><div class="role">Find & Diagnose</div><div class="workstation"><div class="screen"><span>BUG SCAN</span><i>SCANNING...</i></div><div class="keyboard"></div><div class="desk-top"></div></div><div class="monitor"><span>SCAN</span><b>READY</b></div></div>
-  <div class="desk" data-agent="seo-agent"><div class="character" aria-hidden="true">👩‍💻</div><div class="name">SEO Agent</div><div class="role">Search Specialist</div><div class="workstation"><div class="screen"><span>SEO LAB</span><i>OPTIMIZING...</i></div><div class="keyboard"></div><div class="desk-top"></div></div><div class="monitor"><span>SEO</span><b>READY</b></div></div>
-  <div class="desk" data-agent="idea-builder"><div class="character" aria-hidden="true">💡</div><div class="name">Idea Builder</div><div class="role">New Site Ideas</div><div class="workstation"><div class="screen"><span>IDEA LAB</span><i>THINKING...</i></div><div class="keyboard"></div><div class="desk-top"></div></div><div class="monitor"><span>IDEAS</span><b>READY</b></div></div>
-  <div class="desk" data-agent="publisher"><div class="character" aria-hidden="true">📤</div><div class="name">Publisher</div><div class="role">Build & Deploy</div><div class="workstation"><div class="screen"><span>DEPLOY</span><i>BUILDING...</i></div><div class="keyboard"></div><div class="desk-top"></div></div><div class="monitor"><span>BUILD</span><b>READY</b></div></div>
-  <div class="desk" data-agent="qa"><div class="character" aria-hidden="true">🧪</div><div class="name">QA Agent</div><div class="role">Final Verification</div><div class="workstation"><div class="screen"><span>QA LAB</span><i>TESTING...</i></div><div class="keyboard"></div><div class="desk-top"></div></div><div class="monitor"><span>TESTS</span><b>READY</b></div></div>
-  <div class="desk" data-agent="bug-solver"><div class="character" aria-hidden="true">🧑‍🔧</div><div class="name">Bug Solver</div><div class="role">Repair & Fix</div><div class="workstation"><div class="screen"><span>REPAIR LAB</span><i>READY...</i></div><div class="keyboard"></div><div class="desk-top"></div></div><div class="monitor"><span>FIXES</span><b>READY</b></div></div>
-</div></section>
-
-<section class="lower">
-  <div class="panel"><div class="panel-title"><h3>🧭 Site Queue</h3><span id="queueCount">0 sites</span></div><div id="queue" class="queue-list"><div class="empty">No sites configured yet.</div></div></div>
-  <div class="panel chat"><div class="panel-title"><h3>💬 Studio Chat</h3><span>Manager + all employees</span></div>
-    <div id="chatLog" class="chat-log"><div class="bubble manager-bubble"><b>Manager</b><p>Assalam-o-alaikum, Boss. Studio is ready. Click any employee to inspect them.</p></div></div>
-    <form id="chatForm"><input id="chatInput" autocomplete="off" placeholder="Talk to the Studio…"><button>Send</button></form>
-  </div>
-  <div class="panel stats"><div class="panel-title"><h3>📊 Control Board</h3></div>
-    <div class="stat"><span>Controller</span><b id="controller">Waiting</b></div><div class="stat"><span>Last run</span><b id="lastRun">—</b></div><div class="stat"><span>Sites</span><b id="repos">0</b></div><div class="stat"><span>Sources</span><b id="sources">0</b></div><div class="stat"><span>Discovered</span><b id="discovered">0</b></div>
-    <button id="run" class="primary">▶ Open Run Monitor</button>
-  </div>
-</section>
-</main>
-<footer>Agent characters are original UI representations. Privileged credentials stay in GitHub Actions.</footer>
-</div>
-<div id="agentModal" class="modal hidden"><div class="modal-card"><button id="closeModal" class="modal-close">×</button><div id="modalAvatar" class="modal-avatar">🧑‍💼</div><div id="modalName" class="modal-name">Manager</div><div id="modalRole" class="modal-role">Team Lead</div><div class="modal-state">● <span id="modalState">READY</span></div><div class="modal-task"><span>Current task</span><b id="modalTask">Waiting for assignment</b></div><button id="modalChat" class="primary">💬 Talk to employee</button></div></div>
-<script src="app.js"></script><script>window.addEventListener("load",()=>{const c=document.getElementById("officeClock");if(c){const tick=()=>c.textContent=new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});tick();setInterval(tick,1000);}});</script></body></html>
+<html lang="en">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="theme-color" content="#07111c"/><meta name="description" content="AI Agent Workspace — interactive 3D operations office."/>
+<title>AI Agent Workspace</title></head>
+<body><div id="root"></div><script type="module" src="/src/main.tsx"></script></body>
+</html>
