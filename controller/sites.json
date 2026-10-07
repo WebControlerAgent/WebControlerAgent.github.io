@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "sites": [],
+  "policy": {"one_active_site": true, "authorized_only": true}
+}
