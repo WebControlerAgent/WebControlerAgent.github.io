@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       site:
-        description: "Enabled authorized target id"
+        description: "Enabled authorized site id"
         required: true
         type: string
 permissions:
@@ -19,25 +19,23 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - name: Run agent pipeline
-        continue-on-error: true
+      - name: Validate runtime
+        run: python3 controller/verify_runtime.py
+      - name: Run sequential pipeline
         run: |
-          set +e
+          set -e
           for i in 1 2 3 4 5 6 7 8 9; do
-            python3 controller/agent_worker.py "${{ inputs.site }}"
-            if [ ! -f controller/agent_state.json ]; then break; fi
-            active=$(python3 -c 'import json; s=json.load(open("controller/agent_state.json")); print(bool(s.get("active_site")))')
-            if [ "$active" != "True" ]; then break; fi
+            python3 controller/agent_worker.py "${{ inputs.site }}" || exit 1
+            active=$(python3 -c 'import json; print(bool(json.load(open("controller/agent_state.json")).get("active_site")))')
+            if [ "$active" != "True" ]; then exit 0; fi
           done
-
-      - name: Commit runtime state
+          echo "Agent pipeline did not finish within the allowed steps."
+          exit 1
+      - name: Persist runtime state
+        if: always()
         run: |
           git config user.name "Web Controller Agent"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add controller/agent_state.json public/status.json
-          git diff --cached --quiet || git commit -m "chore: run autonomous agent pipeline"
+          git diff --cached --quiet || git commit -m "chore: persist agent runtime state"
           git push
-      - name: Build workspace
-        run: |
-          npm install
-          npm run build
