@@ -50,4 +50,4 @@
 <footer>Agent characters are original UI representations. Privileged credentials stay in GitHub Actions.</footer>
 </div>
 <div id="agentModal" class="modal hidden"><div class="modal-card"><button id="closeModal" class="modal-close">×</button><div id="modalAvatar" class="modal-avatar">🧑‍💼</div><div id="modalName" class="modal-name">Manager</div><div id="modalRole" class="modal-role">Team Lead</div><div class="modal-state">● <span id="modalState">READY</span></div><div class="modal-task"><span>Current task</span><b id="modalTask">Waiting for assignment</b></div><button id="modalChat" class="primary">💬 Talk to employee</button></div></div>
-<script src="app.js"></script></body></html>
+<script src="app.js"><script>window.addEventListener("load",()=>{const c=document.getElementById("officeClock");if(c){const tick=()=>c.textContent=new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});tick();setInterval(tick,1000);}});</script></body></html>
