@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "execution": {
+    "max_active_sites": 1,
+    "complete_before_next": true,
+    "retry_limit": 3
+  },
+  "pipeline": [
+    "manager",
+    "researcher",
+    "image-agent",
+    "publisher",
+    "seo-agent",
+    "qa",
+    "bug-hunter",
+    "bug-solver"
+  ],
+  "states": ["WAITING", "CLAIMED", "WORKING", "VERIFYING", "COMPLETED", "FAILED", "REPAIRING", "RETRY"],
+  "rules": {
+    "manager_is_coordinator": true,
+    "one_site_at_a_time": true,
+    "failed_site_blocks_next_site": true,
+    "bug_hunter_before_bug_solver": true,
+    "qa_required_before_completion": true
+  }
+}
