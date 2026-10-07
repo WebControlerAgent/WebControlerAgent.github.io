@@ -1,5 +1,10 @@
 {
-  "active_site": null,
+  "active_site": {
+    "id": "kingdom-raw",
+    "state": "CLAIMED",
+    "retries": 0
+  },
+  "queue": [],
   "agent_states": {
     "manager": {
       "state": "WORKING",
@@ -85,6 +90,10 @@
       "type": "site_completed",
       "site": "kingdom-raw",
       "at": "2026-10-07T16:38:56Z"
+    },
+    {
+      "type": "site_claimed",
+      "site": "kingdom-raw"
     }
   ]
 }
