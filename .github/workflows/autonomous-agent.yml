@@ -39,14 +39,8 @@ jobs:
           if [ -n "$REQUESTED_SITE" ]; then
             echo "site=$REQUESTED_SITE" >> "$GITHUB_OUTPUT"
           else
-            python3 - <<'PY' >> "$GITHUB_OUTPUT"
-            import json
-            data=json.load(open("controller/sites.json", encoding="utf-8"))
-            enabled=[s["id"] for s in data.get("sites", []) if s.get("enabled") and s.get("authorized")]
-            if len(enabled) != 1:
-                raise SystemExit("Expected exactly one enabled authorized site; found: "+str(enabled))
-            print("site="+enabled[0])
-            PY
+            site=$(python3 -c 'import json; d=json.load(open("controller/sites.json", encoding="utf-8")); e=[s["id"] for s in d.get("sites", []) if s.get("enabled") and s.get("authorized")]; raise SystemExit("Expected exactly one enabled authorized site; found: "+str(e)) if len(e)!=1 else print(e[0])')
+            echo "site=$site" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Run sequential pipeline
