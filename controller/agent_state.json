@@ -3,39 +3,39 @@
   "queue": [],
   "agent_states": {
     "manager": {
-      "state": "WAITING",
-      "site": null,
-      "task": null,
+      "state": "WORKING",
+      "site": "kingdom-raw",
+      "task": "Validate and coordinate the active site",
       "error": null
     },
     "researcher": {
-      "state": "WAITING",
-      "site": null,
-      "task": null,
+      "state": "WORKING",
+      "site": "kingdom-raw",
+      "task": "Validate authorized research routes",
       "error": null
     },
     "image-agent": {
-      "state": "WAITING",
-      "site": null,
-      "task": null,
+      "state": "WORKING",
+      "site": "kingdom-raw",
+      "task": "Validate authorized media policy",
       "error": null
     },
     "publisher": {
-      "state": "WAITING",
-      "site": null,
-      "task": null,
+      "state": "WORKING",
+      "site": "kingdom-raw",
+      "task": "Validate publication workspace",
       "error": null
     },
     "seo-agent": {
-      "state": "WAITING",
-      "site": null,
-      "task": null,
+      "state": "WORKING",
+      "site": "kingdom-raw",
+      "task": "Validate core SEO and deployable files",
       "error": null
     },
     "qa": {
-      "state": "WAITING",
-      "site": null,
-      "task": null,
+      "state": "COMPLETED",
+      "site": "kingdom-raw",
+      "task": "Run final verification",
       "error": null
     }
   },
@@ -94,6 +94,57 @@
     {
       "type": "site_completed",
       "site": "kingdom-raw"
+    },
+    {
+      "type": "site_claimed",
+      "site": "kingdom-raw"
+    },
+    {
+      "type": "agent_step",
+      "agent": "manager",
+      "site": "kingdom-raw",
+      "task": "Validate and coordinate the active site",
+      "at": "2026-10-07T16:42:49Z"
+    },
+    {
+      "type": "agent_step",
+      "agent": "researcher",
+      "site": "kingdom-raw",
+      "task": "Validate authorized research routes",
+      "at": "2026-10-07T16:42:49Z"
+    },
+    {
+      "type": "agent_step",
+      "agent": "image-agent",
+      "site": "kingdom-raw",
+      "task": "Validate authorized media policy",
+      "at": "2026-10-07T16:42:49Z"
+    },
+    {
+      "type": "agent_step",
+      "agent": "publisher",
+      "site": "kingdom-raw",
+      "task": "Validate publication workspace",
+      "at": "2026-10-07T16:42:49Z"
+    },
+    {
+      "type": "agent_step",
+      "agent": "seo-agent",
+      "site": "kingdom-raw",
+      "task": "Validate core SEO and deployable files",
+      "at": "2026-10-07T16:42:49Z"
+    },
+    {
+      "type": "agent_step",
+      "agent": "qa",
+      "site": "kingdom-raw",
+      "task": "Run final verification",
+      "at": "2026-10-07T16:42:50Z"
+    },
+    {
+      "type": "site_completed",
+      "site": "kingdom-raw",
+      "at": "2026-10-07T16:42:50Z"
     }
   ]
 }
