@@ -17,7 +17,7 @@ concurrency:
 jobs:
   monitor:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Checkout controller
         uses: actions/checkout@v4
@@ -35,16 +35,25 @@ jobs:
           git diff --cached --quiet || git commit -m "chore: update controller status"
           git push
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install workspace dependencies
+        run: npm install
+
+      - name: Build 3D workspace
+        run: npm run build
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
-      - name: Upload current site
+      - name: Upload built Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: .
+          path: ./dist
 
-      - name: Deploy current site
+      - name: Deploy built workspace
         id: deployment
         uses: actions/deploy-pages@v4
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
