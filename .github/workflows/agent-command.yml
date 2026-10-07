@@ -53,8 +53,8 @@ jobs:
             rc=$?
             set -e
 
-            active=$(python3 -c 'import json; print(bool(json.load(open("controller/agent_state.json")).get("active_site")))')
-            retries=$(python3 -c 'import json; print(int(json.load(open("controller/agent_state.json")).get("active_site",{}).get("retries",0)))')
+            active=$(python3 -c 'import json; s=json.load(open("controller/agent_state.json")); print(bool(s.get("active_site")))')
+            retries=$(python3 -c 'import json; s=json.load(open("controller/agent_state.json")); a=s.get("active_site") or {}; print(int(a.get("retries",0)))')
 
             echo "worker_exit=$rc active_site=$active retries=$retries"
 
