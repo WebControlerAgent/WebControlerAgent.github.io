@@ -8,6 +8,8 @@ import "./styles.css";
 type Status="IDLE"|"WALKING"|"WORKING"|"THINKING"|"MEETING"|"SUCCESS"|"ERROR";
 type Agent={id:string;name:string;role:string;color:string;accent:string;desk:[number,number,number];waypoints:[number,number,number][];task:string;status:Status;icon:string};
 const agents:Agent[]=[
+{id:"bug-solver",name:"Bug Solver",role:"Repair & Fix",color:"#69435d",accent:"#ff9fbd",desk:[7,0,1.2],waypoints:[[7,0,1.2],[5,0,3],[2,0,4],[7,0,1.2]],task:"Repairing verified defects before retry",status:"WORKING",icon:"F"},
+
 {id:"manager",name:"Manager",role:"Team Lead",color:"#355c7d",accent:"#7dd3fc",desk:[-7,0,-4],waypoints:[[-7,0,-4],[-2,0,-1],[0,0,2],[-7,0,-4]],task:"Coordinating the active site queue",status:"WORKING",icon:"M"},
 {id:"researcher",name:"Researcher",role:"Research & Discovery",color:"#426b57",accent:"#8be3ad",desk:[-3.5,0,-4],waypoints:[[-3.5,0,-4],[-5,0,1],[-1,0,3],[-3.5,0,-4]],task:"Checking authorized sources",status:"THINKING",icon:"R"},
 {id:"image-agent",name:"Image Agent",role:"Authorized Media",color:"#6b4c7c",accent:"#d8a7ff",desk:[0,0,-4],waypoints:[[0,0,-4],[4,0,-1],[5,0,2],[0,0,-4]],task:"Preparing approved media assets",status:"WORKING",icon:"I"},
