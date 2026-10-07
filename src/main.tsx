@@ -90,7 +90,7 @@ function CameraRig({focus}:{focus:string|null}){
 function App(){
  const [selected,setSelected]=useState<string|null>("manager"); const [now,setNow]=useState(new Date()); const [status,setStatus]=useState<any>(null);
  useEffect(()=>{const t=setInterval(()=>setNow(new Date()),1000);return()=>clearInterval(t)},[]);
- useEffect(()=>{fetch("./public/status.json?ts="+Date.now()).then(r=>r.ok?r.json():null).then(setStatus).catch(()=>{})},[]);
+ useEffect(()=>{fetch("./status.json?ts="+Date.now()).then(r=>r.ok?r.json():null).then(setStatus).catch(()=>{})},[]);
  const selectedAgent=agents.find(a=>a.id===selected)??agents[0];
  const counts=useMemo(()=>({working:agents.filter(a=>a.status==="WORKING").length,active:agents.filter(a=>a.status!=="IDLE").length}),[]);
  return <div className="app">
