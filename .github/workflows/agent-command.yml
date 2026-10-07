@@ -48,6 +48,71 @@ jobs:
 
           for i in 1 2 3 4 5 6 7 8 9; do
             echo "=== Agent pipeline step $i ==="
+
+            echo "--- Live verification gate ---"
+            python3 - <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, "controller")
+          from agent_checks import run_checks
+
+          root=Path(".")
+          state_path=root/"controller/agent_state.json"
+          sites_path=root/"controller/sites.json"
+          status_path=root/"public/status.json"
+          state=json.loads(state_path.read_text())
+          active=state.get("active_site")
+          if not active:
+              raise SystemExit(0)
+
+          site_id=active.get("id")
+          sites=json.loads(sites_path.read_text()).get("sites", [])
+          site=next((s for s in sites if s.get("id")==site_id), None)
+          if not site:
+              raise SystemExit("Unknown active site: "+str(site_id))
+
+          flow=active.get("flow", [])
+          idx=int(active.get("pipeline_index", 0))
+          agent=flow[idx] if idx < len(flow) else None
+          if agent not in {"researcher", "publisher", "seo-agent", "qa"}:
+              print("No external live check required for agent="+str(agent))
+              raise SystemExit(0)
+
+          ok, detail=run_checks(site, agent)
+          state.setdefault("events", []).append({
+              "type":"live_check", "agent":agent, "site":site_id,
+              "passed":ok, "detail":detail
+          })
+          state.setdefault("agent_states", {}).setdefault(agent, {})["live_check"]={
+              "passed":ok, "detail":detail
+          }
+
+          if not ok:
+              active["state"]="REPAIRING"
+              active["failed_agent"]=agent
+              active["error"]=detail
+              active["retries"]=int(active.get("retries", 0))+1
+              active["flow"]=["bug-hunter", "bug-solver", "qa"]
+              active["pipeline_index"]=0
+              state["agent_states"][agent]["state"]="FAILED"
+              print("LIVE CHECK FAILED: "+detail)
+          else:
+              print("LIVE CHECK PASSED: "+detail)
+
+          state_path.write_text(json.dumps(state, indent=2, ensure_ascii=False)+"\\n")
+          status=json.loads(status_path.read_text()) if status_path.exists() else {}
+          status["agent_runtime"]=state
+          status["live_check"]={"site":site_id, "agent":agent, "passed":ok, "detail":detail}
+          status_path.write_text(json.dumps(status, indent=2, ensure_ascii=False)+"\\n")
+          raise SystemExit(0 if ok else 2)
+          PY
+            gate_rc=$?
+            if [ "$gate_rc" -eq 2 ]; then
+              echo "Live check failed; repair flow selected."
+            elif [ "$gate_rc" -ne 0 ]; then
+              exit "$gate_rc"
+            fi
             set +e
             python3 controller/agent_worker.py "$site"
             rc=$?
