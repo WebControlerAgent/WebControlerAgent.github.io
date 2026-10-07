@@ -1,19 +1,23 @@
 <!doctype html>
-<html lang="en">
-<head>
+<html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Web Controller Agent</title><meta name="description" content="Central GitHub automation controller dashboard.">
-<link rel="stylesheet" href="style.css">
-</head>
-<body>
-<main class="wrap">
-<header><div><span class="eyebrow">GITHUB AUTOMATION</span><h1>Web Controller Agent</h1><p>Central control and monitoring dashboard for authorized repositories.</p></div><span id="status" class="pill">Checking…</span></header>
+<title>Web Controller Agent</title>
+<meta name="description" content="Central GitHub automation controller dashboard.">
+<link rel="stylesheet" href="style.css"></head>
+<body><main class="wrap">
+<header><div><span class="eyebrow">GITHUB AUTOMATION</span><h1>Web Controller Agent</h1>
+<p>Central control and monitoring dashboard for authorized repositories.</p></div><span id="status" class="pill">● Waiting</span></header>
 <section class="grid">
-<article class="card"><h2>System</h2><div class="row"><span>Controller</span><b id="controller">Loading</b></div><div class="row"><span>Last run</span><b id="lastRun">—</b></div><div class="row"><span>Repositories</span><b id="repos">0</b></div></article>
-<article class="card"><h2>Actions</h2><button id="run">Run monitor</button><button id="refresh" class="secondary">Refresh</button><p id="message" class="muted"></p></article>
-<article class="card wide"><h2>Activity</h2><div id="log" class="log">No activity yet.</div></article>
+<article class="card"><h2>System</h2>
+<div class="row"><span>Controller</span><b id="controller">Waiting</b></div>
+<div class="row"><span>Last run</span><b id="lastRun">—</b></div>
+<div class="row"><span>Repositories</span><b id="repos">0</b></div>
+<div class="row"><span>Sources checked</span><b id="sources">0</b></div>
+<div class="row"><span>Discovered</span><b id="discovered">0</b></div></article>
+<article class="card"><h2>Actions</h2>
+<button id="run">Open Run Monitor</button><button id="refresh" class="secondary">Refresh Status</button>
+<p class="muted">The worker runs in GitHub Actions, so your PC can be offline.</p></article>
+<article class="card wide"><h2>Activity</h2><pre id="log" class="log">Loading…</pre></article>
 </section>
-<footer>Secrets stay in GitHub Actions. This dashboard contains no GitHub token.</footer>
-</main>
-<script src="app.js"></script>
-</body></html>
+<footer>Secrets stay in GitHub Actions. No GitHub token is stored in this website.</footer>
+</main><script src="app.js"></script></body></html>
