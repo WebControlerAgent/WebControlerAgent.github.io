@@ -8,7 +8,7 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parent.parent
 STATE=ROOT/"controller"/"agent_state.json"
 STATUS=ROOT/"public"/"status.json"
-SITES=ROOT/"sites"/"registry.json"
+SITES=ROOT/"controller"/"sites.json"
 PIPELINE=["manager","researcher","image-agent","publisher","seo-agent","qa"]
 
 def load(path, default):
@@ -36,6 +36,7 @@ def main():
     if idx>=len(PIPELINE):
         st["active_site"]=None
         save(STATE,st)
+        save(STATUS,{"ok":True,"agent_runtime":st,"runtime_result":{"site":site_id,"completed":True}})
         return
     agent=PIPELINE[idx]
     tasks={
