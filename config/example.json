@@ -1,0 +1,8 @@
+{
+  "schedule_minutes": 60,
+  "sources": [],
+  "repositories": [],
+  "allowed_content": "content you own or are authorized to process",
+  "verification": {"enabled": true, "retry_failed": true},
+  "publishing": {"enabled": false, "require_authorization": true}
+}
