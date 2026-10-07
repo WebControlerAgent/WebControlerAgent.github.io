@@ -1,6 +1,23 @@
 const $=id=>document.getElementById(id);
-const state={lastRun:localStorage.getItem("lastRun")||"—",runs:Number(localStorage.getItem("runs")||0)};
-function render(){ $("controller").textContent="Ready"; $("lastRun").textContent=state.lastRun; $("repos").textContent="Configured via Actions"; $("status").textContent="● Ready"; }
-$("refresh").onclick=()=>{render();$("message").textContent="Dashboard refreshed."};
-$("run").onclick=()=>{state.runs++;state.lastRun=new Date().toLocaleString();localStorage.setItem("lastRun",state.lastRun);localStorage.setItem("runs",state.runs);render();$("message").textContent="Manual request queued. GitHub Actions performs the server-side work."; $("log").textContent=new Date().toISOString()+"  manual monitor request\n"+$("log").textContent};
-render();
+const ACTIONS_URL="https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/workflows/monitor.yml";
+async function loadStatus(){
+ try{
+  const r=await fetch("public/status.json?ts="+Date.now(),{cache:"no-store"});
+  if(!r.ok) throw new Error("status unavailable");
+  const s=await r.json();
+  $("controller").textContent=s.ok?"Online":"Needs attention";
+  $("lastRun").textContent=s.finished_at?new Date(s.finished_at).toLocaleString():"Not run";
+  $("repos").textContent=String(s.targets_configured??0);
+  $("sources").textContent=String(s.sources_checked??0);
+  $("discovered").textContent=String((s.discovered||[]).length);
+  $("status").textContent=s.ok?"● Online":"● Warning";
+  const lines=[];
+  if(s.finished_at) lines.push("Last run: "+s.finished_at);
+  if((s.discovered||[]).length) lines.push("Discovered: "+s.discovered.length+" item(s)");
+  if((s.errors||[]).length) lines.push("Errors: "+s.errors.length);
+  $("log").textContent=lines.join("\n")||"Controller has not run yet.";
+ }catch(e){ $("controller").textContent="Waiting"; $("status").textContent="● Waiting"; $("log").textContent="Status artifact is not available yet."; }
+}
+$("refresh").onclick=loadStatus;
+$("run").onclick=()=>window.open(ACTIONS_URL,"_blank");
+loadStatus(); setInterval(loadStatus,60000);
