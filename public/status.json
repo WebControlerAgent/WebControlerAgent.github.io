@@ -1,0 +1,10 @@
+{
+  "ok": true,
+  "started_at": null,
+  "finished_at": null,
+  "sources_checked": 0,
+  "targets_configured": 0,
+  "discovered": [],
+  "errors": [],
+  "note": "Controller has not run yet."
+}
