@@ -1,47 +1,43 @@
 {
   "ok": true,
   "agent_runtime": {
-    "active_site": {
-      "id": "kingdom-raw",
-      "state": "CLAIMED",
-      "retries": 0
-    },
+    "active_site": null,
     "queue": [],
     "agent_states": {
       "manager": {
-        "state": "WORKING",
-        "site": "kingdom-raw",
-        "task": "Validate and coordinate the active site",
+        "state": "WAITING",
+        "site": null,
+        "task": null,
         "error": null
       },
       "researcher": {
-        "state": "WORKING",
-        "site": "kingdom-raw",
-        "task": "Validate authorized research routes",
+        "state": "WAITING",
+        "site": null,
+        "task": null,
         "error": null
       },
       "image-agent": {
-        "state": "WORKING",
-        "site": "kingdom-raw",
-        "task": "Validate authorized media policy",
+        "state": "WAITING",
+        "site": null,
+        "task": null,
         "error": null
       },
       "publisher": {
-        "state": "WORKING",
-        "site": "kingdom-raw",
-        "task": "Validate publication workspace",
+        "state": "WAITING",
+        "site": null,
+        "task": null,
         "error": null
       },
       "seo-agent": {
-        "state": "WORKING",
-        "site": "kingdom-raw",
-        "task": "Validate core SEO and deployable files",
+        "state": "WAITING",
+        "site": null,
+        "task": null,
         "error": null
       },
       "qa": {
-        "state": "COMPLETED",
-        "site": "kingdom-raw",
-        "task": "Run final verification",
+        "state": "WAITING",
+        "site": null,
+        "task": null,
         "error": null
       }
     },
@@ -96,6 +92,10 @@
       {
         "type": "site_claimed",
         "site": "kingdom-raw"
+      },
+      {
+        "type": "site_completed",
+        "site": "kingdom-raw"
       }
     ]
   },
@@ -106,7 +106,7 @@
     "passed": true
   },
   "runtime_command": {
-    "action": "claim",
+    "action": "complete",
     "agent": null,
     "site": "kingdom-raw",
     "task": null,
