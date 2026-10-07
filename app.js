@@ -12,7 +12,7 @@ const agentData={
  "bug-solver":["Bug Solver","Repair & Fix","🧑‍🔧","Waiting for an authorized repair task."]
 };
 function addChat(who,msg){const box=document.createElement("div");box.className="bubble";box.innerHTML="<b>"+who+"</b><p>"+msg.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))+"</p>";$("chatLog").appendChild(box);$("chatLog").scrollTop=$("chatLog").scrollHeight}
-function openAgent(id){const a=agentData[id]||agentData.manager;const source=document.querySelector(`.desk[data-agent="${id}"] .person`);const avatar=$("modalAvatar");avatar.innerHTML="";if(source){const clone=source.cloneNode(true);clone.classList.remove("typing");clone.classList.add("modal-person");avatar.appendChild(clone)}else{avatar.textContent=a[2]}$("modalName").textContent=a[0];$("modalRole").textContent=a[1];$("modalState").textContent="READY";$("modalTask").textContent=a[3];$("agentModal").classList.remove("hidden")}
+function openAgent(id){const a=agentData[id]||agentData.manager;const source=document.querySelector(`.desk[data-agent="${id}"] .character`);const avatar=$("modalAvatar");avatar.innerHTML="";if(source){const clone=source.cloneNode(true);clone.classList.remove("typing");clone.classList.add("modal-person");avatar.appendChild(clone)}else{avatar.textContent=a[2]}$("modalName").textContent=a[0];$("modalRole").textContent=a[1];$("modalState").textContent="READY";$("modalTask").textContent=a[3];$("agentModal").classList.remove("hidden")}
 document.querySelectorAll(".desk").forEach(d=>d.addEventListener("click",()=>openAgent(d.dataset.agent)));
 $("closeModal").onclick=()=>$("agentModal").classList.add("hidden");
 $("agentModal").addEventListener("click",e=>{if(e.target.id==="agentModal")$("agentModal").classList.add("hidden")});
