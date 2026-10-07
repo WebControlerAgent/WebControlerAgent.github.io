@@ -92,10 +92,10 @@ function CameraRig({focus}:{focus:string|null}){
 
 function App(){
  const [selected,setSelected]=useState<string|null>("manager"); const [now,setNow]=useState(new Date()); const [status,setStatus]=useState<any>(null);
- const [chatOpen,setChatOpen]=useState(true);
+ const [chatOpen,setChatOpen]=useState(true); const [bridgeState,setBridgeState]=useState<"unknown"|"connected"|"offline">("unknown"); const [runtimeBusy,setRuntimeBusy]=useState(false);
  const [chatInput,setChatInput]=useState("");
  const [messages,setMessages]=useState<{from:string;text:string;runtimeAction?:any}[]>([{from:"Manager",text:"Studio online hai. Main actual Agent Runtime state read kar raha hoon. Status, queue, bug, ya kisi employee ka naam bolo."}]);
- const sendChat=()=>{const text=chatInput.trim();if(!text)return;const reply=managerReply(text,agents,status);setMessages(m=>[...m,{from:"You",text},{from:agents.find(a=>a.id===reply.agentId)?.name??"Manager",text:reply.text,runtimeAction:reply.runtimeAction}]);setChatInput("");setSelected(reply.agentId);};
+ const sendChat=()=>{const text=chatInput.trim();if(!text)return;const reply=managerReply(text,agents,status);setMessages(m=>[...m,{from:"You",text},{from:agents.find(a=>a.id===reply.agentId)?.name??"Manager",text:reply.text,runtimeAction:reply.runtimeAction}]);setChatInput("");setSelected(reply.agentId);};\n const executeRuntime=async(action:any)=>{setRuntimeBusy(true);try{const r=await fetch("http://127.0.0.1:8787/dispatch",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(action)});const d=await r.json();if(!r.ok||!d.ok)throw new Error(d.error||"Bridge rejected command");setBridgeState("connected");setMessages(m=>[...m,{from:"Manager",text:"Runtime command dispatched successfully: "+action.action+"."}]);}catch(e){setBridgeState("offline");setMessages(m=>[...m,{from:"Manager",text:"Local Runtime Bridge connect nahi hai. Bridge start karo, phir command dobara execute karo."}]);}finally{setRuntimeBusy(false);}};\n useEffect(()=>{fetch("http://127.0.0.1:8787/health").then(r=>r.ok?r.json():Promise.reject()).then(d=>setBridgeState(d.ok?"connected":"offline")).catch(()=>setBridgeState("offline"));},[]);
  useEffect(()=>{const t=setInterval(()=>setNow(new Date()),1000);return()=>clearInterval(t)},[]);
  useEffect(()=>{fetch("./status.json?ts="+Date.now()).then(r=>r.ok?r.json():null).then(setStatus).catch(()=>{})},[]);
  const selectedAgent=agents.find(a=>a.id===selected)??agents[0];
@@ -109,8 +109,8 @@ function App(){
     <div className="scene-controls"><button onClick={()=>setSelected("manager")}>⌖ Focus Agent</button><button onClick={()=>setSelected(null)}>◎ Overview</button></div>
     <div className="activity"><b>LIVE ACTIVITY</b><span><i className="pulse"/> {selectedAgent.name} — {selectedAgent.task}</span><small>One active site at a time • state-driven workspace</small></div>
     {chatOpen&&<div className="chat-panel">
-      <div className="chat-head"><div><b>MANAGER CHAT</b><small>Talk to the Agent Studio team</small></div><button onClick={()=>setChatOpen(false)}>×</button></div>
-      <div className="chat-messages">{messages.map((m,i)=><div key={i} className={"chat-msg "+(m.from==="You"?"you":"")}><span>{m.from}</span><p>{m.text}</p>{m.runtimeAction&&<a className="runtime-action" href="https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/workflows/agent-dispatch.yml" target="_blank" rel="noreferrer">⚡ Execute in Agent Runtime</a>}</div>)}</div>
+      <div className="chat-head"><div><b>MANAGER CHAT</b><small>Talk to the Agent Studio team • Bridge {bridgeState==="connected"?"● Connected":bridgeState==="offline"?"○ Offline":"… Checking"}</small></div><button onClick={()=>setChatOpen(false)}>×</button></div>
+      <div className="chat-messages">{messages.map((m,i)=><div key={i} className={"chat-msg "+(m.from==="You"?"you":"")}><span>{m.from}</span><p>{m.text}</p>{m.runtimeAction&&<button className="runtime-action" disabled={runtimeBusy} onClick={()=>executeRuntime(m.runtimeAction)}>{runtimeBusy?"⏳ Dispatching...":"⚡ Execute in Agent Runtime"}</button>}</div>)}</div>
       <form className="chat-input" onSubmit={e=>{e.preventDefault();sendChat()}}>
         <input value={chatInput} onChange={e=>setChatInput(e.target.value)} placeholder="Ask Manager..." aria-label="Message Manager"/>
         <button type="submit" aria-label="Send message">➤</button>
