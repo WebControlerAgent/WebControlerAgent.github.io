@@ -308,5 +308,12 @@
     "site": "kingdom-raw",
     "task": "Run final verification",
     "passed": true
+  },
+  "runtime_command": {
+    "action": "complete",
+    "agent": "qa",
+    "site": "kingdom-raw",
+    "task": "Run final verification",
+    "result": "applied"
   }
 }
