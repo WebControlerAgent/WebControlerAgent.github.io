@@ -1,1 +1,1 @@
-{"reply":"Claiming authorized site kingdom-raw to start the autonomous pipeline test.","action":"claim","site":"kingdom-raw","agent":"","task":"Initiate autonomous pipeline for kingdom-raw","error":""}
+{"reply":"Pipeline for kingdom-raw has completed successfully.","action":"complete","site":"kingdom-raw","agent":"qa","task":"Run final verification","error":null}
