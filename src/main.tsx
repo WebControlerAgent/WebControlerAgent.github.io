@@ -94,8 +94,8 @@ function App(){
  const [selected,setSelected]=useState<string|null>("manager"); const [now,setNow]=useState(new Date()); const [status,setStatus]=useState<any>(null);
  const [chatOpen,setChatOpen]=useState(true);
  const [chatInput,setChatInput]=useState("");
- const [messages,setMessages]=useState<{from:string;text:string}[]>([{from:"Manager",text:"Studio online hai. Status, queue, bug, ya kisi employee ka naam bolo."}]);
- const sendChat=()=>{const text=chatInput.trim();if(!text)return;const reply=managerReply(text,agents,status);setMessages(m=>[...m,{from:"You",text},{from:agents.find(a=>a.id===reply.agentId)?.name??"Manager",text:reply.text}]);setChatInput("");setSelected(reply.agentId);};
+ const [messages,setMessages]=useState<{from:string;text:string;runtimeAction?:any}[]>([{from:"Manager",text:"Studio online hai. Main actual Agent Runtime state read kar raha hoon. Status, queue, bug, ya kisi employee ka naam bolo."}]);
+ const sendChat=()=>{const text=chatInput.trim();if(!text)return;const reply=managerReply(text,agents,status);setMessages(m=>[...m,{from:"You",text},{from:agents.find(a=>a.id===reply.agentId)?.name??"Manager",text:reply.text,runtimeAction:reply.runtimeAction}]);setChatInput("");setSelected(reply.agentId);};
  useEffect(()=>{const t=setInterval(()=>setNow(new Date()),1000);return()=>clearInterval(t)},[]);
  useEffect(()=>{fetch("./status.json?ts="+Date.now()).then(r=>r.ok?r.json():null).then(setStatus).catch(()=>{})},[]);
  const selectedAgent=agents.find(a=>a.id===selected)??agents[0];
@@ -110,7 +110,7 @@ function App(){
     <div className="activity"><b>LIVE ACTIVITY</b><span><i className="pulse"/> {selectedAgent.name} — {selectedAgent.task}</span><small>One active site at a time • state-driven workspace</small></div>
     {chatOpen&&<div className="chat-panel">
       <div className="chat-head"><div><b>MANAGER CHAT</b><small>Talk to the Agent Studio team</small></div><button onClick={()=>setChatOpen(false)}>×</button></div>
-      <div className="chat-messages">{messages.map((m,i)=><div key={i} className={"chat-msg "+(m.from==="You"?"you":"")}><span>{m.from}</span><p>{m.text}</p></div>)}</div>
+      <div className="chat-messages">{messages.map((m,i)=><div key={i} className={"chat-msg "+(m.from==="You"?"you":"")}><span>{m.from}</span><p>{m.text}</p>{m.runtimeAction&&<a className="runtime-action" href="https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/workflows/agent-dispatch.yml" target="_blank" rel="noreferrer">⚡ Execute in Agent Runtime</a>}</div>)}</div>
       <form className="chat-input" onSubmit={e=>{e.preventDefault();sendChat()}}>
         <input value={chatInput} onChange={e=>setChatInput(e.target.value)} placeholder="Ask Manager..." aria-label="Message Manager"/>
         <button type="submit" aria-label="Send message">➤</button>
