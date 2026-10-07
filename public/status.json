@@ -1,5 +1,12 @@
 {
   "ok": true,
+  "started_at": "2026-10-07T20:22:43Z",
+  "finished_at": "2026-10-07T20:22:43Z",
+  "sources_checked": 0,
+  "targets_configured": 0,
+  "discovered": [],
+  "errors": [],
+  "note": "Discovery only. Publishing requires an explicit authorized target adapter.",
   "agent_runtime": {
     "active_site": null,
     "queue": [],
@@ -302,18 +309,5 @@
         "at": "2026-10-07T18:10:06Z"
       }
     ]
-  },
-  "runtime_result": {
-    "agent": "qa",
-    "site": "kingdom-raw",
-    "task": "Run final verification",
-    "passed": true
-  },
-  "runtime_command": {
-    "action": "complete",
-    "agent": "qa",
-    "site": "kingdom-raw",
-    "task": "Run final verification",
-    "result": "applied"
   }
 }
