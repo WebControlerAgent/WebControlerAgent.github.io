@@ -15,3 +15,58 @@
 
 /* Living office motion layer */
 .office-avatar{position:relative;overflow:hidden}.office-avatar>b{position:relative;z-index:2}.agent-glow{position:absolute;inset:-35%;border-radius:50%;opacity:.18;filter:blur(8px);animation:agentPulse 2.2s ease-in-out infinite}.office-state-working{animation:officeFloat 2.8s ease-in-out infinite}.office-state-thinking{animation:officeThink 3.8s ease-in-out infinite}.office-state-walking{animation:officeWalk 2.2s ease-in-out infinite}.office-state-verifying{animation:officeVerify 1.8s ease-in-out infinite}.office-state-repairing{animation:officeRepair 1.4s ease-in-out infinite}.office-state-completed{animation:officeComplete 3s ease-in-out infinite}.office-state-failed{animation:officeFail 1.1s ease-in-out infinite}.office-state-idle{animation:none}.office-state-success{animation:officeComplete 3s ease-in-out infinite}@keyframes agentPulse{0%,100%{transform:scale(.8);opacity:.12}50%{transform:scale(1.25);opacity:.28}}@keyframes officeFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}@keyframes officeThink{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-2px) rotate(-.5deg)}}@keyframes officeWalk{0%,100%{transform:translateX(0)}25%{transform:translateX(3px) translateY(-1px)}50%{transform:translateX(0)}75%{transform:translateX(-3px) translateY(-1px)}}@keyframes officeVerify{0%,100%{box-shadow:0 0 0 #60a5fa00}50%{box-shadow:0 0 18px #60a5fa44}}@keyframes officeRepair{0%,100%{transform:translateX(0)}25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}@keyframes officeComplete{0%,100%{box-shadow:0 0 0 #34d39900}50%{box-shadow:0 0 18px #34d39933}}@keyframes officeFail{0%,100%{opacity:1}50%{opacity:.55}}.office-agent.selected .office-avatar{box-shadow:0 0 0 2px #8fd4ff44,0 0 25px #8fd4ff22}.office-agent:hover{animation-play-state:paused}.office-safe-note:before{content:"●";color:#4ade80;margin-right:7px;animation:agentPulse 2s ease-in-out infinite;display:inline-block}@media(prefers-reduced-motion:reduce){.office-agent,.agent-glow,.office-safe-note:before{animation:none!important}}
+/* AIWCU COSMIC UNIVERSE THEME */
+.scene{
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 72% 18%,rgba(112,76,255,.18) 0,rgba(72,45,170,.08) 16%,transparent 34%),
+    radial-gradient(circle at 25% 72%,rgba(0,205,255,.12) 0,rgba(0,90,150,.06) 18%,transparent 38%),
+    radial-gradient(circle at 52% 40%,rgba(255,255,255,.035) 0 1px,transparent 2px),
+    #020712;
+}
+.scene:before{
+  content:"";
+  position:absolute;inset:0;pointer-events:none;opacity:.7;
+  background-image:
+    radial-gradient(circle at 12% 18%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 34% 11%,#bfe9ff 0 1px,transparent 1.6px),
+    radial-gradient(circle at 61% 24%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 84% 13%,#d8c8ff 0 1px,transparent 1.7px),
+    radial-gradient(circle at 91% 48%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 16% 55%,#b8e8ff 0 1px,transparent 1.6px),
+    radial-gradient(circle at 43% 67%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 76% 78%,#d9c9ff 0 1px,transparent 1.7px),
+    radial-gradient(circle at 28% 91%,#fff 0 1px,transparent 1.5px);
+}
+.scene:after{
+  content:"";
+  position:absolute;left:50%;top:42%;width:72%;height:34%;
+  transform:translate(-50%,-50%) rotate(-13deg);
+  border-radius:50%;
+  background:radial-gradient(ellipse,rgba(108,76,255,.16),rgba(43,170,255,.08) 35%,transparent 68%);
+  filter:blur(22px);pointer-events:none;
+}
+.office-safe-mode{
+  background:
+    radial-gradient(ellipse at 50% 38%,rgba(83,53,180,.18),transparent 35%),
+    radial-gradient(circle at 80% 20%,rgba(0,191,255,.09),transparent 28%),
+    linear-gradient(180deg,#030817,#050d19 58%,#07111c);
+}
+.office-safe-mode:before{
+  content:"";
+  position:absolute;inset:0;pointer-events:none;opacity:.65;
+  background-image:
+    radial-gradient(circle at 8% 15%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 22% 36%,#8bdcff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 49% 12%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 73% 30%,#d8c5ff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 94% 16%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 88% 68%,#8bdcff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 14% 82%,#fff 0 1px,transparent 1.5px);
+}
+.office-agent{background:linear-gradient(145deg,rgba(14,27,43,.92),rgba(6,13,25,.94));}
+.scene-title,.site-selector,.activity,.site-dashboard{box-shadow:0 0 35px rgba(67,126,255,.08),0 14px 40px #0008;}
+.brandmark{box-shadow:0 0 28px rgba(110,150,255,.28),inset 0 0 18px rgba(105,214,255,.08);}
+@keyframes cosmicDrift{0%,100%{transform:translate(-50%,-50%) rotate(-13deg) scale(1)}50%{transform:translate(-50%,-50%) rotate(-10deg) scale(1.08)}}
+.scene:after{animation:cosmicDrift 14s ease-in-out infinite;}
+@media(prefers-reduced-motion:reduce){.scene:after{animation:none}}
