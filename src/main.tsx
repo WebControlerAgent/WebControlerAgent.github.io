@@ -1,4 +1,7 @@
-import React,{useEffect,useMemo,useState} from "react";
+import React,{useEffect,useMemo,useRef,useState} from "react";
+import {Canvas,useFrame} from "@react-three/fiber";
+import {OrbitControls,Stars} from "@react-three/drei";
+import * as THREE from "three";
 import {createRoot} from "react-dom/client";
 import "./styles.css";
 import {managerReply} from "./chat/managerChat";
@@ -20,7 +23,53 @@ const agents:Agent[]=[
 
 const statusTone=(s:Status)=>({IDLE:"#718096",WALKING:"#60a5fa",WORKING:"#4ade80",THINKING:"#c084fc",MEETING:"#fbbf24",SUCCESS:"#34d399",ERROR:"#fb7185"}[s]);
 
-type SiteRecord={id:string;name:string;repository:string;branch:string;live_url:string;enabled:boolean;authorized:boolean;description?:string;media?:{enabled:boolean;authorized_source:boolean;path:string}};
+
+const CAPTAIN_STARS=[
+{id:"bug-solver",name:"Repair",color:"#ffb36b",accent:"#ffd9a0"},
+{id:"manager",name:"Operations",color:"#fff1a8",accent:"#fff8d0"},
+{id:"researcher",name:"Research",color:"#9fd8ff",accent:"#d8f1ff"},
+{id:"image-agent",name:"Media",color:"#caa7ff",accent:"#eadcff"},
+{id:"bug-hunter",name:"Diagnostics",color:"#ff9b73",accent:"#ffd0bf"},
+{id:"seo-agent",name:"SEO",color:"#7de3d1",accent:"#c9fff4"},
+{id:"idea-builder",name:"Innovation",color:"#ffe27a",accent:"#fff4bd"},
+{id:"publisher",name:"Publishing",color:"#8fc7ff",accent:"#d9edff"},
+{id:"qa",name:"Quality",color:"#a5f0b6",accent:"#ddffe5"}
+];
+const ORBIT_PERIOD_HOURS=12;
+function CaptainSun({item,index,onSelect,selected}:{item:any;index:number;onSelect:()=>void;selected:boolean}){
+ const group=useRef<THREE.Group>(null!);
+ const phase=index*(Math.PI*2/9);
+ useFrame(({clock},delta)=>{
+   const angle=phase+(clock.getElapsedTime()/(ORBIT_PERIOD_HOURS*3600))*Math.PI*2;
+   group.current.position.set(Math.cos(angle)*8.5,Math.sin(angle*1.07)*1.2,Math.sin(angle)*8.5);
+   group.current.rotation.y+=delta*.25;
+ });
+ return <group ref={group} onClick={onSelect}>
+   <pointLight color={item.color} intensity={selected?5:3} distance={5}/>
+   <mesh><sphereGeometry args={[selected?.72:.58,48,48]}/><meshStandardMaterial color={item.color} emissive={item.color} emissiveIntensity={selected?3.2:2.1} roughness={.22}/></mesh>
+   <mesh scale={1.35}><sphereGeometry args={[.58,32,32]}/><meshBasicMaterial color={item.accent} transparent opacity={.08} blending={THREE.AdditiveBlending}/></mesh>
+ </group>;
+}
+function BlackHole({onSelect}:{onSelect:()=>void}){
+ const ref=useRef<THREE.Group>(null!);
+ useFrame((_,delta)=>{ref.current.rotation.z-=delta*.18});
+ return <group ref={ref} onClick={onSelect}>
+   <pointLight color="#6f4cff" intensity={2.5} distance={8}/>
+   <mesh><sphereGeometry args={[1.15,64,64]}/><meshBasicMaterial color="#000000"/></mesh>
+   <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[1.45,.18,24,128]}/><meshBasicMaterial color="#8b5cff" transparent opacity={.5} blending={THREE.AdditiveBlending}/></mesh>
+   <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[1.9,.035,12,128]}/><meshBasicMaterial color="#4fc3ff" transparent opacity={.18}/></mesh>
+ </group>;
+}
+function Universe3D({selected,setSelected}:{selected:string|null;setSelected:(id:string)=>void}){
+ return <Canvas camera={{position:[0,10,22],fov:48,near:.1,far:1000}} dpr={[1,1.7]} gl={{antialias:true}}>
+   <color attach="background" args={["#01030a"]}/><ambientLight intensity={.12}/>
+   <Stars radius={80} depth={55} count={5000} factor={1.4} saturation={.15} fade speed={.12}/>
+   <BlackHole onSelect={()=>setSelected("manager")}/>
+   {CAPTAIN_STARS.map((x,i)=><CaptainSun key={x.id} item={x} index={i} selected={selected===x.id} onSelect={()=>setSelected(x.id)}/>)}
+   <OrbitControls enablePan enableZoom minDistance={8} maxDistance={45} dampingFactor={.04} enableDamping/>
+ </Canvas>;
+}
+\ntype SiteRecord={id:string;name:string;repository:string;branch:string;live_url:string;enabled:boolean;authorized:boolean;description?:string;media?:{enabled:boolean;authorized_source:boolean;path:string}};
 
 function SitePanel({sites,selectedSite,setSelectedSite,onClose}:{sites:SiteRecord[];selectedSite:string;setSelectedSite:(id:string)=>void;onClose:()=>void}){
  const [openAdd,setOpenAdd]=useState(false); const [form,setForm]=useState({id:"",name:"",repository:"",branch:"main",live_url:"",description:"",media_path:"chapter-images/"});
@@ -52,8 +101,7 @@ function App(){
   <header className="topbar3d"><div className="brand3d"><div className="brandmark">✦</div><div><b>AIWCU</b><span>Autonomous Instinct Web Controller Universe</span></div></div><div className="topstats"><span><i className="dot green"/> {counts.working} Working</span><span><i className="dot blue"/> {counts.active} Active</span><span className="system">● SYSTEM {status?.ok===false?"ATTENTION":"ONLINE"}</span><span className="clock">{now.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}</span></div></header>
   <div className="workspace">
    <aside className="sidebar"><div className="side-title">CAPTAINS <small>{agents.length}</small></div>{runtimeAgents.map(a=><button className={"agent-row "+(selected===a.id?"selected":"")} key={a.id} onClick={()=>setSelected(a.id)}><span className="mini-avatar" style={{background:a.color}}>{a.icon}</span><span><b>{a.name}</b><small>{a.runtimeState??a.status}</small></span><em style={{color:runtimeTone(a.runtimeState,a.accent)}}>●</em></button>)}<div className="legend"><b>LIVE OFFICE</b><p>Characters move through real destinations and show their current work state.</p><button onClick={()=>setSelected(null)}>View Whole Office</button></div></aside>
-   <main className="scene"><div className="office-safe-mode aiwcu-universe"><div className="universe-header"><div><b>AIWCU GALAXY</b><span>Autonomous Instinct Web Controller Universe • LIVE AGENT NETWORK</span></div><div className="universe-legend"><i></i> Runtime synchronized</div></div><div className="galaxy-stage"><div className="galaxy-nebula"></div><div className="orbit orbit-a"></div><div className="orbit orbit-b"></div><div className="orbit orbit-c"></div><div className="aiwcu-core"><div className="core-ring"></div><strong>AIWCU</strong><small>UNIVERSE CORE</small><i></i></div>{runtimeAgents.map((a,index)=><button key={a.id} className={"agent-planet planet-"+index+" office-state-"+String(a.runtimeState??a.status).toLowerCase()+(selected===a.id?" selected":"")} onClick={()=>setSelected(a.id)} title={a.task}><span className="planet-glow" style={{background:a.accent}}></span><span className="planet-body" style={{background:a.color,borderColor:a.accent}}><b>{a.icon}</b></span><span className="planet-label"><b>{a.name}</b><small>{a.runtimeState??"IDLE"}</small></span><i className="planet-status" style={{background:runtimeTone(a.runtimeState,a.accent)}}></i></button>)}</div><div className="universe-footer"><b>AIWCU CONTROL NETWORK</b><span>Manager coordinates the active world • Captains operate specialized teams as planetary nodes • One-site-at-a-time lock active</span></div></div>
-    <div className="scene-title"><b>AIWCU</b><span>Autonomous Instinct Web Controller Universe • Galaxy Control</span></div><div className="site-selector"><span>ACTIVE SITE</span><b>{sites.find(s=>s.id===selectedSite)?.name??"Loading sites..."}</b><button onClick={()=>setSitesOpen(true)}>⚙ Sites</button></div>
+   <main className="scene"><div className="universe-3d"><Universe3D selected={selected} setSelected={setSelected}/><div className="universe-3d-hud"><b>AIWCU UNIVERSE</b><span>BLACK HOLE • 9 CAPTAIN STARS • 12H ORBIT CYCLE</span><small>Drag to travel • Scroll to zoom • Click a star to select a Captain</small></div><div className="universe-3d-legend"><span>● BLACK HOLE — MANAGER</span><span>✦ CAPTAIN STAR</span></div></div><div className="scene-title"><b>AIWCU</b><span>Autonomous Instinct Web Controller Universe • Galaxy Control</span></div><div className="site-selector"><span>ACTIVE SITE</span><b>{sites.find(s=>s.id===selectedSite)?.name??"Loading sites..."}</b><button onClick={()=>setSitesOpen(true)}>⚙ Sites</button></div>
     <div className="scene-controls"><button onClick={()=>setSelected("manager")}>⌖ Focus Agent</button><button onClick={()=>setSelected(null)}>◎ Overview</button></div>
     <div className="activity"><b>LIVE ACTIVITY</b><span><i className="pulse"/> {selectedAgent.name} — {liveTask}</span><small>{liveState?`Runtime: ${liveState}`:"Waiting for runtime event"} • auto-refresh 15s</small></div>
     {sitesOpen&&<SitePanel sites={sites} selectedSite={selectedSite} setSelectedSite={setSelectedSite} onClose={()=>setSitesOpen(false)}/>} {chatOpen&&<div className="chat-panel">
