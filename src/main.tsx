@@ -1,5 +1,5 @@
 import React,{useEffect,useMemo,useRef,useState} from "react";
-import {Canvas,useFrame} from "@react-three/fiber";
+import {Canvas,useFrame,useThree} from "@react-three/fiber";
 import {OrbitControls,Stars} from "@react-three/drei";
 import * as THREE from "three";
 import {createRoot} from "react-dom/client";
@@ -85,7 +85,7 @@ function SolarSystem({captain,onExit,onPlanet}:{captain:any;onExit:()=>void;onPl
  </group>;
 }
 function CameraTravel({mode,selectedIndex,onDone}:{mode:"universe"|"system";selectedIndex:number;onDone:()=>void}){
- const {camera}=require("@react-three/fiber").useThree();
+ const {camera}=useThree();
  const target=useRef(new THREE.Vector3()); const look=useRef(new THREE.Vector3()); const last=useRef(mode);
  useFrame((_,delta)=>{
    if(mode==="system"){
