@@ -13,7 +13,7 @@ permissions:
 
 concurrency:
   group: github-pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -37,16 +37,6 @@ jobs:
       - name: Build AIWCU Universe
         run: npm run build
 
-      - name: Force GitHub Pages to use Actions publishing
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh api --method PUT repos/${GITHUB_REPOSITORY}/pages \
-            -H "Accept: application/vnd.github+json" \
-            -f build_type=workflow \
-            -f "source[branch]=main" \
-            -f "source[path]=/"
-
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
@@ -55,13 +45,6 @@ jobs:
         with:
           path: ./dist
 
-      - name: Allow Pages artifact to finalize
-        run: sleep 15
-
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
-
-      - name: Retry GitHub Pages deployment
-        if: failure()
         uses: actions/deploy-pages@v4
