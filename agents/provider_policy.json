@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "policy": "open-source-first",
+  "core_must_not_depend_on_vendor_api": true,
+  "allowed": {
+    "frameworks": [
+      "LangGraph",
+      "CrewAI",
+      "AutoGen",
+      "custom-python"
+    ],
+    "local_runtimes": [
+      "Ollama",
+      "llama.cpp",
+      "vLLM"
+    ],
+    "open_models": [
+      "Llama",
+      "Qwen",
+      "Mistral",
+      "Gemma",
+      "DeepSeek"
+    ]
+  },
+  "architecture": {
+    "provider_adapter": "controller/providers/",
+    "model_selection": "configuration",
+    "fallback_order": [
+      "local-runtime",
+      "self-hosted-runtime",
+      "deterministic-agent"
+    ],
+    "vendor_lock_in": "forbidden",
+    "secrets_in_frontend": false
+  },
+  "rule": "A team must remain operational if any single model vendor, hosted API or framework disappears."
+}
