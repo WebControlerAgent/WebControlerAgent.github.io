@@ -1,24 +1,136 @@
 {
-  "version": 1,
+  "version": 2,
   "runtime": "github-actions",
+  "architecture": "captain-team-agent",
   "manager": "manager",
+  "scaling": {
+    "unit": "team",
+    "hierarchy": [
+      "universe",
+      "captain",
+      "team",
+      "agent",
+      "task"
+    ],
+    "cloneable_agents": true,
+    "cloneable_teams": true,
+    "captain_can_manage_own_team": true,
+    "parent_captains_can_delegate_to_child_captains": true
+  },
   "execution": {
     "max_active_sites": 1,
     "complete_before_next": true,
     "failure_blocks_queue": true,
-    "max_retries": 3
+    "max_retries": 3,
+    "deterministic_gate_before_ai": true,
+    "state_persistence": "repository"
   },
   "agents": [
-    {"id":"manager","name":"Manager","role":"Team Lead","mission":"Receive user instructions, inspect runtime state, choose the next authorized task, delegate work and report results.","can_delegate":["researcher","image-agent","publisher","seo-agent","qa","bug-hunter","bug-solver","idea-builder"]},
-    {"id":"researcher","name":"Researcher","role":"Research & Discovery","mission":"Research only authorized sources and prepare structured work for the active site."},
-    {"id":"image-agent","name":"Image Agent","role":"Authorized Media Worker","mission":"Collect and prepare media only from explicitly authorized sources; never bypass access controls."},
-    {"id":"publisher","name":"Publisher","role":"Build & Deploy","mission":"Build, update and deploy the active authorized site through deterministic GitHub Actions."},
-    {"id":"seo-agent","name":"SEO Agent","role":"Search Specialist","mission":"Generate and validate metadata, internal links, sitemap and indexing-ready technical SEO."},
-    {"id":"qa","name":"QA Agent","role":"Final Verification","mission":"Verify the active site and only mark completion after required checks pass."},
-    {"id":"bug-hunter","name":"Bug Hunter","role":"Find & Diagnose","mission":"Inspect a failed verification, identify the root cause and create a structured repair task."},
-    {"id":"bug-solver","name":"Bug Solver","role":"Repair & Fix","mission":"Apply the smallest safe repair, run verification and return the result to QA."},
-    {"id":"idea-builder","name":"Idea Builder","role":"New Site Ideas","mission":"Develop future site ideas without interrupting the active-site queue."}
+    {
+      "id": "manager",
+      "name": "Manager",
+      "type": "captain",
+      "role": "Universe Operations Captain",
+      "mission": "Own global orchestration, select the active authorized site, delegate to captains/teams, enforce policy, resolve priorities and report truthfully.",
+      "can_delegate": [
+        "researcher",
+        "image-agent",
+        "publisher",
+        "seo-agent",
+        "qa",
+        "bug-hunter",
+        "bug-solver",
+        "idea-builder"
+      ],
+      "team_template": "operations"
+    },
+    {
+      "id": "researcher",
+      "name": "Researcher",
+      "type": "captain",
+      "role": "Research Captain",
+      "mission": "Turn authorized-source research into structured evidence and actionable tasks; manage future research agents.",
+      "team_template": "research"
+    },
+    {
+      "id": "image-agent",
+      "name": "Image Agent",
+      "type": "captain",
+      "role": "Media Captain",
+      "mission": "Manage authorized media discovery, transformation and validation; never bypass access controls or copyright restrictions.",
+      "team_template": "media"
+    },
+    {
+      "id": "publisher",
+      "name": "Publisher",
+      "type": "captain",
+      "role": "Publishing Captain",
+      "mission": "Manage build, content integration, release and deployment agents for the active authorized site.",
+      "team_template": "publishing"
+    },
+    {
+      "id": "seo-agent",
+      "name": "SEO Agent",
+      "type": "captain",
+      "role": "SEO Captain",
+      "mission": "Manage technical SEO, metadata, internal linking, sitemap, indexing readiness and search diagnostics.",
+      "team_template": "seo"
+    },
+    {
+      "id": "qa",
+      "name": "QA Agent",
+      "type": "captain",
+      "role": "Quality Captain",
+      "mission": "Own verification gates, regression checks and release acceptance; never mark completion without evidence.",
+      "team_template": "quality"
+    },
+    {
+      "id": "bug-hunter",
+      "name": "Bug Hunter",
+      "type": "captain",
+      "role": "Diagnostics Captain",
+      "mission": "Lead failure investigation, isolate root causes and produce reproducible repair plans.",
+      "team_template": "diagnostics"
+    },
+    {
+      "id": "bug-solver",
+      "name": "Bug Solver",
+      "type": "captain",
+      "role": "Repair Captain",
+      "mission": "Lead safe repairs, regression checks and rollback-ready changes; return evidence to QA.",
+      "team_template": "repair"
+    },
+    {
+      "id": "idea-builder",
+      "name": "Idea Builder",
+      "type": "captain",
+      "role": "Innovation Captain",
+      "mission": "Develop and score future site/product ideas without interrupting the active-site execution lock.",
+      "team_template": "innovation"
+    }
   ],
-  "failure_flow":["qa","bug-hunter","bug-solver","qa"],
-  "completion_flow":["manager","researcher","image-agent","publisher","seo-agent","qa","manager"]
+  "failure_flow": [
+    "qa",
+    "bug-hunter",
+    "bug-solver",
+    "qa"
+  ],
+  "completion_flow": [
+    "manager",
+    "researcher",
+    "image-agent",
+    "publisher",
+    "seo-agent",
+    "qa",
+    "manager"
+  ],
+  "team_rules": {
+    "captain_owns_queue": true,
+    "captain_must_report_to_parent": true,
+    "agents_cannot_bypass_captain": true,
+    "cross_team_work_requires_manager_approval": true,
+    "shared_state_is_contract_based": true,
+    "every_task_has_owner": true,
+    "every_result_has_evidence": true
+  }
 }
