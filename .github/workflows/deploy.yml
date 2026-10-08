@@ -1,4 +1,4 @@
-name: Deploy Agent Studio to GitHub Pages
+name: Deploy AIWCU Universe to GitHub Pages
 
 on:
   push:
@@ -34,7 +34,7 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build 3D workspace
+      - name: Build AIWCU Universe
         run: npm run build
 
       - name: Configure GitHub Pages
