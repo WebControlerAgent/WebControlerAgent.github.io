@@ -62,15 +62,21 @@ const PLANET_DATA=[
  {color:"#8c8a82",accent:"#d2d0c7",size:.24,rough:.9,ring:false}
 ];
 const STAR_PALETTE=[
- {color:"#fff1c2",accent:"#fffdf0"},{color:"#ffd9a0",accent:"#fff0cc"},{color:"#d8ecff",accent:"#ffffff"},
- {color:"#e6d4ff",accent:"#fff4ff"},{color:"#ffd0a8",accent:"#fff0dc"},{color:"#c9fff4",accent:"#effffb"},
- {color:"#fff0a8",accent:"#fffde1"},{color:"#d9edff",accent:"#ffffff"},{color:"#ddffe5",accent:"#f5fff7"}
+ {color:"#ff8a2a",accent:"#ffd166"},
+ {color:"#ffc233",accent:"#fff0a3"},
+ {color:"#35b9ff",accent:"#9ee7ff"},
+ {color:"#ffb347",accent:"#ffe08a"},
+ {color:"#ff6f3c",accent:"#ffc09d"},
+ {color:"#27d8d0",accent:"#9ffff7"},
+ {color:"#ffd23f",accent:"#fff2a6"},
+ {color:"#4aa8ff",accent:"#b8e5ff"},
+ {color:"#ff9f43",accent:"#ffd18a"}
 ];
 function StarGlow({color,accent,scale=1}:{color:string;accent:string;scale?:number}){
  const ref=useRef<THREE.Group>(null!);
  useFrame((_,delta)=>{ref.current.rotation.y+=delta*.22;ref.current.rotation.z+=delta*.07});
  return <group ref={ref} scale={scale}>
-   <mesh><sphereGeometry args={[.58,64,64]}/><meshStandardMaterial color={color} emissive={color} emissiveIntensity={5.5} roughness={.18} metalness={.02}/></mesh>
+   <mesh><sphereGeometry args={[.58,64,64]}/><meshStandardMaterial color={color} emissive={color} emissiveIntensity={3.2} roughness={.18} metalness={.02}/></mesh>
    <mesh scale={1.62}><sphereGeometry args={[.58,40,40]}/><meshBasicMaterial color={accent} transparent opacity={.07} blending={THREE.AdditiveBlending}/></mesh>
    <mesh scale={2.2}><sphereGeometry args={[.58,32,32]}/><meshBasicMaterial color={color} transparent opacity={.028} blending={THREE.AdditiveBlending}/></mesh>
    <mesh rotation={[Math.PI/2,0,.35]}><torusGeometry args={[.88,.012,8,96]}/><meshBasicMaterial color={accent} transparent opacity={.28} blending={THREE.AdditiveBlending}/></mesh>
@@ -84,7 +90,7 @@ function CaptainSun({item,index,onSelect,selected}:{item:any;index:number;onSele
    group.current.rotation.y+=delta*.12;
  });
  return <group ref={group} onClick={(e)=>{e.stopPropagation();onSelect()}}>
-   <pointLight color={palette.color} intensity={selected?9:4.6} distance={7.5} decay={2}/>
+   <pointLight color={palette.color} intensity={selected?7:3.2} distance={7.5} decay={2}/>
    <StarGlow color={palette.color} accent={palette.accent} scale={selected?1.3:1.05}/>
    <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[.82,.018,10,128]}/><meshBasicMaterial color={palette.accent} transparent opacity={selected?.62:.24} blending={THREE.AdditiveBlending}/></mesh>
    <mesh rotation={[Math.PI/2,0,.8]}><torusGeometry args={[1.05,.008,8,128]}/><meshBasicMaterial color={palette.color} transparent opacity={selected?.26:.1} blending={THREE.AdditiveBlending}/></mesh>
