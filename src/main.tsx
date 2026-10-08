@@ -70,3 +70,4 @@ function App(){
  </div>
 }
 createRoot(document.getElementById("root")!).render(<App/>);
+window.dispatchEvent(new Event("agent-app-ready"));
