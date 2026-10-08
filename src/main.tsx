@@ -140,7 +140,7 @@ function App(){
  const liveState=runtimeSelected?.runtimeState??null;
  const liveTask=runtimeSelected?.runtimeTask??selectedAgent.task;
  const liveError=runtimeSelected?.runtimeError??null;
- const liveEvents=runtimeEvents.filter((e:any)=>e.site===selectedSite || !e.site).slice(0,8);
+
  const counts=useMemo(()=>({working:runtimeAgents.filter(a=>a.runtimeState==="WORKING").length,active:runtimeAgents.filter(a=>a.runtimeState && a.runtimeState!=="IDLE").length}),[runtimeAgents]);
  return <div className="app">
   <header className="topbar3d"><div className="brand3d"><div className="brandmark">✦</div><div><b>AI AGENT WORKSPACE</b><span>Web Controller • Living Operations Office</span></div></div><div className="topstats"><span><i className="dot green"/> {counts.working} Working</span><span><i className="dot blue"/> {counts.active} Active</span><span className="system">● SYSTEM {status?.ok===false?"ATTENTION":"ONLINE"}</span><span className="clock">{now.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}</span></div></header>
