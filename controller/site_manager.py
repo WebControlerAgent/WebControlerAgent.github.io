@@ -10,7 +10,8 @@ def valid_url(v):
 def main():
     event=json.load(open(os.environ["GITHUB_EVENT_PATH"],encoding="utf-8"))
     issue=event.get("issue",{}); author=(issue.get("user") or {}).get("login","")
-    if author.lower()!=OWNER.lower(): raise PermissionError("Issue author is not authorized")
+    association=issue.get("author_association","")
+    if author.lower()!=OWNER.lower() and association!="OWNER": raise PermissionError("Issue author is not authorized")
     if not (issue.get("title") or "").startswith("[Site Manager]"): raise ValueError("Not a Site Manager issue")
     body=issue.get("body") or ""
     m=re.search(r"<!--\s*site-manager-command\s*(\{.*?\})\s*-->",body,re.S)
