@@ -75,7 +75,7 @@ function Zone({position,size,label,accent}:{position:[number,number,number];size
  return <group position={position}><mesh rotation={[-Math.PI/2,0,0]}><planeGeometry args={size}/><meshStandardMaterial color="#101a25" transparent opacity={.72}/></mesh><Text position={[0,.03,-size[1]/2+.25]} rotation={[-Math.PI/2,0,0]} fontSize={.16} color={accent} anchorX="center">{label}</Text></group>
 }
 
-function Office({selected,setSelected}:{selected:string|null;setSelected:(id:string)=>void}){
+function Office({selected,setSelected,runtimeAgents}:{selected:string|null;setSelected:(id:string)=>void;runtimeAgents:any[]}){
  return <group>
   <mesh rotation={[-Math.PI/2,0,0]}><planeGeometry args={[22,14]}/><meshStandardMaterial color="#17212b"/></mesh>
   <gridHelper args={[22,22,"#314150","#202b35"]} position={[0,.015,0]}/>
@@ -85,7 +85,7 @@ function Office({selected,setSelected}:{selected:string|null;setSelected:(id:str
   <Zone position={[-5,0,-.2]} size={[8,4]} label="RESEARCH + CREATIVE" accent="#8be3ad"/>
   <Zone position={[5,0,-.2]} size={[8,4]} label="DEVELOPMENT + QA" accent="#8fd4ff"/>
   <Zone position={[0,0,4.9]} size={[12,3.2]} label="MEETING / OPERATIONS" accent="#ffe18a"/>
-  {agents.map(a=><React.Fragment key={a.id}><Desk position={a.desk} name={a.name} accent={a.accent}/><Character agent={a} selected={selected===a.id} onSelect={()=>setSelected(a.id)}/></React.Fragment>)}
+  {agents.map(a=><React.Fragment key={a.id}><Desk position={a.desk} name={a.name} accent={a.accent}/></React.Fragment>)}<AgentWorld runtimeAgents={runtimeAgents} selectedAgent={agents.find(a=>a.id===selected)??agents[0]} onSelect={a=>setSelected(a.id)}/>
   <group position={[8,0,5]}><mesh position={[0,.65,0]}><boxGeometry args={[2,.12,1.2]}/><meshStandardMaterial color="#536273"/></mesh><Text position={[0,.05,.7]} rotation={[-Math.PI/2,0,0]} fontSize={.15} color="#7b8ea1">SERVER / AI INFRA</Text></group>
   <group position={[-8,0,5]}><mesh position={[0,.55,0]}><cylinderGeometry args={[.65,.7,.12,20]}/><meshStandardMaterial color="#5d4636"/></mesh><mesh position={[0,.95,0]}><cylinderGeometry args={[.14,.18,.7,12]}/><meshStandardMaterial color="#3c4650"/></mesh><Text position={[0,.05,.7]} rotation={[-Math.PI/2,0,0]} fontSize={.15} color="#c3a483">COFFEE</Text></group>
  </group>
@@ -128,7 +128,6 @@ function App(){
  const runtimeAgents=useMemo(()=>{const raw=status?.agent_runtime?.agent_states??{};return agents.map(a=>({...a,runtimeState:raw[a.id]?.state??null,runtimeSite:raw[a.id]?.site??null,runtimeTask:raw[a.id]?.task??null,runtimeError:raw[a.id]?.error??null}));},[status]);
  const runtimeTone=(state:string|null,fallback:string)=>state==="FAILED"?"#fb7185":state==="REPAIRING"?"#fbbf24":state==="VERIFYING"?"#60a5fa":state==="COMPLETED"?"#34d399":state==="WORKING"?"#4ade80":fallback;
  const runtimeEvents=useMemo(()=>Array.isArray(status?.agent_runtime?.events)?status.agent_runtime.events.slice(-18).reverse():[],[status]);
- const runtimeSelected=runtimeAgents.find(a=>a.id===selectedAgent.id); const liveState=runtimeSelected?.runtimeState??null; const liveTask=runtimeSelected?.runtimeTask??selectedAgent.task; const liveError=runtimeSelected?.runtimeError??null;
  const liveEvents=runtimeEvents.filter((e:any)=>e.site===selectedSite || !e.site).slice(0,8);
  const refreshStatus=()=>fetch("./status.json?ts="+Date.now()).then(r=>r.ok?r.json():null).then(setStatus).catch(()=>{});
  const [chatInput,setChatInput]=useState("");
@@ -137,12 +136,17 @@ function App(){
  useEffect(()=>{const t=setInterval(()=>setNow(new Date()),1000);return()=>clearInterval(t)},[]);
  useEffect(()=>{refreshStatus();fetch("./sites.json?ts="+Date.now()).then(r=>r.ok?r.json():null).then(d=>setSites(d?.sites??[])).catch(()=>{});const t=setInterval(refreshStatus,15000);return()=>clearInterval(t)},[]);
  const selectedAgent=agents.find(a=>a.id===selected)??agents[0];
- const counts=useMemo(()=>({working:agents.filter(a=>a.status==="WORKING").length,active:agents.filter(a=>a.status!=="IDLE").length}),[]);
+ const runtimeSelected=runtimeAgents.find(a=>a.id===selectedAgent.id);
+ const liveState=runtimeSelected?.runtimeState??null;
+ const liveTask=runtimeSelected?.runtimeTask??selectedAgent.task;
+ const liveError=runtimeSelected?.runtimeError??null;
+ const liveEvents=runtimeEvents.filter((e:any)=>e.site===selectedSite || !e.site).slice(0,8);
+ const counts=useMemo(()=>({working:runtimeAgents.filter(a=>a.runtimeState==="WORKING").length,active:runtimeAgents.filter(a=>a.runtimeState && a.runtimeState!=="IDLE").length}),[runtimeAgents]);
  return <div className="app">
   <header className="topbar3d"><div className="brand3d"><div className="brandmark">✦</div><div><b>AI AGENT WORKSPACE</b><span>Web Controller • Living Operations Office</span></div></div><div className="topstats"><span><i className="dot green"/> {counts.working} Working</span><span><i className="dot blue"/> {counts.active} Active</span><span className="system">● SYSTEM {status?.ok===false?"ATTENTION":"ONLINE"}</span><span className="clock">{now.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}</span></div></header>
   <div className="workspace">
    <aside className="sidebar"><div className="side-title">AGENTS <small>{agents.length}</small></div>{runtimeAgents.map(a=><button className={"agent-row "+(selected===a.id?"selected":"")} key={a.id} onClick={()=>setSelected(a.id)}><span className="mini-avatar" style={{background:a.color}}>{a.icon}</span><span><b>{a.name}</b><small>{a.runtimeState??a.status}</small></span><em style={{color:runtimeTone(a.runtimeState,a.accent)}}>●</em></button>)}<div className="legend"><b>LIVE OFFICE</b><p>Characters move through real destinations and show their current work state.</p><button onClick={()=>setSelected(null)}>View Whole Office</button></div></aside>
-   <main className="scene"><SceneErrorBoundary><Canvas shadows camera={{position:[15,13,15],fov:42}} dpr={[1,1.6]}><color attach="background" args={["#07111c"]}/><ambientLight intensity={1.3}/><directionalLight castShadow position={[4,12,5]} intensity={2.1} shadow-mapSize={[1024,1024]}/><pointLight position={[-7,5,-2]} color="#7dd3fc" intensity={10} distance={13}/><pointLight position={[7,4,3]} color="#c084fc" intensity={8} distance={11}/><Office selected={selected} setSelected={setSelected}/><CameraRig focus={selected}/><OrbitControls makeDefault minPolarAngle={.48} maxPolarAngle={1.18} minDistance={9} maxDistance={25} target={[0,0,0]} enableDamping/></Canvas></SceneErrorBoundary>
+   <main className="scene"><SceneErrorBoundary><Canvas shadows camera={{position:[15,13,15],fov:42}} dpr={[1,1.6]}><color attach="background" args={["#07111c"]}/><ambientLight intensity={1.3}/><directionalLight castShadow position={[4,12,5]} intensity={2.1} shadow-mapSize={[1024,1024]}/><pointLight position={[-7,5,-2]} color="#7dd3fc" intensity={10} distance={13}/><pointLight position={[7,4,3]} color="#c084fc" intensity={8} distance={11}/><Office selected={selected} setSelected={setSelected} runtimeAgents={runtimeAgents}/><CameraRig focus={selected}/><OrbitControls makeDefault minPolarAngle={.48} maxPolarAngle={1.18} minDistance={9} maxDistance={25} target={[0,0,0]} enableDamping/></Canvas></SceneErrorBoundary>
     <div className="scene-title"><b>AI AGENT WORKSPACE</b><span>Isometric Operations Floor</span></div><div className="site-selector"><span>ACTIVE SITE</span><b>{sites.find(s=>s.id===selectedSite)?.name??"Loading sites..."}</b><button onClick={()=>setSitesOpen(true)}>⚙ Sites</button></div>
     <div className="scene-controls"><button onClick={()=>setSelected("manager")}>⌖ Focus Agent</button><button onClick={()=>setSelected(null)}>◎ Overview</button></div>
     <div className="activity"><b>LIVE ACTIVITY</b><span><i className="pulse"/> {selectedAgent.name} — {liveTask}</span><small>{liveState?`Runtime: ${liveState}`:"Waiting for runtime event"} • auto-refresh 15s</small></div><div className="site-dashboard"><div className="dashboard-head"><div><b>{sites.find(s=>s.id===selectedSite)?.name??selectedSite} / AGENT STATUS</b><small>{status?.agent_runtime?.active_site?("Active: "+status.agent_runtime.active_site.id):"No site currently claimed"} • auto-refresh 15s</small></div><button onClick={refreshStatus}>↻ Refresh</button></div><div className="dashboard-grid">{runtimeAgents.map(a=><button key={a.id} className="dash-agent" onClick={()=>setSelected(a.id)}><span className="dash-avatar" style={{background:a.color}}>{a.icon}</span><span><b>{a.name}</b><small>{a.runtimeState??"IDLE"}{a.runtimeTask?" • "+a.runtimeTask:""}</small>{a.runtimeError&&<em>{a.runtimeError}</em>}</span><i style={{color:runtimeTone(a.runtimeState,a.accent)}}>●</i></button>)}</div></div>
