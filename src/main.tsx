@@ -90,6 +90,23 @@ function CameraRig({focus}:{focus:string|null}){
  return null;
 }
 
+class SceneErrorBoundary extends React.Component<{children:React.ReactNode},{error:boolean}>{
+ state={error:false};
+ static getDerivedStateFromError(){return {error:true};}
+ componentDidCatch(error:unknown){console.error("3D workspace error",error);}
+ render(){
+  if(this.state.error) return <div style={{height:"100%",display:"grid",placeItems:"center",background:"#07111c",color:"#dce8f2",padding:30,textAlign:"center"}}>
+   <div style={{maxWidth:520,border:"1px solid #304656",borderRadius:16,padding:28,background:"#0b1722",boxShadow:"0 20px 60px #0008"}}>
+    <div style={{fontSize:34,marginBottom:12}}>⚠</div>
+    <b style={{fontSize:16}}>3D Workspace could not start</b>
+    <p style={{color:"#7890a4",fontSize:11,lineHeight:1.6}}>The Agent Studio interface is loaded, but the 3D renderer failed to initialize. The rest of the application is still available.</p>
+    <button onClick={()=>location.reload()} style={{border:"1px solid #426078",borderRadius:9,padding:"9px 14px",background:"#153047",color:"#d9ebf8",cursor:"pointer"}}>Reload Workspace</button>
+   </div>
+  </div>;
+  return this.props.children;
+ }
+}
+
 function App(){
  const [selected,setSelected]=useState<string|null>("manager"); const [now,setNow]=useState(new Date()); const [status,setStatus]=useState<any>(null);
  const [chatOpen,setChatOpen]=useState(true);
@@ -104,7 +121,7 @@ function App(){
   <header className="topbar3d"><div className="brand3d"><div className="brandmark">✦</div><div><b>AI AGENT WORKSPACE</b><span>Web Controller • Living Operations Office</span></div></div><div className="topstats"><span><i className="dot green"/> {counts.working} Working</span><span><i className="dot blue"/> {counts.active} Active</span><span className="system">● SYSTEM {status?.ok===false?"ATTENTION":"ONLINE"}</span><span className="clock">{now.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}</span></div></header>
   <div className="workspace">
    <aside className="sidebar"><div className="side-title">AGENTS <small>{agents.length}</small></div>{agents.map(a=><button className={"agent-row "+(selected===a.id?"selected":"")} key={a.id} onClick={()=>setSelected(a.id)}><span className="mini-avatar" style={{background:a.color}}>{a.icon}</span><span><b>{a.name}</b><small>{a.role}</small></span><em style={{color:statusTone(a.status)}}>●</em></button>)}<div className="legend"><b>LIVE OFFICE</b><p>Characters move through real destinations and show their current work state.</p><button onClick={()=>setSelected(null)}>View Whole Office</button></div></aside>
-   <main className="scene"><Canvas shadows camera={{position:[15,13,15],fov:42}} dpr={[1,1.6]}><color attach="background" args={["#07111c"]}/><ambientLight intensity={1.3}/><directionalLight castShadow position={[4,12,5]} intensity={2.1} shadow-mapSize={[1024,1024]}/><pointLight position={[-7,5,-2]} color="#7dd3fc" intensity={10} distance={13}/><pointLight position={[7,4,3]} color="#c084fc" intensity={8} distance={11}/><Office selected={selected} setSelected={setSelected}/><CameraRig focus={selected}/><OrbitControls makeDefault minPolarAngle={.48} maxPolarAngle={1.18} minDistance={9} maxDistance={25} target={[0,0,0]} enableDamping/></Canvas>
+   <main className="scene"><Canvas shadows camera={{position:[15,13,15],fov:42}} dpr={[1,1.6]}><color attach="background" args={["#07111c"]}/><ambientLight intensity={1.3}/><directionalLight castShadow position={[4,12,5]} intensity={2.1} shadow-mapSize={[1024,1024]}/><pointLight position={[-7,5,-2]} color="#7dd3fc" intensity={10} distance={13}/><pointLight position={[7,4,3]} color="#c084fc" intensity={8} distance={11}/><Office selected={selected} setSelected={setSelected}/><CameraRig focus={selected}/><OrbitControls makeDefault minPolarAngle={.48} maxPolarAngle={1.18} minDistance={9} maxDistance={25} target={[0,0,0]} enableDamping/></Canvas></SceneErrorBoundary>
     <div className="scene-title"><b>AI AGENT WORKSPACE</b><span>Isometric Operations Floor</span></div>
     <div className="scene-controls"><button onClick={()=>setSelected("manager")}>⌖ Focus Agent</button><button onClick={()=>setSelected(null)}>◎ Overview</button></div>
     <div className="activity"><b>LIVE ACTIVITY</b><span><i className="pulse"/> {selectedAgent.name} — {selectedAgent.task}</span><small>One active site at a time • state-driven workspace</small></div>
