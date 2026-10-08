@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "description": "Cloneable team templates. Every current captain is the root of a future expandable team.",
+  "templates": {
+    "operations": [
+      "planner",
+      "scheduler",
+      "policy-checker",
+      "state-keeper",
+      "reporter"
+    ],
+    "research": [
+      "source-discovery",
+      "fact-checker",
+      "analyst",
+      "trend-researcher",
+      "research-reviewer"
+    ],
+    "media": [
+      "source-validator",
+      "asset-preparer",
+      "metadata-writer",
+      "rights-checker",
+      "media-reviewer"
+    ],
+    "publishing": [
+      "content-builder",
+      "frontend-worker",
+      "release-worker",
+      "deployment-checker",
+      "rollback-worker"
+    ],
+    "seo": [
+      "keyword-researcher",
+      "metadata-worker",
+      "internal-link-worker",
+      "sitemap-worker",
+      "indexing-diagnostics"
+    ],
+    "quality": [
+      "functional-tester",
+      "ui-tester",
+      "seo-tester",
+      "performance-tester",
+      "release-gatekeeper"
+    ],
+    "diagnostics": [
+      "log-analyzer",
+      "reproduction-agent",
+      "root-cause-analyst",
+      "regression-planner",
+      "diagnostic-reviewer"
+    ],
+    "repair": [
+      "patch-agent",
+      "test-agent",
+      "security-reviewer",
+      "rollback-planner",
+      "repair-reviewer"
+    ],
+    "innovation": [
+      "idea-researcher",
+      "opportunity-analyst",
+      "prototype-planner",
+      "experiment-agent",
+      "idea-reviewer"
+    ]
+  },
+  "expansion": {
+    "rule": "Any template can be cloned into Team N under its captain without changing the global runtime contract.",
+    "example": "seo-agent -> seo-team-01 -> seo-agent-01..N",
+    "max_depth": null
+  }
+}
