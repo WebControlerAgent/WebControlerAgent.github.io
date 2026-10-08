@@ -25,12 +25,12 @@ html,body{margin:0;width:100%;height:100%;background:#07111c;color:#e6f1ff;font-
    error.style.display="block";
    error.textContent=label+(detail?"\n\n"+detail:"");
  }
- window.addEventListener("error",function(e){showError("JavaScript error",e.message+"\n"+(e.filename||"")+" : "+(e.lineno||"")+":"+(e.colno||""));});
+ window.addEventListener("error",function(e){var t=e.target;if(t&&t!==window){var u=t.src||t.href||"";showError("Resource failed to load",((t.tagName||"resource")+"\n"+u));return;}showError("JavaScript error",e.message+"\n"+(e.filename||"")+" : "+(e.lineno||"")+":"+(e.colno||""));},true);
  window.addEventListener("unhandledrejection",function(e){showError("Unhandled promise rejection",String(e.reason&&e.reason.stack||e.reason));});
- window.addEventListener("agent-app-ready",function(){boot.style.display="none";});
+ window.__agentModuleLoadError=function(src){showError("Application module failed to load",src||"unknown module URL");}; window.addEventListener("agent-app-ready",function(){boot.style.display="none";});
  setTimeout(function(){if(boot.style.display!=="none"&& !error.textContent){status.textContent="Still loading… If this remains, the diagnostic panel will identify the problem."; }},4000);
 })();
 </script>
-<script type="module" src="./src/main.tsx"></script>
+<script type="module" src="./src/main.tsx" onerror="window.__agentModuleLoadError&&window.__agentModuleLoadError(this.src)"></script>
 </body>
 </html>
