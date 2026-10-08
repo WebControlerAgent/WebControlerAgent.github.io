@@ -48,7 +48,7 @@ function CaptainSun({item,index,onSelect,selected}:{item:any;index:number;onSele
  });
  return <group ref={group} onClick={(e)=>{e.stopPropagation();onSelect()}}>
    <pointLight color={item.color} intensity={selected?6:3.2} distance={6}/>
-   <mesh><sphereGeometry args={[selected?.72:.58,48,48]}/><meshStandardMaterial color={item.color} emissive={item.color} emissiveIntensity={selected?3.4:2.0} roughness={.2}/></mesh>
+   <mesh><sphereGeometry args={[selected ? .72 : .58,48,48]}/><meshStandardMaterial color={item.color} emissive={item.color} emissiveIntensity={selected?3.4:2.0} roughness={.2}/></mesh>
    <mesh scale={1.5}><sphereGeometry args={[.58,32,32]}/><meshBasicMaterial color={item.accent} transparent opacity={.07} blending={THREE.AdditiveBlending}/></mesh>
    {selected&&<mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[1.05,.018,10,96]}/><meshBasicMaterial color={item.accent} transparent opacity={.55}/></mesh>}
  </group>;
