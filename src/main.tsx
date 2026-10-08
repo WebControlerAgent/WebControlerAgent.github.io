@@ -120,7 +120,7 @@ function App(){
  const [chatOpen,setChatOpen]=useState(true);
  const [chatInput,setChatInput]=useState("");
  const [messages,setMessages]=useState<{from:string;text:string;runtimeAction?:any;aiRequest?:string}[]>([{from:"Manager",text:"Studio online hai. Main actual Agent Runtime state read kar raha hoon. Status, queue, bug, ya kisi employee ka naam bolo."}]);
- const sendChat=()=>{const text=chatInput.trim();if(!text)return;const reply=managerReply(text,agents,status);setMessages(m=>[...m,{from:"You",text},{from:agents.find(a=>a.id===reply.agentId)?.name??"Manager",text:reply.text,runtimeAction:reply.runtimeAction,aiRequest:reply.aiRequest}]);setChatInput("");setSelected(reply.agentId);};
+ const sendChat=()=>{const text=chatInput.trim();if(!text)return;const siteName=sites.find(s=>s.id===selectedSite)?.name??selectedSite;const enriched=text+`\\nActive site: ${siteName} (${selectedSite})`;const reply=managerReply(enriched,agents,status);if(reply.runtimeAction&&!reply.runtimeAction.site)reply.runtimeAction.site=selectedSite;setMessages(m=>[...m,{from:"You",text},{from:agents.find(a=>a.id===reply.agentId)?.name??"Manager",text:reply.text,runtimeAction:reply.runtimeAction,aiRequest:reply.aiRequest}]);setChatInput("");setSelected(reply.agentId);};
  useEffect(()=>{const t=setInterval(()=>setNow(new Date()),1000);return()=>clearInterval(t)},[]);
  useEffect(()=>{fetch("./status.json?ts="+Date.now()).then(r=>r.ok?r.json():null).then(setStatus).catch(()=>{}); fetch("./sites.json?ts="+Date.now()).then(r=>r.ok?r.json():null).then(d=>setSites(d?.sites??[])).catch(()=>{})},[]);
  const selectedAgent=agents.find(a=>a.id===selected)??agents[0];
