@@ -1,26 +1,88 @@
 {
-  "version": 1,
+  "version": 2,
+  "architecture": "captain-team-agent",
   "execution": {
     "max_active_sites": 1,
     "complete_before_next": true,
     "retry_limit": 3
   },
+  "hierarchy": [
+    "universe",
+    "captain",
+    "team",
+    "agent",
+    "task"
+  ],
   "pipeline": [
     "manager",
     "researcher",
     "image-agent",
     "publisher",
     "seo-agent",
-    "qa",
-    "bug-hunter",
-    "bug-solver"
+    "qa"
   ],
-  "states": ["WAITING", "CLAIMED", "WORKING", "VERIFYING", "COMPLETED", "FAILED", "REPAIRING", "RETRY"],
+  "repair_pipeline": [
+    "bug-hunter",
+    "bug-solver",
+    "qa"
+  ],
+  "states": [
+    "WAITING",
+    "CLAIMED",
+    "WORKING",
+    "VERIFYING",
+    "COMPLETED",
+    "FAILED",
+    "REPAIRING",
+    "RETRY",
+    "BLOCKED",
+    "PAUSED"
+  ],
   "rules": {
-    "manager_is_coordinator": true,
+    "manager_is_global_captain": true,
+    "captains_manage_their_teams": true,
     "one_site_at_a_time": true,
     "failed_site_blocks_next_site": true,
     "bug_hunter_before_bug_solver": true,
-    "qa_required_before_completion": true
+    "qa_required_before_completion": true,
+    "agents_never_bypass_authorization": true,
+    "deterministic_gates_before_ai": true,
+    "state_must_survive_runner_restart": true,
+    "model_provider_is_replaceable": true
+  },
+  "contracts": {
+    "task": {
+      "required": [
+        "task_id",
+        "owner",
+        "parent_captain",
+        "site",
+        "objective",
+        "constraints",
+        "input",
+        "success_criteria"
+      ]
+    },
+    "result": {
+      "required": [
+        "task_id",
+        "agent",
+        "state",
+        "summary",
+        "evidence",
+        "artifacts",
+        "next_action"
+      ]
+    },
+    "handoff": {
+      "required": [
+        "from",
+        "to",
+        "task_id",
+        "reason",
+        "context",
+        "acceptance_criteria"
+      ]
+    }
   }
 }
