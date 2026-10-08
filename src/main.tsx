@@ -36,7 +36,11 @@ const CAPTAIN_STARS=[
 {id:"qa",name:"Quality",color:"#a5f0b6",accent:"#ddffe5"}
 ];
 const ORBIT_PERIOD_HOURS=12;
-
+const CAPTAIN_ORBITS=[
+ {radius:6.6,tilt:.22,speed:1.00},{radius:7.5,tilt:-.31,speed:.88},{radius:8.5,tilt:.10,speed:.76},
+ {radius:9.5,tilt:-.42,speed:.68},{radius:10.5,tilt:.28,speed:.61},{radius:11.5,tilt:-.18,speed:.55},
+ {radius:12.5,tilt:.36,speed:.50},{radius:13.5,tilt:-.27,speed:.46},{radius:14.5,tilt:.16,speed:.42}
+];
 
 const TEAM_TEMPLATES:Record<string,string[]>={
   "bug-solver":["patch-agent","test-agent","security-reviewer","rollback-planner","repair-reviewer"],
@@ -73,10 +77,10 @@ function StarGlow({color,accent,scale=1}:{color:string;accent:string;scale?:numb
  </group>;
 }
 function CaptainSun({item,index,onSelect,selected}:{item:any;index:number;onSelect:()=>void;selected:boolean}){
- const group=useRef<THREE.Group>(null!); const phase=index*(Math.PI*2/9); const palette=STAR_PALETTE[index];
+ const group=useRef<THREE.Group>(null!); const phase=index*(Math.PI*2/9); const palette=STAR_PALETTE[index]; const orbit=CAPTAIN_ORBITS[index];
  useFrame(({clock},delta)=>{
-   const angle=phase+(clock.elapsedTime/(ORBIT_PERIOD_HOURS*3600))*Math.PI*2;
-   group.current.position.set(Math.cos(angle)*8.5,Math.sin(angle*1.07)*1.2,Math.sin(angle)*8.5);
+   const angle=phase+(clock.elapsedTime/(ORBIT_PERIOD_HOURS*3600))*Math.PI*2*orbit.speed;
+   group.current.position.set(Math.cos(angle)*orbit.radius,Math.sin(angle+orbit.tilt)*(.55+index*.035),Math.sin(angle)*orbit.radius);
    group.current.rotation.y+=delta*.12;
  });
  return <group ref={group} onClick={(e)=>{e.stopPropagation();onSelect()}}>
@@ -162,7 +166,7 @@ function Universe3D({selected,setSelected}:{selected:string|null;setSelected:(id
    <color attach="background" args={["#010208"]}/><fog attach="fog" args={["#010208",28,90]}/><ambientLight intensity={.07}/><directionalLight position={[6,10,4]} intensity={.18}/>
    <Stars radius={100} depth={65} count={7000} factor={1.35} saturation={.08} fade speed={.08}/>
    <CameraTravel mode={system?"system":"universe"} onDone={travelDone}/>
-   {!system?<><BlackHole onSelect={exit}/>{CAPTAIN_STARS.map((x,i)=><CaptainSun key={x.id} item={x} index={i} selected={selected===x.id} onSelect={()=>enter(x.id)}/>)}</>:<SolarSystem captain={captain!} onPlanet={setPlanet}/>}
+   {!system?<><BlackHole onSelect={exit}/>{CAPTAIN_STARS.map((x,i)=><React.Fragment key={x.id}><mesh rotation={[CAPTAIN_ORBITS[i].tilt,0,i*.35]}><torusGeometry args={[CAPTAIN_ORBITS[i].radius,.006,6,160]}/><meshBasicMaterial color={STAR_PALETTE[i].accent} transparent opacity={.08} blending={THREE.AdditiveBlending}/></mesh><CaptainSun item={x} index={i} selected={selected===x.id} onSelect={()=>enter(x.id)}/></React.Fragment>)}</>:<SolarSystem captain={captain!} onPlanet={setPlanet}/>} 
    <OrbitControls enabled={!traveling} enablePan enableZoom minDistance={system?3:8} maxDistance={system?18:45} dampingFactor={.055} enableDamping/>
   </Canvas>
   {system&&<button className="universe-back" onClick={exit}>← RETURN TO GALAXY</button>}
