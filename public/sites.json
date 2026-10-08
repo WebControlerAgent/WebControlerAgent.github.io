@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "sites": [
+    {
+      "id": "kingdom-raw",
+      "name": "Kingdom Raw",
+      "repository": "kindgommangaraw/kindgommangaraw.github.io",
+      "branch": "main",
+      "live_url": "https://jpmangaatlis.online/",
+      "enabled": true,
+      "authorized": true,
+      "routes": ["authorized-github-repository"],
+      "media": {"enabled": true, "authorized_source": true, "path": "chapter-images/"},
+      "description": "Primary authorized test site for the GitHub-native Agent Runtime.",
+      "runtime_test": "pipeline-selection-final"
+    }
+  ],
+  "policy": {"one_active_site": true, "authorized_only": true}
+}
