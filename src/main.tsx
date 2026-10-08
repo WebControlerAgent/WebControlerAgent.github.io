@@ -25,7 +25,9 @@ const statusTone=(s:Status)=>({IDLE:"#718096",WALKING:"#60a5fa",WORKING:"#4ade80
 
 function Label({children,color="#dce8f2"}:{children:React.ReactNode;color?:string}){return <Html center distanceFactor={10} position={[0,1.9,0]}><div className="world-label" style={{borderColor:color+"55"}}>{children}</div></Html>}
 
-function Character({agent,selected,onSelect}:{agent:Agent;selected:boolean;onSelect:()=>void}){
+function Character({agent,selected,onSelect,runtimeState,runtimeTask}:{agent:Agent;selected:boolean;onSelect:()=>void;runtimeState?:string|null;runtimeTask?:string|null}){
+ const visualState=(runtimeState==="WORKING"?"WORKING":runtimeState==="VERIFYING"?"THINKING":runtimeState==="FAILED"||runtimeState==="REPAIRING"?"ERROR":runtimeState==="COMPLETED"?"SUCCESS":"IDLE") as Status;
+ const active=!!runtimeState && visualState!=="IDLE"; const displayAgent={...agent,status:active?visualState:agent.status,task:runtimeTask||agent.task};
  const ref=useRef<THREE.Group>(null); const [i,setI]=useState(0); const [pos]=useState(()=>new THREE.Vector3(...agent.waypoints[0])); const rot=useRef(0); const [hover,setHover]=useState(false);
  useCursor(hover);
  useEffect(()=>{const t=setInterval(()=>setI(v=>(v+1)%agent.waypoints.length),4200);return()=>clearInterval(t)},[agent.waypoints.length]);
@@ -34,7 +36,7 @@ function Character({agent,selected,onSelect}:{agent:Agent;selected:boolean;onSel
    const target=new THREE.Vector3(...agent.waypoints[i]); const d=target.clone().sub(pos); const moving=d.length()>0.06;
    if(moving){const step=Math.min(d.length(),dt*1.7);d.normalize();pos.addScaledVector(d,step);rot.current=Math.atan2(d.x,d.z);}
    ref.current.position.copy(pos); ref.current.rotation.y=THREE.MathUtils.lerp(ref.current.rotation.y,rot.current,.12);
-   const bob=agent.status==="WORKING"||moving?Math.sin(performance.now()/170)*.035:Math.sin(performance.now()/850)*.012;
+   const bob=visualState==="WORKING"||moving?Math.sin(performance.now()/170)*.035:Math.sin(performance.now()/850)*.012;
    ref.current.position.y=bob;
  });
  return <group ref={ref} onClick={(e)=>{e.stopPropagation();onSelect()}} onPointerOver={()=>setHover(true)} onPointerOut={()=>setHover(false)}>
@@ -46,9 +48,14 @@ function Character({agent,selected,onSelect}:{agent:Agent;selected:boolean;onSel
    <mesh position={[.19,.18,0]}><boxGeometry args={[.19,.55,.22]}/><meshStandardMaterial color="#202b38"/></mesh>
    <mesh position={[-.48,.78,0]} rotation={[0,0,.28]}><capsuleGeometry args={[.09,.42,4,8]}/><meshStandardMaterial color="#e9b28a"/></mesh>
    <mesh position={[.48,.78,0]} rotation={[0,0,-.28]}><capsuleGeometry args={[.09,.42,4,8]}/><meshStandardMaterial color="#e9b28a"/></mesh>
-   <Label color={selected?agent.accent:"#6f8497"}><b>{agent.name}</b><span style={{color:statusTone(agent.status)}}>● {agent.status}</span></Label>
-   {hover&&<Html center position={[0,2.5,0]}><div className="task-bubble-3d"><b>{agent.task}</b><small>Click to inspect</small></div></Html>}
+   <Label color={selected?agent.accent:"#6f8497"}><b>{agent.name}</b><span style={{color:statusTone(visualState)}}>● {runtimeState||agent.status}</span></Label>
+   {hover&&<Html center position={[0,2.5,0]}><div className="task-bubble-3d"><b>{displayAgent.task}</b><small>Click to inspect</small></div></Html>}
  </group>
+}
+
+function AgentWorld({runtimeAgents,selectedAgent,onSelect}:{runtimeAgents:any[];selectedAgent:Agent;onSelect:(a:Agent)=>void}){
+ const byId=new Map(runtimeAgents.map(a=>[a.id,a]));
+ return <>{agents.map(agent=>{const r=byId.get(agent.id);return <Character key={agent.id} agent={agent} selected={agent.id===selectedAgent.id} onSelect={()=>onSelect(agent)} runtimeState={r?.runtimeState??null} runtimeTask={r?.runtimeTask??null}/>})}</>;
 }
 
 function Desk({position,name,accent}:{position:[number,number,number];name:string;accent:string}){
