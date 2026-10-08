@@ -1,50 +1,43 @@
 {
   "ok": true,
-  "started_at": "2026-10-08T06:55:56Z",
-  "finished_at": "2026-10-08T06:55:56Z",
-  "sources_checked": 0,
-  "targets_configured": 0,
-  "discovered": [],
-  "errors": [],
-  "note": "Discovery only. Publishing requires an explicit authorized target adapter.",
   "agent_runtime": {
     "active_site": null,
     "queue": [],
     "agent_states": {
       "manager": {
-        "state": "WORKING",
-        "site": "kingdom-raw",
-        "task": "Validate and coordinate the active site",
+        "state": "IDLE",
+        "site": null,
+        "task": null,
         "error": null
       },
       "researcher": {
-        "state": "WORKING",
-        "site": "kingdom-raw",
-        "task": "Validate authorized research routes",
+        "state": "IDLE",
+        "site": null,
+        "task": null,
         "error": null
       },
       "image-agent": {
-        "state": "WORKING",
-        "site": "kingdom-raw",
-        "task": "Validate authorized media policy",
+        "state": "IDLE",
+        "site": null,
+        "task": null,
         "error": null
       },
       "publisher": {
-        "state": "WORKING",
-        "site": "kingdom-raw",
-        "task": "Validate publication workspace",
+        "state": "IDLE",
+        "site": null,
+        "task": null,
         "error": null
       },
       "seo-agent": {
-        "state": "WORKING",
-        "site": "kingdom-raw",
-        "task": "Validate core SEO and deployable files",
+        "state": "IDLE",
+        "site": null,
+        "task": null,
         "error": null
       },
       "qa": {
         "state": "COMPLETED",
-        "site": "kingdom-raw",
-        "task": "Run final verification",
+        "site": null,
+        "task": null,
         "error": null
       }
     },
@@ -307,7 +300,64 @@
         "type": "site_completed",
         "site": "kingdom-raw",
         "at": "2026-10-07T18:10:06Z"
+      },
+      {
+        "type": "site_claimed",
+        "site": "kingdom-raw"
+      },
+      {
+        "type": "agent_step",
+        "agent": "manager",
+        "site": "kingdom-raw",
+        "task": "Validate and coordinate the active site",
+        "at": "2026-10-08T12:29:59Z"
+      },
+      {
+        "type": "agent_step",
+        "agent": "researcher",
+        "site": "kingdom-raw",
+        "task": "Validate authorized research routes",
+        "at": "2026-10-08T12:29:59Z"
+      },
+      {
+        "type": "agent_step",
+        "agent": "image-agent",
+        "site": "kingdom-raw",
+        "task": "Validate authorized media policy",
+        "at": "2026-10-08T12:29:59Z"
+      },
+      {
+        "type": "agent_step",
+        "agent": "publisher",
+        "site": "kingdom-raw",
+        "task": "Validate publication workspace",
+        "at": "2026-10-08T12:29:59Z"
+      },
+      {
+        "type": "agent_step",
+        "agent": "seo-agent",
+        "site": "kingdom-raw",
+        "task": "Validate core SEO and deployable files",
+        "at": "2026-10-08T12:30:00Z"
+      },
+      {
+        "type": "agent_step",
+        "agent": "qa",
+        "site": "kingdom-raw",
+        "task": "Run final verification",
+        "at": "2026-10-08T12:30:00Z"
+      },
+      {
+        "type": "site_completed",
+        "site": "kingdom-raw",
+        "at": "2026-10-08T12:30:00Z"
       }
     ]
+  },
+  "runtime_result": {
+    "agent": "qa",
+    "site": "kingdom-raw",
+    "task": "Run final verification",
+    "passed": true
   }
 }
