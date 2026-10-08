@@ -9,16 +9,16 @@ import {managerReply} from "./chat/managerChat";
 type Status="IDLE"|"WALKING"|"WORKING"|"THINKING"|"MEETING"|"SUCCESS"|"ERROR";
 type Agent={id:string;name:string;role:string;type:"captain";color:string;accent:string;desk:[number,number,number];waypoints:[number,number,number][];task:string;status:Status;icon:string};
 const agents:Agent[]=[
-{id:"bug-solver",name:"Bug Solver",role:"Repair Captain",color:"#69435d",accent:"#ff9fbd",desk:[7,0,1.2],waypoints:[[7,0,1.2],[5,0,3],[2,0,4],[7,0,1.2]],task:"Repairing verified defects before retry",status:"WORKING",icon:"F"},
+{id:"bug-solver",name:"Bug Solver",role:"Repair Captain",type:"captain",color:"#69435d",accent:"#ff9fbd",desk:[7,0,1.2],waypoints:[[7,0,1.2],[5,0,3],[2,0,4],[7,0,1.2]],task:"Repairing verified defects before retry",status:"WORKING",icon:"F"},
 
-{id:"manager",name:"Manager",role:"Universe Operations Captain",color:"#355c7d",accent:"#7dd3fc",desk:[-7,0,-4],waypoints:[[-7,0,-4],[-2,0,-1],[0,0,2],[-7,0,-4]],task:"Coordinating the active site queue",status:"WORKING",icon:"M"},
-{id:"researcher",name:"Researcher",role:"Research Captain",color:"#426b57",accent:"#8be3ad",desk:[-3.5,0,-4],waypoints:[[-3.5,0,-4],[-5,0,1],[-1,0,3],[-3.5,0,-4]],task:"Checking authorized sources",status:"THINKING",icon:"R"},
-{id:"image-agent",name:"Image Agent",role:"Media Captain",color:"#6b4c7c",accent:"#d8a7ff",desk:[0,0,-4],waypoints:[[0,0,-4],[4,0,-1],[5,0,2],[0,0,-4]],task:"Preparing approved media assets",status:"WORKING",icon:"I"},
-{id:"bug-hunter",name:"Bug Hunter",role:"Diagnostics Captain",color:"#7a5838",accent:"#ffcb7a",desk:[3.5,0,-4],waypoints:[[3.5,0,-4],[5,0,2],[2,0,4],[3.5,0,-4]],task:"Scanning the current build",status:"WALKING",icon:"B"},
-{id:"seo-agent",name:"SEO Agent",role:"SEO Captain",color:"#2d6570",accent:"#75e1ed",desk:[7,0,-4],waypoints:[[7,0,-4],[4,0,3],[0,0,3],[7,0,-4]],task:"Optimizing discoverability signals",status:"WORKING",icon:"S"},
-{id:"idea-builder",name:"Idea Builder",role:"Innovation Captain",color:"#806b32",accent:"#ffe18a",desk:[-4.8,0,4],waypoints:[[-4.8,0,4],[-1,0,5],[1,0,2],[-4.8,0,4]],task:"Developing the next site concept",status:"THINKING",icon:"N"},
-{id:"publisher",name:"Publisher",role:"Publishing Captain",color:"#315d77",accent:"#8fd4ff",desk:[0,0,4],waypoints:[[0,0,4],[5,0,4],[6,0,1],[0,0,4]],task:"Preparing a verified deployment",status:"WORKING",icon:"P"},
-{id:"qa",name:"QA Agent",role:"Quality Captain",color:"#35665c",accent:"#8df0c2",desk:[4.8,0,4],waypoints:[[4.8,0,4],[2,0,1],[-2,0,1],[4.8,0,4]],task:"Running final verification checks",status:"SUCCESS",icon:"Q"}
+{id:"manager",name:"Manager",role:"Universe Operations Captain",type:"captain",color:"#355c7d",accent:"#7dd3fc",desk:[-7,0,-4],waypoints:[[-7,0,-4],[-2,0,-1],[0,0,2],[-7,0,-4]],task:"Coordinating the active site queue",status:"WORKING",icon:"M"},
+{id:"researcher",name:"Researcher",role:"Research Captain",type:"captain",color:"#426b57",accent:"#8be3ad",desk:[-3.5,0,-4],waypoints:[[-3.5,0,-4],[-5,0,1],[-1,0,3],[-3.5,0,-4]],task:"Checking authorized sources",status:"THINKING",icon:"R"},
+{id:"image-agent",name:"Image Agent",role:"Media Captain",type:"captain",color:"#6b4c7c",accent:"#d8a7ff",desk:[0,0,-4],waypoints:[[0,0,-4],[4,0,-1],[5,0,2],[0,0,-4]],task:"Preparing approved media assets",status:"WORKING",icon:"I"},
+{id:"bug-hunter",name:"Bug Hunter",role:"Diagnostics Captain",type:"captain",color:"#7a5838",accent:"#ffcb7a",desk:[3.5,0,-4],waypoints:[[3.5,0,-4],[5,0,2],[2,0,4],[3.5,0,-4]],task:"Scanning the current build",status:"WALKING",icon:"B"},
+{id:"seo-agent",name:"SEO Agent",role:"SEO Captain",type:"captain",color:"#2d6570",accent:"#75e1ed",desk:[7,0,-4],waypoints:[[7,0,-4],[4,0,3],[0,0,3],[7,0,-4]],task:"Optimizing discoverability signals",status:"WORKING",icon:"S"},
+{id:"idea-builder",name:"Idea Builder",role:"Innovation Captain",type:"captain",color:"#806b32",accent:"#ffe18a",desk:[-4.8,0,4],waypoints:[[-4.8,0,4],[-1,0,5],[1,0,2],[-4.8,0,4]],task:"Developing the next site concept",status:"THINKING",icon:"N"},
+{id:"publisher",name:"Publisher",role:"Publishing Captain",type:"captain",color:"#315d77",accent:"#8fd4ff",desk:[0,0,4],waypoints:[[0,0,4],[5,0,4],[6,0,1],[0,0,4]],task:"Preparing a verified deployment",status:"WORKING",icon:"P"},
+{id:"qa",name:"QA Agent",role:"Quality Captain",type:"captain",color:"#35665c",accent:"#8df0c2",desk:[4.8,0,4],waypoints:[[4.8,0,4],[2,0,1],[-2,0,1],[4.8,0,4]],task:"Running final verification checks",status:"SUCCESS",icon:"Q"}
 ];
 
 const statusTone=(s:Status)=>({IDLE:"#718096",WALKING:"#60a5fa",WORKING:"#4ade80",THINKING:"#c084fc",MEETING:"#fbbf24",SUCCESS:"#34d399",ERROR:"#fb7185"}[s]);
@@ -60,8 +60,8 @@ function StarGlow({color,accent,scale=1}:{color:string;accent:string;scale?:numb
 }
 function CaptainSun({item,index,onSelect,selected}:{item:any;index:number;onSelect:()=>void;selected:boolean}){
  const group=useRef<THREE.Group>(null!); const phase=index*(Math.PI*2/9); const palette=STAR_PALETTE[index];
- useFrame(({elapsed},delta)=>{
-   const angle=phase+(elapsed/(ORBIT_PERIOD_HOURS*3600))*Math.PI*2;
+ useFrame(({clock},delta)=>{
+   const angle=phase+(clock.elapsedTime/(ORBIT_PERIOD_HOURS*3600))*Math.PI*2;
    group.current.position.set(Math.cos(angle)*8.5,Math.sin(angle*1.07)*1.2,Math.sin(angle)*8.5);
    group.current.rotation.y+=delta*.18;
  });
@@ -84,7 +84,7 @@ function BlackHole({onSelect}:{onSelect:()=>void}){
 }
 function Planet({index,onClick}:{index:number;onClick:()=>void}){
  const ref=useRef<THREE.Group>(null!); const d=PLANET_DATA[index]; const radius=2.0+index*.68; const phase=index*1.25;
- useFrame(({elapsed},delta)=>{const a=phase+elapsed*(.14/(1+index*.42));ref.current.position.set(Math.cos(a)*radius,Math.sin(a*1.7)*(.1+index*.04),Math.sin(a)*radius);ref.current.rotation.y+=delta*(.3+index*.08)});
+ useFrame(({clock},delta)=>{const a=phase+clock.elapsedTime*(.14/(1+index*.42));ref.current.position.set(Math.cos(a)*radius,Math.sin(a*1.7)*(.1+index*.04),Math.sin(a)*radius);ref.current.rotation.y+=delta*(.3+index*.08)});
  return <group ref={ref} onClick={(e)=>{e.stopPropagation();onClick()}}>
    <pointLight color={d.accent} intensity={.035} distance={1}/>
    <mesh castShadow receiveShadow><sphereGeometry args={[d.size,40,40]}/><meshStandardMaterial color={d.color} roughness={d.rough} metalness={.02}/></mesh>
