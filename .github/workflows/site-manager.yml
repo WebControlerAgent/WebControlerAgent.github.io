@@ -20,7 +20,7 @@ concurrency:
 
 jobs:
   manage:
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.issue.user.login == 'WebControlerAgent' && startsWith(github.event.issue.title, '[Site Manager]')) }}
+    if: ${{ github.event_name == 'workflow_dispatch' || (startsWith(github.event.issue.title, '[Site Manager]') && (github.event.issue.user.login == 'WebControlerAgent' || github.event.issue.author_association == 'OWNER')) }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
