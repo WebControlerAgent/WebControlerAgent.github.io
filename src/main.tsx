@@ -74,16 +74,41 @@ const STAR_PALETTE=[
 ];
 function StarGlow({color,accent,scale=1}:{color:string;accent:string;scale?:number}){
  const ref=useRef<THREE.Group>(null!);
- useFrame((_,delta)=>{ref.current.rotation.y+=delta*.22;ref.current.rotation.z+=delta*.07});
+ const flames=useRef<THREE.Group>(null!);
+ useFrame(({clock},delta)=>{
+   ref.current.rotation.y+=delta*.22;
+   ref.current.rotation.z+=delta*.07;
+   const pulse=1+Math.sin(clock.elapsedTime*2.8)*.10;
+   flames.current.scale.setScalar(pulse);
+   flames.current.rotation.y-=delta*.16;
+ });
+ const flameAngles=[0,Math.PI/4,Math.PI/2,3*Math.PI/4,Math.PI,5*Math.PI/4,3*Math.PI/2,7*Math.PI/4];
  return <group ref={ref} scale={scale}>
    <mesh><sphereGeometry args={[.58,64,64]}/><meshStandardMaterial color={color} emissive={color} emissiveIntensity={3.2} roughness={.18} metalness={.02}/></mesh>
    <mesh scale={1.62}><sphereGeometry args={[.58,40,40]}/><meshBasicMaterial color={accent} transparent opacity={.07} blending={THREE.AdditiveBlending}/></mesh>
    <mesh scale={2.2}><sphereGeometry args={[.58,32,32]}/><meshBasicMaterial color={color} transparent opacity={.028} blending={THREE.AdditiveBlending}/></mesh>
-   {/* Star rays / flares: elongated additive beams make each Captain read as a star, not a plain ball. */}
-   <mesh rotation={[0,0,0]} scale={[1,2.9,1]}><planeGeometry args={[.18,.72]}/><meshBasicMaterial color={accent} transparent opacity={.16} blending={THREE.AdditiveBlending} depthWrite={false} side={THREE.DoubleSide}/></mesh>
-   <mesh rotation={[0,0,Math.PI/2]} scale={[1,2.9,1]}><planeGeometry args={[.18,.72]}/><meshBasicMaterial color={accent} transparent opacity={.13} blending={THREE.AdditiveBlending} depthWrite={false} side={THREE.DoubleSide}/></mesh>
-   <mesh rotation={[0,0,Math.PI/4]} scale={[1,2.15,1]}><planeGeometry args={[.12,.62]}/><meshBasicMaterial color={color} transparent opacity={.09} blending={THREE.AdditiveBlending} depthWrite={false} side={THREE.DoubleSide}/></mesh>
-   <mesh rotation={[0,0,-Math.PI/4]} scale={[1,2.15,1]}><planeGeometry args={[.12,.62]}/><meshBasicMaterial color={color} transparent opacity={.07} blending={THREE.AdditiveBlending} depthWrite={false} side={THREE.DoubleSide}/></mesh>
+
+   <group ref={flames}>
+     {flameAngles.map((a,i)=>{
+       const r=.78+(i%2)*.06;
+       return <mesh key={i}
+         position={[Math.cos(a)*r,Math.sin(a)*r,Math.sin(a*2)*.08]}
+         rotation={[0,0,a-Math.PI/2]}
+         scale={[.72+(i%3)*.12,1.45+(i%2)*.35,.72+(i%2)*.08]}>
+         <coneGeometry args={[.14,.72,10,1]} />
+         <meshBasicMaterial color={i%2===0?accent:color} transparent opacity={.18+(i%3)*.035} blending={THREE.AdditiveBlending} depthWrite={false}/>
+       </mesh>;
+     })}
+     <mesh rotation={[0,Math.PI/2,0]} scale={[1,1.7,1]}>
+       <coneGeometry args={[.11,.95,10,1]}/>
+       <meshBasicMaterial color={accent} transparent opacity={.16} blending={THREE.AdditiveBlending} depthWrite={false}/>
+     </mesh>
+     <mesh rotation={[0,0,Math.PI/2]} scale={[1,1.7,1]}>
+       <coneGeometry args={[.11,.95,10,1]}/>
+       <meshBasicMaterial color={accent} transparent opacity={.14} blending={THREE.AdditiveBlending} depthWrite={false}/>
+     </mesh>
+   </group>
+
    <mesh rotation={[Math.PI/2,0,.35]}><torusGeometry args={[.88,.012,8,96]}/><meshBasicMaterial color={accent} transparent opacity={.28} blending={THREE.AdditiveBlending}/></mesh>
  </group>;
 }
