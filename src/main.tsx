@@ -38,7 +38,18 @@ const CAPTAIN_STARS=[
 const ORBIT_PERIOD_HOURS=12;
 
 
-const TEAM_PLANETS=["Planner","Scheduler","Policy","State","Reporter"];
+const TEAM_TEMPLATES:Record<string,string[]>={
+  "bug-solver":["patch-agent","test-agent","security-reviewer","rollback-planner","repair-reviewer"],
+  "manager":["planner","scheduler","policy-checker","state-keeper","reporter"],
+  "researcher":["source-discovery","fact-checker","analyst","trend-researcher","research-reviewer"],
+  "image-agent":["source-validator","asset-preparer","metadata-writer","rights-checker","media-reviewer"],
+  "bug-hunter":["log-analyzer","reproduction-agent","root-cause-analyst","regression-planner","diagnostic-reviewer"],
+  "seo-agent":["keyword-researcher","metadata-worker","internal-link-worker","sitemap-worker","indexing-diagnostics"],
+  "idea-builder":["idea-researcher","opportunity-analyst","prototype-planner","experiment-agent","idea-reviewer"],
+  "publisher":["content-builder","frontend-worker","release-worker","deployment-checker","rollback-worker"],
+  "qa":["functional-tester","ui-tester","seo-tester","performance-tester","release-gatekeeper"]
+};
+const prettyTeamName=(id:string)=>id.split("-").map(x=>x.charAt(0).toUpperCase()+x.slice(1)).join(" ");
 const PLANET_DATA=[
  {color:"#8d9aaa",accent:"#dbe4ed",size:.17,rough:.86,ring:false},
  {color:"#b78e68",accent:"#e5c39b",size:.20,rough:.72,ring:true},
@@ -92,40 +103,60 @@ function Planet({index,onClick}:{index:number;onClick:()=>void}){
  </group>;
 }
 function SolarSystem({captain,onPlanet}:{captain:any;onPlanet:(name:string)=>void}){
+ const team=TEAM_TEMPLATES[captain.id]??TEAM_TEMPLATES.manager;
  const ref=useRef<THREE.Group>(null!); const palette=STAR_PALETTE[CAPTAIN_STARS.findIndex(x=>x.id===captain.id)];
  useFrame((_,delta)=>{ref.current.rotation.y+=delta*.008});
  return <group ref={ref}>
    <pointLight color={palette.color} intensity={18} distance={18} decay={1.7}/>
    <StarGlow color={palette.color} accent={palette.accent} scale={1.15}/>
-   {TEAM_PLANETS.map((name,i)=><React.Fragment key={name}>
+   {team.map((name,i)=><React.Fragment key={name}>
      <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[2.0+i*.68,.006,6,96]}/><meshBasicMaterial color="#aebdca" transparent opacity={.13}/></mesh>
      <Planet index={i} onClick={()=>onPlanet(name)}/>
    </React.Fragment>)}
  </group>;
 }
-function CameraTravel({mode,origin,onDone}:{mode:"universe"|"system";origin?:[number,number,number];onDone:()=>void}){
- const {camera}=useThree(); const target=useRef(new THREE.Vector3()); const look=useRef(new THREE.Vector3()); const last=useRef(mode);
+function CameraTravel({mode,onDone}:{mode:"universe"|"system";onDone:()=>void}){
+ const {camera}=useThree();
+ const previous=useRef(mode);
+ const active=useRef(false);
+ const target=useRef(new THREE.Vector3());
+ const look=useRef(new THREE.Vector3());
+ useEffect(()=>{
+   if(previous.current!==mode){
+     previous.current=mode;
+     active.current=true;
+     const timer=window.setTimeout(()=>{active.current=false;onDone()},950);
+     return()=>window.clearTimeout(timer);
+   }
+ },[mode,onDone]);
  useFrame((_,delta)=>{
-   if(mode==="system"){target.current.set(0,2.0,7.4);look.current.set(0,0,0)}else{target.current.set(0,10,22);look.current.set(0,0,0)}
+   if(!active.current)return;
+   if(mode==="system"){target.current.set(0,2.0,7.4);look.current.set(0,0,0)}
+   else{target.current.set(0,10,22);look.current.set(0,0,0)}
    camera.position.lerp(target.current,1-Math.pow(.001,delta));
-   const q=new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(camera.position,look.current,camera.up));camera.quaternion.slerp(q,1-Math.pow(.001,delta));
-   if(last.current!==mode){last.current=mode;setTimeout(onDone,900)}
+   const q=new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(camera.position,look.current,camera.up));
+   camera.quaternion.slerp(q,1-Math.pow(.001,delta));
  });
  return null;
 }
 function Universe3D({selected,setSelected}:{selected:string|null;setSelected:(id:string|null)=>void}){
- const [system,setSystem]=useState<string|null>(null); const [planet,setPlanet]=useState<string|null>(null);
- const captain=CAPTAIN_STARS.find(x=>x.id===system); const enter=(id:string)=>{setPlanet(null);setSystem(id);setSelected(id)}; const exit=()=>{setPlanet(null);setSystem(null);setSelected("manager")};
+ const [system,setSystem]=useState<string|null>(null);
+ const [planet,setPlanet]=useState<string|null>(null);
+ const [traveling,setTraveling]=useState(false);
+ const captain=CAPTAIN_STARS.find(x=>x.id===system);
+ const enter=(id:string)=>{setPlanet(null);setTraveling(true);setSystem(id);setSelected(id)};
+ const exit=()=>{setPlanet(null);setTraveling(true);setSystem(null);setSelected("manager")};
+ const travelDone=useMemo(()=>()=>setTraveling(false),[]);
  return <div className="universe-canvas-wrap">
   <Canvas camera={{position:[0,10,22],fov:48,near:.1,far:1000}} dpr={[1,1.7]} gl={{antialias:true}} shadows>
    <color attach="background" args={["#010208"]}/><fog attach="fog" args={["#010208",28,90]}/><ambientLight intensity={.07}/><directionalLight position={[6,10,4]} intensity={.18}/>
    <Stars radius={100} depth={65} count={7000} factor={1.35} saturation={.08} fade speed={.08}/>
-   <CameraTravel mode={system?"system":"universe"} onDone={()=>{}}/>
+   <CameraTravel mode={system?"system":"universe"} onDone={travelDone}/>
    {!system?<><BlackHole onSelect={exit}/>{CAPTAIN_STARS.map((x,i)=><CaptainSun key={x.id} item={x} index={i} selected={selected===x.id} onSelect={()=>enter(x.id)}/>)}</>:<SolarSystem captain={captain!} onPlanet={setPlanet}/>}
-   <OrbitControls enablePan enableZoom minDistance={system?3:8} maxDistance={system?18:45} dampingFactor={.055} enableDamping/>
+   <OrbitControls enabled={!traveling} enablePan enableZoom minDistance={system?3:8} maxDistance={system?18:45} dampingFactor={.055} enableDamping/>
   </Canvas>
   {system&&<button className="universe-back" onClick={exit}>← RETURN TO GALAXY</button>}
-  {system&&<div className="system-hud"><b>{captain?.name.toUpperCase()} SOLAR SYSTEM</b><span>CAPTAIN STAR • {TEAM_PLANETS.length} TEAM PLANETS</span>{planet&&<small>SELECTED PLANET: {planet}</small>}</div>}
+  {system&&<div className="system-hud"><b>{captain?.name.toUpperCase()} SOLAR SYSTEM</b><span>CAPTAIN STAR • {((TEAM_TEMPLATES[captain?.id??"manager"]??TEAM_TEMPLATES.manager).length)} TEAM PLANETS</span>{planet&&<small>SELECTED PLANET: {prettyTeamName(planet)}</small>}</div>}
  </div>;
 }
 
