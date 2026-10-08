@@ -1,0 +1,61 @@
+name: Site Manager
+
+on:
+  issues:
+    types: [opened]
+  workflow_dispatch:
+    inputs:
+      command:
+        description: Site manager JSON command
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: site-manager
+  cancel-in-progress: false
+
+jobs:
+  manage:
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.issue.user.login == 'WebControlerAgent' && startsWith(github.event.issue.title, '[Site Manager]')) }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build protected command
+        env:
+          MANUAL_COMMAND: ${{ inputs.command }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            printf '%s' "$MANUAL_COMMAND" > /tmp/site-command.json
+          else
+            python3 - <<'PY'
+          import json, os, re
+          e=json.load(open(os.environ['GITHUB_EVENT_PATH'],encoding='utf-8'))
+          body=e['issue'].get('body') or ''
+          m=re.search(r'<!--\s*site-manager-command\s*(\{.*?\})\s*-->',body,re.S)
+          if not m: raise SystemExit('missing command')
+          open('/tmp/site-command.json','w',encoding='utf-8').write(m.group(1))
+          PY
+          fi
+      - name: Apply site change
+        env:
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+        run: python3 controller/site_manager.py
+      - name: Commit site registry
+        run: |
+          git config user.name 'Web Controller Agent'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add controller/sites.json public/sites.json
+          git diff --cached --quiet || git commit -m 'chore: update Agent Studio site registry'
+          git push
+      - name: Report
+        if: ${{ github.event_name == 'issues' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue comment '${{ github.event.issue.number }}' --body '✅ **Site Manager:** registry change applied and deployed.'
+          gh issue close '${{ github.event.issue.number }}'
