@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   manager:
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.issue.user.login == 'WebControlerAgent' && startsWith(github.event.issue.title, '[Manager AI]')) }}
+    if: ${{ github.event_name == 'workflow_dispatch' || (startsWith(github.event.issue.title, '[Manager AI]') && (github.event.issue.user.login == 'WebControlerAgent' || github.event.issue.author_association == 'OWNER')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
