@@ -36,38 +36,84 @@ const CAPTAIN_STARS=[
 {id:"qa",name:"Quality",color:"#a5f0b6",accent:"#ddffe5"}
 ];
 const ORBIT_PERIOD_HOURS=12;
+
+const TEAM_PLANETS=["Planner","Scheduler","Policy","State","Reporter"];
+const PLANET_COLORS=["#b8c7d9","#d9b98b","#9fb8a7","#c5a9d8","#a9c9df"];
 function CaptainSun({item,index,onSelect,selected}:{item:any;index:number;onSelect:()=>void;selected:boolean}){
- const group=useRef<THREE.Group>(null!);
- const phase=index*(Math.PI*2/9);
- useFrame(({clock},delta)=>{
-   const angle=phase+(clock.getElapsedTime()/(ORBIT_PERIOD_HOURS*3600))*Math.PI*2;
+ const group=useRef<THREE.Group>(null!); const phase=index*(Math.PI*2/9);
+ useFrame(({elapsed},delta)=>{
+   const angle=phase+(elapsed/(ORBIT_PERIOD_HOURS*3600))*Math.PI*2;
    group.current.position.set(Math.cos(angle)*8.5,Math.sin(angle*1.07)*1.2,Math.sin(angle)*8.5);
-   group.current.rotation.y+=delta*.25;
+   group.current.rotation.y+=delta*.18;
  });
- return <group ref={group} onClick={onSelect}>
-   <pointLight color={item.color} intensity={selected?5:3} distance={5}/>
-   <mesh><sphereGeometry args={[selected ? .72 : .58,48,48]}/><meshStandardMaterial color={item.color} emissive={item.color} emissiveIntensity={selected?3.2:2.1} roughness={.22}/></mesh>
-   <mesh scale={1.35}><sphereGeometry args={[.58,32,32]}/><meshBasicMaterial color={item.accent} transparent opacity={.08} blending={THREE.AdditiveBlending}/></mesh>
+ return <group ref={group} onClick={(e)=>{e.stopPropagation();onSelect()}}>
+   <pointLight color={item.color} intensity={selected?6:3.2} distance={6}/>
+   <mesh><sphereGeometry args={[selected?.72:.58,48,48]}/><meshStandardMaterial color={item.color} emissive={item.color} emissiveIntensity={selected?3.4:2.0} roughness={.2}/></mesh>
+   <mesh scale={1.5}><sphereGeometry args={[.58,32,32]}/><meshBasicMaterial color={item.accent} transparent opacity={.07} blending={THREE.AdditiveBlending}/></mesh>
+   {selected&&<mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[1.05,.018,10,96]}/><meshBasicMaterial color={item.accent} transparent opacity={.55}/></mesh>}
  </group>;
 }
 function BlackHole({onSelect}:{onSelect:()=>void}){
  const ref=useRef<THREE.Group>(null!);
- useFrame((_,delta)=>{ref.current.rotation.z-=delta*.18});
- return <group ref={ref} onClick={onSelect}>
-   <pointLight color="#6f4cff" intensity={2.5} distance={8}/>
-   <mesh><sphereGeometry args={[1.15,64,64]}/><meshBasicMaterial color="#000000"/></mesh>
-   <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[1.45,.18,24,128]}/><meshBasicMaterial color="#8b5cff" transparent opacity={.5} blending={THREE.AdditiveBlending}/></mesh>
-   <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[1.9,.035,12,128]}/><meshBasicMaterial color="#4fc3ff" transparent opacity={.18}/></mesh>
+ useFrame((_,delta)=>{ref.current.rotation.z-=delta*.16});
+ return <group ref={ref} onClick={(e)=>{e.stopPropagation();onSelect()}}>
+   <pointLight color="#6747ff" intensity={2.2} distance={8}/>
+   <mesh><sphereGeometry args={[1.12,64,64]}/><meshBasicMaterial color="#000000"/></mesh>
+   <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[1.42,.2,24,128]}/><meshBasicMaterial color="#7d5cff" transparent opacity={.5} blending={THREE.AdditiveBlending}/></mesh>
+   <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[1.9,.035,12,128]}/><meshBasicMaterial color="#4db8ff" transparent opacity={.18}/></mesh>
  </group>;
 }
-function Universe3D({selected,setSelected}:{selected:string|null;setSelected:(id:string)=>void}){
- return <Canvas camera={{position:[0,10,22],fov:48,near:.1,far:1000}} dpr={[1,1.7]} gl={{antialias:true}}>
-   <color attach="background" args={["#01030a"]}/><ambientLight intensity={.12}/>
-   <Stars radius={80} depth={55} count={5000} factor={1.4} saturation={.15} fade speed={.12}/>
-   <BlackHole onSelect={()=>setSelected("manager")}/>
-   {CAPTAIN_STARS.map((x,i)=><CaptainSun key={x.id} item={x} index={i} selected={selected===x.id} onSelect={()=>setSelected(x.id)}/>)}
-   <OrbitControls enablePan enableZoom minDistance={8} maxDistance={45} dampingFactor={.04} enableDamping/>
- </Canvas>;
+function TeamPlanet({index,onClick}:{index:number;onClick:()=>void}){
+ const ref=useRef<THREE.Group>(null!); const radius=2.1+index*.62; const phase=index*1.25;
+ useFrame(({elapsed},delta)=>{const speed=.16/(1+index*.45); const a=phase+elapsed*speed; ref.current.position.set(Math.cos(a)*radius,Math.sin(a*1.7)*(.12+index*.04),Math.sin(a)*radius); ref.current.rotation.y+=delta*(.35+index*.08)});
+ return <group ref={ref} onClick={(e)=>{e.stopPropagation();onClick()}}>
+   <mesh><sphereGeometry args={[.16+index*.018,32,32]}/><meshStandardMaterial color={PLANET_COLORS[index]} roughness={.72} metalness={.04}/></mesh>
+   {index===1&&<mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[.25,.025,10,48]}/><meshStandardMaterial color="#d8c5a6" roughness={.7}/></mesh>}
+ </group>;
+}
+function SolarSystem({captain,onExit,onPlanet}:{captain:any;onExit:()=>void;onPlanet:(name:string)=>void}){
+ const ref=useRef<THREE.Group>(null!);
+ useFrame((_,delta)=>{ref.current.rotation.y+=delta*.008});
+ return <group ref={ref}>
+   <pointLight color={captain.color} intensity={10} distance={15}/>
+   <mesh onClick={(e)=>e.stopPropagation()}><sphereGeometry args={[.62,48,48]}/><meshStandardMaterial color={captain.color} emissive={captain.color} emissiveIntensity={3.2} roughness={.18}/></mesh>
+   <mesh scale={1.6}><sphereGeometry args={[.62,32,32]}/><meshBasicMaterial color={captain.accent} transparent opacity={.08} blending={THREE.AdditiveBlending}/></mesh>
+   {TEAM_PLANETS.map((name,i)=><React.Fragment key={name}>
+     <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[2.1+i*.62,.006,6,96]}/><meshBasicMaterial color="#8ea1b4" transparent opacity={.18}/></mesh>
+     <TeamPlanet index={i} onClick={()=>onPlanet(name)}/>
+   </React.Fragment>)}
+ </group>;
+}
+function CameraTravel({mode,selectedIndex,onDone}:{mode:"universe"|"system";selectedIndex:number;onDone:()=>void}){
+ const {camera}=require("@react-three/fiber").useThree();
+ const target=useRef(new THREE.Vector3()); const look=useRef(new THREE.Vector3()); const last=useRef(mode);
+ useFrame((_,delta)=>{
+   if(mode==="system"){
+     target.current.set(0,2.2,6.8); look.current.set(0,0,0);
+   }else{
+     target.current.set(0,10,22); look.current.set(0,0,0);
+   }
+   camera.position.lerp(target.current,1-Math.pow(.001,delta));
+   const q=new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(camera.position,look.current,camera.up));
+   camera.quaternion.slerp(q,1-Math.pow(.001,delta));
+   if(last.current!==mode){last.current=mode;setTimeout(onDone,700);}
+ });
+ return null;
+}
+function Universe3D({selected,setSelected}:{selected:string|null;setSelected:(id:string|null)=>void}){
+ const [system,setSystem]=useState<string|null>(null); const [planet,setPlanet]=useState<string|null>(null);
+ const captain=CAPTAIN_STARS.find(x=>x.id===system); const selectedIndex=Math.max(0,CAPTAIN_STARS.findIndex(x=>x.id===system));
+ const enter=(id:string)=>{setPlanet(null);setSystem(id);setSelected(id)}; const exit=()=>{setPlanet(null);setSystem(null);setSelected("manager")};
+ return <div className="universe-canvas-wrap">
+   <Canvas camera={{position:[0,10,22],fov:48,near:.1,far:1000}} dpr={[1,1.7]} gl={{antialias:true}}>
+    <color attach="background" args={["#01030a"]}/><ambientLight intensity={.12}/><Stars radius={90} depth={60} count={6000} factor={1.45} saturation={.12} fade speed={.1}/>
+    <CameraTravel mode={system?"system":"universe"} selectedIndex={selectedIndex} onDone={()=>{}}/>
+    {!system?<><BlackHole onSelect={exit}/>{CAPTAIN_STARS.map((x,i)=><CaptainSun key={x.id} item={x} index={i} selected={selected===x.id} onSelect={()=>enter(x.id)}/>)}</>:<SolarSystem captain={captain!} onExit={exit} onPlanet={setPlanet}/>}
+    <OrbitControls enablePan enableZoom minDistance={system?3:8} maxDistance={system?18:45} dampingFactor={.055} enableDamping/>
+   </Canvas>
+   {system&&<button className="universe-back" onClick={exit}>← RETURN TO GALAXY</button>}
+   {system&&<div className="system-hud"><b>{captain?.name.toUpperCase()} SOLAR SYSTEM</b><span>CAPTAIN STAR • {TEAM_PLANETS.length} TEAM PLANETS</span>{planet&&<small>SELECTED PLANET: {planet}</small>}</div>}
+ </div>;
 }
 \ntype SiteRecord={id:string;name:string;repository:string;branch:string;live_url:string;enabled:boolean;authorized:boolean;description?:string;media?:{enabled:boolean;authorized_source:boolean;path:string}};
 
