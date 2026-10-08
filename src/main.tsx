@@ -79,6 +79,11 @@ function StarGlow({color,accent,scale=1}:{color:string;accent:string;scale?:numb
    <mesh><sphereGeometry args={[.58,64,64]}/><meshStandardMaterial color={color} emissive={color} emissiveIntensity={3.2} roughness={.18} metalness={.02}/></mesh>
    <mesh scale={1.62}><sphereGeometry args={[.58,40,40]}/><meshBasicMaterial color={accent} transparent opacity={.07} blending={THREE.AdditiveBlending}/></mesh>
    <mesh scale={2.2}><sphereGeometry args={[.58,32,32]}/><meshBasicMaterial color={color} transparent opacity={.028} blending={THREE.AdditiveBlending}/></mesh>
+   {/* Star rays / flares: elongated additive beams make each Captain read as a star, not a plain ball. */}
+   <mesh rotation={[0,0,0]} scale={[1,2.9,1]}><planeGeometry args={[.18,.72]}/><meshBasicMaterial color={accent} transparent opacity={.16} blending={THREE.AdditiveBlending} depthWrite={false} side={THREE.DoubleSide}/></mesh>
+   <mesh rotation={[0,0,Math.PI/2]} scale={[1,2.9,1]}><planeGeometry args={[.18,.72]}/><meshBasicMaterial color={accent} transparent opacity={.13} blending={THREE.AdditiveBlending} depthWrite={false} side={THREE.DoubleSide}/></mesh>
+   <mesh rotation={[0,0,Math.PI/4]} scale={[1,2.15,1]}><planeGeometry args={[.12,.62]}/><meshBasicMaterial color={color} transparent opacity={.09} blending={THREE.AdditiveBlending} depthWrite={false} side={THREE.DoubleSide}/></mesh>
+   <mesh rotation={[0,0,-Math.PI/4]} scale={[1,2.15,1]}><planeGeometry args={[.12,.62]}/><meshBasicMaterial color={color} transparent opacity={.07} blending={THREE.AdditiveBlending} depthWrite={false} side={THREE.DoubleSide}/></mesh>
    <mesh rotation={[Math.PI/2,0,.35]}><torusGeometry args={[.88,.012,8,96]}/><meshBasicMaterial color={accent} transparent opacity={.28} blending={THREE.AdditiveBlending}/></mesh>
  </group>;
 }
