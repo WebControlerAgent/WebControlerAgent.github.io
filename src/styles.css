@@ -95,3 +95,13 @@
 @keyframes nebulaBreath{0%,100%{transform:translate(-50%,-50%) rotate(-16deg) scale(1)}50%{transform:translate(-50%,-50%) rotate(-10deg) scale(1.08)}}@keyframes planetPulse{0%,100%{transform:scale(.75);opacity:.1}50%{transform:scale(1.12);opacity:.3}}@keyframes coreSpin{to{transform:rotate(360deg)}}@keyframes starDrift{to{transform:translate3d(35px,55px,0)}}
 @media(max-width:800px){.aiwcu-universe{padding:68px 8px 125px!important}.galaxy-stage{min-height:560px}.planet-0{left:2%;top:17%}.planet-1{left:28%;top:5%}.planet-2{right:2%;left:auto;top:17%}.planet-3{right:0;top:39%}.planet-4{right:3%;bottom:20%;top:auto}.planet-5{right:28%;bottom:0}.planet-6{left:28%;bottom:0}.planet-7{left:0;bottom:20%}.planet-8{left:0;top:39%}.aiwcu-core{width:98px;height:98px}.aiwcu-core strong{font-size:16px}.universe-footer{left:8px;right:8px}.universe-footer span{display:block;margin-top:4px}}
 @media(prefers-reduced-motion:reduce){.galaxy-nebula,.planet-glow,.aiwcu-core i,.core-ring{animation:none}}
+
+/* 3D AIWCU UNIVERSE */
+.universe-3d{position:absolute;inset:0;background:#01030a;overflow:hidden}
+.universe-3d canvas{position:absolute!important;inset:0;width:100%!important;height:100%!important}
+.universe-3d-hud{position:absolute;z-index:4;left:22px;top:18px;padding:12px 15px;border:1px solid rgba(130,165,205,.2);border-radius:12px;background:rgba(2,7,15,.72);backdrop-filter:blur(12px);box-shadow:0 12px 35px #0008;pointer-events:none}
+.universe-3d-hud b{display:block;color:#eef7ff;font-size:11px;letter-spacing:.2em}
+.universe-3d-hud span{display:block;margin-top:5px;color:#91a9bd;font-size:8px;letter-spacing:.08em}
+.universe-3d-hud small{display:block;margin-top:6px;color:#607b91;font-size:7px}
+.universe-3d-legend{position:absolute;z-index:4;right:18px;top:18px;display:grid;gap:6px;padding:10px 12px;border:1px solid rgba(130,165,205,.16);border-radius:10px;background:rgba(2,7,15,.65);backdrop-filter:blur(10px);pointer-events:none;color:#8fa8bc;font-size:7px;letter-spacing:.06em}
+@media(max-width:700px){.universe-3d-hud{left:10px;top:10px}.universe-3d-legend{right:10px;top:10px}.universe-3d-hud span{font-size:7px}.universe-3d-hud small{display:none}}
