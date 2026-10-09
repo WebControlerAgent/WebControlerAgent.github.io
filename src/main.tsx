@@ -89,22 +89,19 @@ function StarGlow({color,accent,scale=1}:{color:string;accent:string;scale?:numb
      glow.addColorStop(1,"rgba(0,0,0,0)");
      ctx.fillStyle=glow;
      ctx.fillRect(0,0,256,256);
+     // Sharp diffraction spikes make the captain read as a star, not a glowing ball.
      const rays=[
-       [128,8,128,248,1.0,2.8],
-       [8,128,248,128,.88,2.4],
-       [42,42,214,214,.48,1.5],
-       [42,214,214,42,.48,1.5]
+       [128,3,128,253,1,2.2],[3,128,253,128,.98,2.2],
+       [18,18,238,238,.82,1.6],[18,238,238,18,.82,1.6],
+       [75,5,181,251,.58,1],[5,75,251,181,.58,1],
+       [181,5,75,251,.58,1],[251,75,5,181,.58,1]
      ];
      for(const [x1,y1,x2,y2,alpha,width] of rays){
        const ray=ctx.createLinearGradient(x1,y1,x2,y2);
-       ray.addColorStop(0,"rgba(255,255,255,0)");
-       ray.addColorStop(.43,"rgba(255,255,255,0)");
-       ray.addColorStop(.50,"rgba(255,255,255,"+alpha+")");
-       ray.addColorStop(.57,"rgba(255,255,255,0)");
-       ray.addColorStop(1,"rgba(255,255,255,0)");
-       ctx.strokeStyle=ray;
-       ctx.lineWidth=width;
-       ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+       ray.addColorStop(0,"rgba(255,255,255,0)");ray.addColorStop(.38,"rgba(255,255,255,0)");
+       ray.addColorStop(.49,"rgba(255,255,255,"+alpha+")");ray.addColorStop(.51,"rgba(255,255,255,"+alpha+")");
+       ray.addColorStop(.62,"rgba(255,255,255,0)");ray.addColorStop(1,"rgba(255,255,255,0)");
+       ctx.strokeStyle=ray;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
      }
      const core=ctx.createRadialGradient(128,128,0,128,128,27);
      core.addColorStop(0,"rgba(255,255,255,1)");
@@ -139,7 +136,7 @@ function StarGlow({color,accent,scale=1}:{color:string;accent:string;scale?:numb
    <sprite ref={flare} scale={[3.35,3.35,1]} renderOrder={4}>
      <spriteMaterial map={flareTexture} color="#ffffff" transparent opacity={.78} blending={THREE.AdditiveBlending} depthWrite={false} depthTest={false} toneMapped={false}/>
    </sprite>
-   <mesh><sphereGeometry args={[.58,64,64]}/><meshStandardMaterial color={color} emissive={color} emissiveIntensity={3.2} roughness={.18} metalness={.02}/></mesh>
+   <mesh><sphereGeometry args={[.43,64,64]}/><meshStandardMaterial color={color} emissive={color} emissiveIntensity={4.8} roughness={.16} metalness={.02}/></mesh>\n   <mesh scale={1.2}><sphereGeometry args={[.43,48,48]}/><meshBasicMaterial color={accent} transparent opacity={.14} blending={THREE.AdditiveBlending}/></mesh>
    <mesh scale={1.62}><sphereGeometry args={[.58,40,40]}/><meshBasicMaterial color={accent} transparent opacity={.07} blending={THREE.AdditiveBlending}/></mesh>
    <mesh scale={2.2}><sphereGeometry args={[.58,32,32]}/><meshBasicMaterial color={color} transparent opacity={.028} blending={THREE.AdditiveBlending}/></mesh>
    <mesh rotation={[Math.PI/2,0,.35]}><torusGeometry args={[.88,.012,8,96]}/><meshBasicMaterial color={accent} transparent opacity={.28} blending={THREE.AdditiveBlending}/></mesh>
@@ -224,32 +221,21 @@ function CameraTravel({mode,onDone}:{mode:"universe"|"system";onDone:()=>void}){
  return null;
 }
 function SpiralGalaxy(){
- const ref=useRef<THREE.Points>(null!);
+ const ref=useRef<THREE.Points>(null!);const cloud=useRef<THREE.Points>(null!);
  const geometry=useMemo(()=>{
-   const count=12500, positions=new Float32Array(count*3), colors=new Float32Array(count*3);
-   const palette=["#64baff","#b5d8ff","#ff9bcb","#8e78ff","#ffe0a0"].map(v=>new THREE.Color(v));
-   for(let i=0;i<count;i++){
-     const arm=i%5, t=Math.random(), radius=.7+Math.pow(t,.72)*15.8;
-     const angle=arm*Math.PI*2/5+radius*.48+(Math.random()-.5)*.62;
-     const spread=(Math.random()-.5)*(.25+radius*.045);
-     positions[i*3]=Math.cos(angle+spread)*radius;
-     positions[i*3+1]=(Math.random()-.5)*(.15+radius*.018);
-     positions[i*3+2]=Math.sin(angle+spread)*radius;
-     const col=palette[Math.floor(Math.random()*palette.length)].clone().multiplyScalar(.45+Math.random()*.7);
-     colors[i*3]=col.r;colors[i*3+1]=col.g;colors[i*3+2]=col.b;
-   }
-   const g=new THREE.BufferGeometry();
-   g.setAttribute("position",new THREE.BufferAttribute(positions,3));
-   g.setAttribute("color",new THREE.BufferAttribute(colors,3));
-   return g;
+  const n=24000,p=new Float32Array(n*3),colours=new Float32Array(n*3);
+  const palette=["#3e9dff","#78d8ff","#ff75bd","#b26dff","#ffb0d2","#f9d5ff","#ffd78a"].map(v=>new THREE.Color(v));
+  for(let i=0;i<n;i++){const arm=i%5,r=.55+Math.pow(Math.random(),.72)*15.5,ang=arm*Math.PI*2/5+r*.49+(Math.random()-.5)*(.18+r*.035),spread=(Math.random()-.5)*(.16+r*.026);p[i*3]=Math.cos(ang+spread)*r;p[i*3+1]=(Math.random()-.5)*(.08+r*.012);p[i*3+2]=Math.sin(ang+spread)*r;const q=palette[Math.floor(Math.random()*palette.length)].clone().multiplyScalar(.38+Math.random()*.9);colours[i*3]=q.r;colours[i*3+1]=q.g;colours[i*3+2]=q.b}
+  const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(p,3));g.setAttribute("color",new THREE.BufferAttribute(colours,3));return g
  },[]);
- useEffect(()=>()=>geometry.dispose(),[geometry]);
- useFrame((_,delta)=>{if(ref.current)ref.current.rotation.y+=delta*.006});
- return <group rotation={[.22,0,-.12]}>
-  <points ref={ref} geometry={geometry}><pointsMaterial size={.055} vertexColors transparent opacity={.84} sizeAttenuation depthWrite={false} blending={THREE.AdditiveBlending}/></points>
-  <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[7.6,.11,8,180]}/><meshBasicMaterial color="#a25dff" transparent opacity={.08} blending={THREE.AdditiveBlending}/></mesh>
-  <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[10.2,.07,8,180]}/><meshBasicMaterial color="#55aaff" transparent opacity={.07} blending={THREE.AdditiveBlending}/></mesh>
- </group>;
+ const cloudGeometry=useMemo(()=>{
+  const n=9500,p=new Float32Array(n*3),colours=new Float32Array(n*3);const palette=["#ed5aab","#9e62ff","#438cff","#47d9ff","#ffc1df"].map(v=>new THREE.Color(v));
+  for(let i=0;i<n;i++){const arm=i%5,r=2.1+Math.random()*12.8,ang=arm*Math.PI*2/5+r*.49+(Math.random()-.5)*(.32+r*.035);p[i*3]=Math.cos(ang)*r;p[i*3+1]=(Math.random()-.5)*(.2+r*.035);p[i*3+2]=Math.sin(ang)*r;const q=palette[Math.floor(Math.random()*palette.length)];const f=.12+Math.random()*.36;colours[i*3]=q.r*f;colours[i*3+1]=q.g*f;colours[i*3+2]=q.b*f}
+  const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(p,3));g.setAttribute("color",new THREE.BufferAttribute(colours,3));return g
+ },[]);
+ useEffect(()=>()=>{geometry.dispose();cloudGeometry.dispose()},[geometry,cloudGeometry]);
+ useFrame((_,d)=>{if(ref.current)ref.current.rotation.y+=d*.004;if(cloud.current)cloud.current.rotation.y-=d*.002});
+ return <group rotation={[.22,0,-.12]}><points ref={cloud} geometry={cloudGeometry}><pointsMaterial size={.15} vertexColors transparent opacity={.36} sizeAttenuation depthWrite={false} blending={THREE.AdditiveBlending}/></points><points ref={ref} geometry={geometry}><pointsMaterial size={.065} vertexColors transparent opacity={.9} sizeAttenuation depthWrite={false} blending={THREE.AdditiveBlending}/></points><mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[7.6,.11,8,180]}/><meshBasicMaterial color="#a25dff" transparent opacity={.1} blending={THREE.AdditiveBlending}/></mesh><mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[10.2,.07,8,180]}/><meshBasicMaterial color="#55aaff" transparent opacity={.09} blending={THREE.AdditiveBlending}/></mesh></group>;
 }
 function Universe3D({selected,setSelected}:{selected:string|null;setSelected:(id:string|null)=>void}){
  const [system,setSystem]=useState<string|null>(null);
