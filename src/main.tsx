@@ -74,41 +74,64 @@ const STAR_PALETTE=[
 ];
 function StarGlow({color,accent,scale=1}:{color:string;accent:string;scale?:number}){
  const ref=useRef<THREE.Group>(null!);
- const flames=useRef<THREE.Group>(null!);
+ const flare=useRef<THREE.Sprite>(null!);
+ const flareTexture=useMemo(()=>{
+   const canvas=document.createElement("canvas");
+   canvas.width=canvas.height=256;
+   const ctx=canvas.getContext("2d");
+   if(ctx){
+     const glow=ctx.createRadialGradient(128,128,2,128,128,116);
+     glow.addColorStop(0,"rgba(255,255,255,0.98)");
+     glow.addColorStop(.10,accent+"ee");
+     glow.addColorStop(.30,accent+"70");
+     glow.addColorStop(.62,accent+"18");
+     glow.addColorStop(1,"rgba(0,0,0,0)");
+     ctx.fillStyle=glow;
+     ctx.fillRect(0,0,256,256);
+     const rays=[
+       [128,8,128,248,1.0,2.8],
+       [8,128,248,128,.88,2.4],
+       [42,42,214,214,.48,1.5],
+       [42,214,214,42,.48,1.5]
+     ];
+     for(const [x1,y1,x2,y2,alpha,width] of rays){
+       const ray=ctx.createLinearGradient(x1,y1,x2,y2);
+       ray.addColorStop(0,"rgba(255,255,255,0)");
+       ray.addColorStop(.43,"rgba(255,255,255,0)");
+       ray.addColorStop(.50,"rgba(255,255,255,"+alpha+")");
+       ray.addColorStop(.57,"rgba(255,255,255,0)");
+       ray.addColorStop(1,"rgba(255,255,255,0)");
+       ctx.strokeStyle=ray;
+       ctx.lineWidth=width;
+       ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+     }
+     const core=ctx.createRadialGradient(128,128,0,128,128,27);
+     core.addColorStop(0,"rgba(255,255,255,1)");
+     core.addColorStop(.28,accent+"ff");
+     core.addColorStop(1,accent+"00");
+     ctx.fillStyle=core;ctx.fillRect(101,101,54,54);
+   }
+   const texture=new THREE.CanvasTexture(canvas);
+   texture.colorSpace=THREE.SRGBColorSpace;
+   return texture;
+ },[accent]);
+ useEffect(()=>()=>flareTexture.dispose(),[flareTexture]);
  useFrame(({clock},delta)=>{
    ref.current.rotation.y+=delta*.22;
    ref.current.rotation.z+=delta*.07;
-   const pulse=1+Math.sin(clock.elapsedTime*2.8)*.10;
-   flames.current.scale.setScalar(pulse);
-   flames.current.rotation.y-=delta*.16;
+   if(flare.current){
+     const pulse=1+Math.sin(clock.elapsedTime*2.8)*.055;
+     flare.current.scale.set(3.2*pulse,3.2*pulse,1);
+     flare.current.material.opacity=.72+Math.sin(clock.elapsedTime*2.8)*.08;
+   }
  });
- const flameAngles=[0,Math.PI/4,Math.PI/2,3*Math.PI/4,Math.PI,5*Math.PI/4,3*Math.PI/2,7*Math.PI/4];
  return <group ref={ref} scale={scale}>
+   <sprite ref={flare} scale={[3.2,3.2,1]} renderOrder={4}>
+     <spriteMaterial map={flareTexture} color={accent} transparent opacity={.72} blending={THREE.AdditiveBlending} depthWrite={false} depthTest={false} toneMapped={false}/>
+   </sprite>
    <mesh><sphereGeometry args={[.58,64,64]}/><meshStandardMaterial color={color} emissive={color} emissiveIntensity={3.2} roughness={.18} metalness={.02}/></mesh>
    <mesh scale={1.62}><sphereGeometry args={[.58,40,40]}/><meshBasicMaterial color={accent} transparent opacity={.07} blending={THREE.AdditiveBlending}/></mesh>
    <mesh scale={2.2}><sphereGeometry args={[.58,32,32]}/><meshBasicMaterial color={color} transparent opacity={.028} blending={THREE.AdditiveBlending}/></mesh>
-
-   <group ref={flames}>
-     {flameAngles.map((a,i)=>{
-       const r=.78+(i%2)*.06;
-       return <mesh key={i}
-         position={[Math.cos(a)*r,Math.sin(a)*r,Math.sin(a*2)*.08]}
-         rotation={[0,0,a-Math.PI/2]}
-         scale={[.72+(i%3)*.12,1.45+(i%2)*.35,.72+(i%2)*.08]}>
-         <coneGeometry args={[.14,.72,10,1]} />
-         <meshBasicMaterial color={i%2===0?accent:color} transparent opacity={.18+(i%3)*.035} blending={THREE.AdditiveBlending} depthWrite={false}/>
-       </mesh>;
-     })}
-     <mesh rotation={[0,Math.PI/2,0]} scale={[1,1.7,1]}>
-       <coneGeometry args={[.11,.95,10,1]}/>
-       <meshBasicMaterial color={accent} transparent opacity={.16} blending={THREE.AdditiveBlending} depthWrite={false}/>
-     </mesh>
-     <mesh rotation={[0,0,Math.PI/2]} scale={[1,1.7,1]}>
-       <coneGeometry args={[.11,.95,10,1]}/>
-       <meshBasicMaterial color={accent} transparent opacity={.14} blending={THREE.AdditiveBlending} depthWrite={false}/>
-     </mesh>
-   </group>
-
    <mesh rotation={[Math.PI/2,0,.35]}><torusGeometry args={[.88,.012,8,96]}/><meshBasicMaterial color={accent} transparent opacity={.28} blending={THREE.AdditiveBlending}/></mesh>
  </group>;
 }
