@@ -62,15 +62,15 @@ const PLANET_DATA=[
  {color:"#8c8a82",accent:"#d2d0c7",size:.24,rough:.9,ring:false}
 ];
 const STAR_PALETTE=[
- {color:"#ff8a2a",accent:"#ffd166"},
- {color:"#ffc233",accent:"#fff0a3"},
- {color:"#35b9ff",accent:"#9ee7ff"},
- {color:"#ffb347",accent:"#ffe08a"},
- {color:"#ff6f3c",accent:"#ffc09d"},
- {color:"#27d8d0",accent:"#9ffff7"},
- {color:"#ffd23f",accent:"#fff2a6"},
- {color:"#4aa8ff",accent:"#b8e5ff"},
- {color:"#ff9f43",accent:"#ffd18a"}
+ {color:"#ff6b32",accent:"#ffc078"},
+ {color:"#ffd24a",accent:"#fff2ad"},
+ {color:"#3baeff",accent:"#b9eaff"},
+ {color:"#a879ff",accent:"#e1caff"},
+ {color:"#ff424f",accent:"#ffb0a8"},
+ {color:"#38e2d2",accent:"#b6fff7"},
+ {color:"#ffe45c",accent:"#fff8c4"},
+ {color:"#8a70ff",accent:"#d3c7ff"},
+ {color:"#82ed62",accent:"#d7ffb8"}
 ];
 function StarGlow({color,accent,scale=1}:{color:string;accent:string;scale?:number}){
  const ref=useRef<THREE.Group>(null!);
@@ -155,7 +155,8 @@ function CaptainSun({item,index,onSelect,selected}:{item:any;index:number;onSele
  return <group ref={group} onClick={(e)=>{e.stopPropagation();onSelect()}}>
    <pointLight color={palette.color} intensity={selected?7:3.2} distance={7.5} decay={2}/>
    <StarGlow color={palette.color} accent={palette.accent} scale={selected?1.3:1.05}/>
-   <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[.82,.018,10,128]}/><meshBasicMaterial color={palette.accent} transparent opacity={selected?.62:.24} blending={THREE.AdditiveBlending}/></mesh>
+   <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[.82,.018,10,128]}/><meshBasicMaterial color={palette.accent} transparent opacity={selected?.72:.34} blending={THREE.AdditiveBlending}/></mesh>
+   <mesh rotation={[Math.PI/2,.2,.45]}><torusGeometry args={[.7,.035,10,96]}/><meshBasicMaterial color={palette.color} transparent opacity={.28} blending={THREE.AdditiveBlending}/></mesh>
    <mesh rotation={[Math.PI/2,0,.8]}><torusGeometry args={[1.05,.008,8,128]}/><meshBasicMaterial color={palette.color} transparent opacity={selected?.26:.1} blending={THREE.AdditiveBlending}/></mesh>
    {selected&&<mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[1.24,.014,10,128]}/><meshBasicMaterial color={palette.accent} transparent opacity={.72} blending={THREE.AdditiveBlending}/></mesh>}
  </group>;
@@ -222,6 +223,34 @@ function CameraTravel({mode,onDone}:{mode:"universe"|"system";onDone:()=>void}){
  });
  return null;
 }
+function SpiralGalaxy(){
+ const ref=useRef<THREE.Points>(null!);
+ const geometry=useMemo(()=>{
+   const count=12500, positions=new Float32Array(count*3), colors=new Float32Array(count*3);
+   const palette=["#64baff","#b5d8ff","#ff9bcb","#8e78ff","#ffe0a0"].map(v=>new THREE.Color(v));
+   for(let i=0;i<count;i++){
+     const arm=i%5, t=Math.random(), radius=.7+Math.pow(t,.72)*15.8;
+     const angle=arm*Math.PI*2/5+radius*.48+(Math.random()-.5)*.62;
+     const spread=(Math.random()-.5)*(.25+radius*.045);
+     positions[i*3]=Math.cos(angle+spread)*radius;
+     positions[i*3+1]=(Math.random()-.5)*(.15+radius*.018);
+     positions[i*3+2]=Math.sin(angle+spread)*radius;
+     const col=palette[Math.floor(Math.random()*palette.length)].clone().multiplyScalar(.45+Math.random()*.7);
+     colors[i*3]=col.r;colors[i*3+1]=col.g;colors[i*3+2]=col.b;
+   }
+   const g=new THREE.BufferGeometry();
+   g.setAttribute("position",new THREE.BufferAttribute(positions,3));
+   g.setAttribute("color",new THREE.BufferAttribute(colors,3));
+   return g;
+ },[]);
+ useEffect(()=>()=>geometry.dispose(),[geometry]);
+ useFrame((_,delta)=>{if(ref.current)ref.current.rotation.y+=delta*.006});
+ return <group rotation={[.22,0,-.12]}>
+  <points ref={ref} geometry={geometry}><pointsMaterial size={.055} vertexColors transparent opacity={.84} sizeAttenuation depthWrite={false} blending={THREE.AdditiveBlending}/></points>
+  <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[7.6,.11,8,180]}/><meshBasicMaterial color="#a25dff" transparent opacity={.08} blending={THREE.AdditiveBlending}/></mesh>
+  <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[10.2,.07,8,180]}/><meshBasicMaterial color="#55aaff" transparent opacity={.07} blending={THREE.AdditiveBlending}/></mesh>
+ </group>;
+}
 function Universe3D({selected,setSelected}:{selected:string|null;setSelected:(id:string|null)=>void}){
  const [system,setSystem]=useState<string|null>(null);
  const [planet,setPlanet]=useState<string|null>(null);
@@ -233,7 +262,7 @@ function Universe3D({selected,setSelected}:{selected:string|null;setSelected:(id
  return <div className="universe-canvas-wrap">
   <Canvas camera={{position:[0,10,22],fov:48,near:.1,far:1000}} dpr={[1,1.7]} gl={{antialias:true}} shadows>
    <color attach="background" args={["#010208"]}/><fog attach="fog" args={["#010208",28,90]}/><ambientLight intensity={.07}/><directionalLight position={[6,10,4]} intensity={.18}/>
-   <Stars radius={100} depth={65} count={7000} factor={1.35} saturation={.08} fade speed={.08}/>
+   <Stars radius={100} depth={65} count={9000} factor={1.55} saturation={.55} fade speed={.16}/><SpiralGalaxy/>
    <CameraTravel mode={system?"system":"universe"} onDone={travelDone}/>
    {!system?<><BlackHole onSelect={exit}/>{CAPTAIN_STARS.map((x,i)=><React.Fragment key={x.id}><mesh rotation={[CAPTAIN_ORBITS[i].tilt,0,i*.35]}><torusGeometry args={[CAPTAIN_ORBITS[i].radius,.006,6,160]}/><meshBasicMaterial color={STAR_PALETTE[i].accent} transparent opacity={.08} blending={THREE.AdditiveBlending}/></mesh><CaptainSun item={x} index={i} selected={selected===x.id} onSelect={()=>enter(x.id)}/></React.Fragment>)}</>:<SolarSystem captain={captain!} onPlanet={setPlanet}/>} 
    <OrbitControls enabled={!traveling} enablePan enableZoom minDistance={system?3:8} maxDistance={system?18:45} dampingFactor={.055} enableDamping/>
