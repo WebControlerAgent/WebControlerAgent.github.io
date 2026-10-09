@@ -1,0 +1,286 @@
+{
+  "version": 1,
+  "architecture": "captain-team-agent",
+  "purpose": "Canonical contracts for the 45 child-agent roles. These definitions describe ownership and expected evidence; they do not claim an LLM or external tool has executed a role.",
+  "execution_contract": {
+    "task_required": [
+      "task_id",
+      "site",
+      "parent_captain",
+      "objective",
+      "constraints",
+      "success_criteria"
+    ],
+    "result_required": [
+      "task_id",
+      "agent_id",
+      "state",
+      "summary",
+      "evidence",
+      "artifacts",
+      "next_action"
+    ],
+    "allowed_states": [
+      "WAITING",
+      "CLAIMED",
+      "WORKING",
+      "VERIFYING",
+      "COMPLETED",
+      "FAILED",
+      "BLOCKED"
+    ],
+    "completion_requires_evidence": true,
+    "child_agents_must_not_bypass_authorization": true,
+    "cross_team_handoff_requires_manager_approval": true
+  },
+  "teams": {
+    "operations": [
+      [
+        "planner",
+        "Break the requested outcome into ordered tasks.",
+        "A task graph with owners, dependencies, and measurable acceptance criteria."
+      ],
+      [
+        "scheduler",
+        "Order eligible tasks under the single-active-site lock.",
+        "A valid execution order with no concurrent site claims."
+      ],
+      [
+        "policy-checker",
+        "Check site authorization and task constraints before work.",
+        "Explicit pass/block decision with the policy checks recorded."
+      ],
+      [
+        "state-keeper",
+        "Validate persisted runtime state and transition consistency.",
+        "State snapshot with no conflicting active-site or invalid transition."
+      ],
+      [
+        "reporter",
+        "Summarize verified progress and blockers for the manager.",
+        "Report cites runtime events or artifacts and distinguishes unknowns."
+      ]
+    ],
+    "research": [
+      [
+        "source-discovery",
+        "Identify sources explicitly authorized for the active site.",
+        "Source list with URLs, access scope, and relevance notes."
+      ],
+      [
+        "fact-checker",
+        "Cross-check claims against authorized evidence.",
+        "Claim/evidence pairs and unresolved conflicts."
+      ],
+      [
+        "analyst",
+        "Convert evidence into actionable findings.",
+        "Prioritized findings with rationale and source references."
+      ],
+      [
+        "trend-researcher",
+        "Assess supported changes or patterns over time.",
+        "Time-bounded observations with dates and evidence."
+      ],
+      [
+        "research-reviewer",
+        "Review research quality and traceability.",
+        "Pass/fail checklist and missing-evidence list."
+      ]
+    ],
+    "media": [
+      [
+        "source-validator",
+        "Validate the configured source and allowed usage.",
+        "Source authorization result and source provenance."
+      ],
+      [
+        "asset-preparer",
+        "Prepare permitted assets for site use.",
+        "Asset paths, format checks, and transformation notes."
+      ],
+      [
+        "metadata-writer",
+        "Write descriptive metadata and alt text.",
+        "Metadata tied to the actual asset and page context."
+      ],
+      [
+        "rights-checker",
+        "Check documented rights and usage constraints.",
+        "Rights decision with evidence; block if unclear."
+      ],
+      [
+        "media-reviewer",
+        "Review assets for quality and policy compliance.",
+        "Review result with asset references and required fixes."
+      ]
+    ],
+    "publishing": [
+      [
+        "content-builder",
+        "Prepare content changes within the approved scope.",
+        "Changed-file list and content acceptance checks."
+      ],
+      [
+        "frontend-worker",
+        "Implement approved frontend changes.",
+        "Changed-file list and build evidence."
+      ],
+      [
+        "release-worker",
+        "Prepare a release candidate from approved changes.",
+        "Release summary, commit reference, and rollback point."
+      ],
+      [
+        "deployment-checker",
+        "Verify deployment workflow and target status.",
+        "Workflow run URL/status or explicit not-verified result."
+      ],
+      [
+        "rollback-worker",
+        "Prepare or execute an authorized rollback plan.",
+        "Target commit and rollback verification; no destructive action without authorization."
+      ]
+    ],
+    "seo": [
+      [
+        "keyword-researcher",
+        "Research relevant search intent from authorized sources.",
+        "Keyword groups with intent and evidence/source notes."
+      ],
+      [
+        "metadata-worker",
+        "Validate titles, descriptions, canonical, and indexing directives.",
+        "Per-URL metadata checklist and detected issues."
+      ],
+      [
+        "internal-link-worker",
+        "Check internal links and navigation paths.",
+        "Broken-link report and proposed link changes."
+      ],
+      [
+        "sitemap-worker",
+        "Validate sitemap coverage and URL consistency.",
+        "Sitemap parse result and URL coverage findings."
+      ],
+      [
+        "indexing-diagnostics",
+        "Assess crawl/indexing signals without claiming guaranteed indexing.",
+        "Evidence-backed diagnosis and next checks."
+      ]
+    ],
+    "quality": [
+      [
+        "functional-tester",
+        "Test core user-facing flows against acceptance criteria.",
+        "Reproducible test cases and pass/fail results."
+      ],
+      [
+        "ui-tester",
+        "Check layout, interaction, and responsive behavior.",
+        "Viewport-specific findings with reproduction steps."
+      ],
+      [
+        "seo-tester",
+        "Check technical SEO requirements for changed pages.",
+        "URL-level checks with results."
+      ],
+      [
+        "performance-tester",
+        "Measure available build/runtime performance signals.",
+        "Measured metrics, test conditions, and thresholds."
+      ],
+      [
+        "release-gatekeeper",
+        "Aggregate evidence and decide whether release criteria pass.",
+        "Release decision with blockers; never infer success from missing evidence."
+      ]
+    ],
+    "diagnostics": [
+      [
+        "log-analyzer",
+        "Inspect available logs for actionable failure signals.",
+        "Relevant log excerpts, timestamps, and suspected failure stage."
+      ],
+      [
+        "reproduction-agent",
+        "Create a minimal reproducible case for a reported issue.",
+        "Steps, expected/actual behavior, and reproduction result."
+      ],
+      [
+        "root-cause-analyst",
+        "Separate root cause from symptoms using evidence.",
+        "Ranked causes with supporting and contradicting evidence."
+      ],
+      [
+        "regression-planner",
+        "Define checks that prevent the issue returning.",
+        "Regression test list mapped to the defect."
+      ],
+      [
+        "diagnostic-reviewer",
+        "Review diagnosis completeness and confidence.",
+        "Reviewed cause, confidence, and remaining unknowns."
+      ]
+    ],
+    "repair": [
+      [
+        "patch-agent",
+        "Propose the smallest safe fix within authorized files.",
+        "Patch diff and rationale; no unapproved scope expansion."
+      ],
+      [
+        "test-agent",
+        "Run relevant checks against the proposed fix.",
+        "Exact commands/checks and results, including failures."
+      ],
+      [
+        "security-reviewer",
+        "Review the change for access-control and secret-handling risks.",
+        "Security findings and explicit pass/block result."
+      ],
+      [
+        "rollback-planner",
+        "Define recovery steps before risky release changes.",
+        "Known-good reference and tested or clearly untested rollback steps."
+      ],
+      [
+        "repair-reviewer",
+        "Review fix quality and required regression evidence.",
+        "Acceptance decision linked to patch and test evidence."
+      ]
+    ],
+    "innovation": [
+      [
+        "idea-researcher",
+        "Collect evidence for a proposed product or site idea.",
+        "Evidence-backed problem statement and source notes."
+      ],
+      [
+        "opportunity-analyst",
+        "Score demand, feasibility, and risks transparently.",
+        "Scoring rubric, assumptions, and uncertainty notes."
+      ],
+      [
+        "prototype-planner",
+        "Define a small testable prototype.",
+        "Scope, deliverables, acceptance criteria, and dependencies."
+      ],
+      [
+        "experiment-agent",
+        "Track an approved experiment and its measurements.",
+        "Experiment record with baseline, observation window, and results."
+      ],
+      [
+        "idea-reviewer",
+        "Review whether evidence supports continuing the idea.",
+        "Continue/pivot/stop recommendation with rationale."
+      ]
+    ]
+  },
+  "integration_status": {
+    "definitions": "ready",
+    "runtime_dispatch": "pending",
+    "note": "A role must only be marked WORKING or COMPLETED after its runtime adapter actually executes and records evidence."
+  }
+}
