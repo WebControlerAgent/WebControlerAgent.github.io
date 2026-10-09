@@ -37,6 +37,8 @@ def main():
     site=next((s for s in registry.get("sites",[]) if s.get("id")==site_id),None)
     if not site or not site.get("enabled") or not site.get("authorized"):
         raise RuntimeError("Site is not enabled and authorized")
+    policy=load(ROOT/"agents"/"registry.json",{})
+    retry_limit=max(1,int(policy.get("execution",{}).get("max_retries",3)))
     st=load(STATE,{"active_site":None,"agent_states":{},"events":[]})
     active=st.get("active_site")
     if active is None:
@@ -44,6 +46,11 @@ def main():
         st["active_site"]=active
     elif active.get("id")!=site_id:
         raise RuntimeError("Another site is active: "+str(active.get("id")))
+    if active.get("state")=="BLOCKED":
+        raise RuntimeError(
+            "Active site is blocked after "+str(retry_limit)+
+            " failed attempts; manual review is required before retrying."
+        )
 
     flow=active.get("flow",NORMAL)
     idx=int(active.get("pipeline_index",0))
@@ -125,21 +132,34 @@ def main():
             "state":"FAILED","site":site_id,
             "task":tasks[agent],"error":str(exc)
         })
-        active["state"]="REPAIRING"
         active["failed_agent"]=agent
         active["error"]=str(exc)
         active["retries"]=int(active.get("retries",0))+1
-        active["flow"]=REPAIR
-        active["pipeline_index"]=0
+        blocked=active["retries"]>=retry_limit
+        if blocked:
+            # Keep the active-site lock so later sites cannot skip a failed site.
+            # A blocked site requires an explicit human review/reset.
+            active["state"]="BLOCKED"
+            states[agent]["state"]="FAILED"
+            event_type="repair_exhausted"
+        else:
+            active["state"]="REPAIRING"
+            active["flow"]=REPAIR
+            active["pipeline_index"]=0
+            event_type="agent_step_failed"
         st.setdefault("events",[]).append({
-            "type":"agent_step_failed","agent":agent,
-            "site":site_id,"error":str(exc),"at":now()
+            "type":event_type,"agent":agent,
+            "site":site_id,"error":str(exc),
+            "retries":active["retries"],"retry_limit":retry_limit,"at":now()
         })
         save(STATE,st)
         save(STATUS,{"ok":False,"agent_runtime":st,
                      "runtime_result":{"agent":agent,"site":site_id,
-                                       "passed":False,"error":str(exc),
-                                       "repair_flow":REPAIR}})
+                                       "passed":False,"blocked":blocked,
+                                       "retries":active["retries"],
+                                       "retry_limit":retry_limit,
+                                       "error":str(exc),
+                                       "repair_flow":None if blocked else REPAIR}})
         raise
 
 if __name__=="__main__":
