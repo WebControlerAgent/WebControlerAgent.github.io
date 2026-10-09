@@ -136,7 +136,8 @@ function StarGlow({color,accent,scale=1}:{color:string;accent:string;scale?:numb
    <sprite ref={flare} scale={[3.35,3.35,1]} renderOrder={4}>
      <spriteMaterial map={flareTexture} color="#ffffff" transparent opacity={.78} blending={THREE.AdditiveBlending} depthWrite={false} depthTest={false} toneMapped={false}/>
    </sprite>
-   <mesh><sphereGeometry args={[.43,64,64]}/><meshStandardMaterial color={color} emissive={color} emissiveIntensity={4.8} roughness={.16} metalness={.02}/></mesh>\n   <mesh scale={1.2}><sphereGeometry args={[.43,48,48]}/><meshBasicMaterial color={accent} transparent opacity={.14} blending={THREE.AdditiveBlending}/></mesh>
+   <mesh><sphereGeometry args={[.43,64,64]}/><meshStandardMaterial color={color} emissive={color} emissiveIntensity={4.8} roughness={.16} metalness={.02}/></mesh>
+   <mesh scale={1.2}><sphereGeometry args={[.43,48,48]}/><meshBasicMaterial color={accent} transparent opacity={.14} blending={THREE.AdditiveBlending}/></mesh>
    <mesh scale={1.62}><sphereGeometry args={[.58,40,40]}/><meshBasicMaterial color={accent} transparent opacity={.07} blending={THREE.AdditiveBlending}/></mesh>
    <mesh scale={2.2}><sphereGeometry args={[.58,32,32]}/><meshBasicMaterial color={color} transparent opacity={.028} blending={THREE.AdditiveBlending}/></mesh>
    <mesh rotation={[Math.PI/2,0,.35]}><torusGeometry args={[.88,.012,8,96]}/><meshBasicMaterial color={accent} transparent opacity={.28} blending={THREE.AdditiveBlending}/></mesh>
