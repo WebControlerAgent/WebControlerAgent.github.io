@@ -75,6 +75,7 @@ const STAR_PALETTE=[
 function StarGlow({color,accent,scale=1}:{color:string;accent:string;scale?:number}){
  const ref=useRef<THREE.Group>(null!);
  const flare=useRef<THREE.Sprite>(null!);
+ const streak=useRef<THREE.Sprite>(null!);
  const flareTexture=useMemo(()=>{
    const canvas=document.createElement("canvas");
    canvas.width=canvas.height=256;
@@ -121,13 +122,22 @@ function StarGlow({color,accent,scale=1}:{color:string;accent:string;scale?:numb
    ref.current.rotation.z+=delta*.07;
    if(flare.current){
      const pulse=1+Math.sin(clock.elapsedTime*2.8)*.055;
-     flare.current.scale.set(3.2*pulse,3.2*pulse,1);
-     flare.current.material.opacity=.72+Math.sin(clock.elapsedTime*2.8)*.08;
+     flare.current.scale.set(3.35*pulse,3.35*pulse,1);
+     flare.current.material.opacity=.78+Math.sin(clock.elapsedTime*2.8)*.07;
+   }
+   if(streak.current){
+     const shimmer=1+Math.sin(clock.elapsedTime*1.9+.7)*.06;
+     streak.current.scale.set(4.8*shimmer,1.05/shimmer,1);
+     streak.current.material.opacity=.22+Math.sin(clock.elapsedTime*1.9+.7)*.045;
    }
  });
  return <group ref={ref} scale={scale}>
-   <sprite ref={flare} scale={[3.2,3.2,1]} renderOrder={4}>
-     <spriteMaterial map={flareTexture} color={accent} transparent opacity={.72} blending={THREE.AdditiveBlending} depthWrite={false} depthTest={false} toneMapped={false}/>
+   {/* Camera-facing starburst plus a thin horizontal anamorphic streak. */}
+   <sprite ref={streak} scale={[4.8,1.05,1]} renderOrder={3}>
+     <spriteMaterial map={flareTexture} color="#ffffff" transparent opacity={.22} blending={THREE.AdditiveBlending} depthWrite={false} depthTest={false} toneMapped={false}/>
+   </sprite>
+   <sprite ref={flare} scale={[3.35,3.35,1]} renderOrder={4}>
+     <spriteMaterial map={flareTexture} color="#ffffff" transparent opacity={.78} blending={THREE.AdditiveBlending} depthWrite={false} depthTest={false} toneMapped={false}/>
    </sprite>
    <mesh><sphereGeometry args={[.58,64,64]}/><meshStandardMaterial color={color} emissive={color} emissiveIntensity={3.2} roughness={.18} metalness={.02}/></mesh>
    <mesh scale={1.62}><sphereGeometry args={[.58,40,40]}/><meshBasicMaterial color={accent} transparent opacity={.07} blending={THREE.AdditiveBlending}/></mesh>
