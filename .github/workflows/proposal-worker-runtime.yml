@@ -30,8 +30,8 @@ jobs:
           python-version: "3.12"
       - name: Validate task and call proposal-only runtime
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
           TASK_FILE: ${{ inputs.task_file }}
         run: |
           python - <<'PY'
