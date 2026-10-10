@@ -182,7 +182,6 @@ const cloudTexture = createProceduralCloudTexture();
 // Create galaxy simulation with preloaded texture
 const galaxySimulation = new GalaxySimulation(scene, config, cloudTexture);
 galaxySimulation.createGalaxySystem();
-galaxySimulation.createClouds();
 
 // Create starry background
 createStarryBackground(scene);
