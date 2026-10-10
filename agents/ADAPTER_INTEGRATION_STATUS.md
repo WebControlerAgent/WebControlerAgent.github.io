@@ -28,3 +28,11 @@ GitHub Pages serves the UI only. Run jobs in GitHub Actions or a trusted externa
 ## mini-SWE-agent preflight added
 
 A manual workflow pins mini-SWE-agent v2.4.6, checks CLI availability, and uploads a JSON evidence artifact. Model-driven shell execution remains deliberately disabled until a sandboxed model proxy keeps provider credentials outside the agent shell. See `agents/adapters/MINI_SWE_EXECUTION_GATE.md`.
+
+## Proposal-only model runtime
+
+- `controller/model_worker_runtime.py` makes two Responses API calls: one for a bounded JSON proposal and a second for independent review.
+- The model has no tools; model output is never executed, applied, pushed, merged, or deployed. The output is an artifact for Captain review only.
+- `.github/workflows/proposal-worker-runtime.yml` is manually triggered, uses read-only repository permissions, checks out without persisted credentials, and uploads the result artifact.
+- Configure `OPENAI_API_KEY` as a repository Actions Secret before manually running the workflow. An optional repository Actions variable `OPENAI_MODEL` can override the default `gpt-4.1-mini`. Model API calls may incur usage charges; the workflow is not triggered automatically.
+- Unit tests cover authorized-repository checks, path allowlisting, traversal rejection, and proposal size limits. A passing checker recommendation is still not a merge/deploy authorization.
