@@ -1,7 +1,7 @@
 {
-  "version": 1,
+  "version": 2,
   "architecture": "captain-team-agent",
-  "purpose": "Canonical contracts for the 45 child-agent roles. These definitions describe ownership and expected evidence; they do not claim an LLM or external tool has executed a role.",
+  "purpose": "Canonical contracts for 90 child-agent roles across 9 Captain teams. Role definitions do not claim an LLM or external tool has executed a role.",
   "execution_contract": {
     "task_required": [
       "task_id",
@@ -31,7 +31,16 @@
     ],
     "completion_requires_evidence": true,
     "child_agents_must_not_bypass_authorization": true,
-    "cross_team_handoff_requires_manager_approval": true
+    "cross_team_handoff_requires_manager_approval": true,
+    "minimum_small_agents_per_task": 2,
+    "required_task_pair_fields": [
+      "primary_agent_id",
+      "checker_agent_id",
+      "same_task_id",
+      "independent_evidence"
+    ],
+    "pairing_rule": "Every dispatched task has one primary worker and one independent checker from the relevant team; completion requires both results and Captain approval.",
+    "checker_must_not_copy_primary_result": true
   },
   "teams": {
     "operations": [
@@ -59,6 +68,31 @@
         "reporter",
         "Summarize verified progress and blockers for the manager.",
         "Report cites runtime events or artifacts and distinguishes unknowns."
+      ],
+      [
+        "plan-auditor",
+        "Independently inspect the planner's task graph, dependencies, owners, and acceptance criteria.",
+        "Audit findings mapped to missing or conflicting requirements."
+      ],
+      [
+        "dependency-auditor",
+        "Independently check scheduler ordering and dependency readiness.",
+        "Dependency audit proving no task is dispatched early."
+      ],
+      [
+        "authorization-auditor",
+        "Independently verify policy-checker decisions against site/task permissions.",
+        "Recorded allow/block decision and supporting policy evidence."
+      ],
+      [
+        "state-auditor",
+        "Cross-check persisted state for invalid transitions, duplicate claims, and conflicting locks.",
+        "State consistency report with conflicts identified."
+      ],
+      [
+        "evidence-auditor",
+        "Independently check progress reports against run logs and artifacts.",
+        "Report-to-evidence reconciliation and unsupported-claim list."
       ]
     ],
     "research": [
@@ -86,6 +120,31 @@
         "research-reviewer",
         "Review research quality and traceability.",
         "Pass/fail checklist and missing-evidence list."
+      ],
+      [
+        "source-cross-checker",
+        "Independently check source relevance, accessibility, and authorization.",
+        "Source-by-source verification notes."
+      ],
+      [
+        "claim-verifier",
+        "Verify key claims independently against the collected evidence.",
+        "Claim/evidence matrix with conflicts and unknowns."
+      ],
+      [
+        "recommendation-reviewer",
+        "Challenge analysis priorities and test whether recommendations follow from evidence.",
+        "Reviewed priority list and rationale."
+      ],
+      [
+        "trend-verifier",
+        "Check time windows, dates, and alternative explanations for trend claims.",
+        "Verified trend timeline and uncertainty notes."
+      ],
+      [
+        "citation-auditor",
+        "Audit source links and traceability for the research brief.",
+        "Citation completeness report and unsupported-claim list."
       ]
     ],
     "media": [
@@ -113,6 +172,31 @@
         "media-reviewer",
         "Review assets for quality and policy compliance.",
         "Review result with asset references and required fixes."
+      ],
+      [
+        "provenance-auditor",
+        "Independently verify asset origin and permitted use.",
+        "Asset provenance checklist and unresolved source issues."
+      ],
+      [
+        "asset-quality-checker",
+        "Inspect prepared assets for dimensions, format, corruption, and quality.",
+        "Per-asset technical QA results."
+      ],
+      [
+        "metadata-auditor",
+        "Check metadata and alt text against the actual asset and page context.",
+        "Metadata accuracy and accessibility findings."
+      ],
+      [
+        "license-verifier",
+        "Independently verify license evidence and usage constraints.",
+        "License decision with source evidence; block unclear rights."
+      ],
+      [
+        "accessibility-reviewer",
+        "Check contrast, legibility, descriptive text, and accessible presentation.",
+        "Accessibility review and concrete corrections."
       ]
     ],
     "publishing": [
@@ -140,6 +224,31 @@
         "rollback-worker",
         "Prepare or execute an authorized rollback plan.",
         "Target commit and rollback verification; no destructive action without authorization."
+      ],
+      [
+        "content-reviewer",
+        "Independently review changed content against the approved brief.",
+        "Content acceptance checklist and discrepancies."
+      ],
+      [
+        "frontend-reviewer",
+        "Review frontend diff for scope, responsiveness, and maintainability.",
+        "Diff review with issues and approval decision."
+      ],
+      [
+        "release-auditor",
+        "Check release contents, commit reference, and required gates.",
+        "Release manifest and gate-completeness result."
+      ],
+      [
+        "deployment-smoke-tester",
+        "Independently test published routes and essential page behavior.",
+        "Smoke-test URLs, results, and captured evidence."
+      ],
+      [
+        "recovery-verifier",
+        "Check rollback instructions and verify the intended recovery reference.",
+        "Recovery checklist and known-good commit evidence."
       ]
     ],
     "seo": [
@@ -167,6 +276,31 @@
         "indexing-diagnostics",
         "Assess crawl/indexing signals without claiming guaranteed indexing.",
         "Evidence-backed diagnosis and next checks."
+      ],
+      [
+        "intent-validator",
+        "Independently validate keyword grouping against search intent evidence.",
+        "Intent review with mismatches and source notes."
+      ],
+      [
+        "metadata-auditor",
+        "Recheck titles, descriptions, canonicals, and robots directives independently.",
+        "Per-URL metadata verification report."
+      ],
+      [
+        "link-verifier",
+        "Recheck internal links and proposed navigation changes.",
+        "Verified link results and redirect/error notes."
+      ],
+      [
+        "sitemap-cross-checker",
+        "Compare sitemap URLs with canonical and site route inventories.",
+        "URL coverage reconciliation and conflicts."
+      ],
+      [
+        "crawl-evidence-reviewer",
+        "Independently interpret available crawl/indexing signals and uncertainty.",
+        "Evidence review distinguishing observed facts from hypotheses."
       ]
     ],
     "quality": [
@@ -194,6 +328,31 @@
         "release-gatekeeper",
         "Aggregate evidence and decide whether release criteria pass.",
         "Release decision with blockers; never infer success from missing evidence."
+      ],
+      [
+        "journey-reviewer",
+        "Independently verify functional test coverage against user journeys.",
+        "Coverage gaps and independently reproduced results."
+      ],
+      [
+        "visual-regression-checker",
+        "Check visual results at agreed viewports against baseline evidence.",
+        "Viewport comparison and regression findings."
+      ],
+      [
+        "seo-independent-checker",
+        "Independently rerun technical SEO checks on changed URLs.",
+        "URL-level pass/fail evidence."
+      ],
+      [
+        "benchmark-reviewer",
+        "Review performance measurements, environment, and thresholds.",
+        "Metric validity and repeatability review."
+      ],
+      [
+        "release-evidence-auditor",
+        "Audit all release gates and block missing or stale evidence.",
+        "Gate-by-gate evidence matrix and release recommendation."
       ]
     ],
     "diagnostics": [
@@ -221,6 +380,31 @@
         "diagnostic-reviewer",
         "Review diagnosis completeness and confidence.",
         "Reviewed cause, confidence, and remaining unknowns."
+      ],
+      [
+        "log-cross-checker",
+        "Cross-check log findings across available runs and timestamps.",
+        "Correlated log timeline and discrepancies."
+      ],
+      [
+        "reproduction-reviewer",
+        "Independently repeat reproduction steps where possible.",
+        "Reproduction result or explicit inability to reproduce."
+      ],
+      [
+        "hypothesis-challenger",
+        "Challenge the proposed root cause with alternative explanations.",
+        "Ranked hypotheses and disconfirming evidence."
+      ],
+      [
+        "regression-reviewer",
+        "Review regression coverage against the diagnosed failure mode.",
+        "Coverage gaps and proposed regression cases."
+      ],
+      [
+        "diagnosis-auditor",
+        "Audit incident report completeness and confidence calibration.",
+        "Diagnosis acceptance checklist and unresolved unknowns."
       ]
     ],
     "repair": [
@@ -248,6 +432,31 @@
         "repair-reviewer",
         "Review fix quality and required regression evidence.",
         "Acceptance decision linked to patch and test evidence."
+      ],
+      [
+        "patch-reviewer",
+        "Independently inspect the patch diff for scope and correctness.",
+        "Review comments and explicit approve/request-changes result."
+      ],
+      [
+        "test-independence-checker",
+        "Check that tests genuinely exercise the fix rather than repeat implementation assumptions.",
+        "Test-quality review and missing cases."
+      ],
+      [
+        "threat-model-reviewer",
+        "Independently review permission boundaries, secrets, and abuse paths.",
+        "Threat findings and explicit pass/block decision."
+      ],
+      [
+        "rollback-verifier",
+        "Check recovery steps and whether the referenced recovery point exists.",
+        "Rollback-readiness checklist and verification evidence."
+      ],
+      [
+        "acceptance-auditor",
+        "Compare repair output and test evidence against the original acceptance criteria.",
+        "Acceptance matrix with pass/fail and evidence links."
       ]
     ],
     "innovation": [
@@ -275,6 +484,31 @@
         "idea-reviewer",
         "Review whether evidence supports continuing the idea.",
         "Continue/pivot/stop recommendation with rationale."
+      ],
+      [
+        "idea-fact-checker",
+        "Independently verify factual assumptions and source claims in a proposal.",
+        "Fact-check matrix and uncertainty notes."
+      ],
+      [
+        "scoring-reviewer",
+        "Challenge opportunity scores, weights, and hidden assumptions.",
+        "Recomputed score and sensitivity notes."
+      ],
+      [
+        "scope-reviewer",
+        "Check prototype scope for feasibility, dependencies, and measurable criteria.",
+        "Reviewed scope and acceptance criteria."
+      ],
+      [
+        "measurement-auditor",
+        "Verify experiment baseline, metrics, observation window, and calculations.",
+        "Measurement audit with missing-data notes."
+      ],
+      [
+        "experiment-reviewer",
+        "Independently assess experiment results and the continue/pivot/stop recommendation.",
+        "Evidence-based review and recommendation."
       ]
     ]
   },
