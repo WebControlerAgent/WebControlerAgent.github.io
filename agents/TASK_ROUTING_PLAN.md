@@ -1,121 +1,109 @@
-# Captain and Small-Agent Task Division Plan
+# Captain and Small-Agent Task Division Plan — Two-Agent Minimum
 
-## Status
-This defines task ownership and routing for the registered 9 Captains and 45 child roles. It is a plan, not proof that agents are already executing. A task is complete only after its worker runs and saves evidence.
+## Non-negotiable rule
+**Every dispatched task must have at least two small agents: (1) a primary worker and (2) an independent checker.** Both work on the same task ID. The checker must independently inspect the requirements, output, or tests and submit its own evidence; merely copying the worker's report does not count. The Captain reviews both results. Complex tasks may receive more agents, but never fewer than two.
 
-## Dispatch chain
-Manager -> Captain -> primary child agent -> Captain review -> Manager integration. Each task has one primary owner. Cross-team work needs Manager approval. Parallel tasks are allowed only when dependencies are met and file/resource scopes do not overlap.
+## Roster
+- 9 Captains remain in place.
+- Each Captain now has 10 child-agent roles: five execution/coordination roles plus five complementary checker roles.
+- Planned roster: 90 child roles + 9 Captains = 99 registered roles.
+- Registration does not mean the agents are live processes. Runtime adapters and dispatch enforcement still need implementation and test.
 
-## Captain teams and assignments
+## Team role pairs
 
-### Manager / Operations
-- **planner:** split goals into atomic tasks, dependencies, and acceptance criteria.
-- **scheduler:** order eligible work and enforce one active site/release at a time.
-- **policy-checker:** verify authorization, allowed scope, and safety constraints.
-- **state-keeper:** validate saved states and prevent conflicting claims.
-- **reporter:** report only verified outcomes and link evidence.
-Output: approved task graph, dispatch order, policy decision, final report.
+### Manager / Operations Captain
+- planner + **plan-auditor**: decompose work; audit task graph and acceptance criteria.
+- scheduler + **dependency-auditor**: order work; independently check dependency readiness.
+- policy-checker + **authorization-auditor**: authorize scope; independently audit the decision.
+- state-keeper + **state-auditor**: manage state; detect invalid transitions and conflicting claims.
+- reporter + **evidence-auditor**: report progress; reconcile every claim with artifacts/logs.
 
-### Researcher / Research
-- **source-discovery:** find relevant authorized sources.
-- **fact-checker:** verify claims and resolve conflicts.
-- **analyst:** prioritize evidence-backed findings.
-- **trend-researcher:** compare dated patterns.
-- **research-reviewer:** check evidence quality and traceability.
-Output: source-backed brief, confidence notes, open questions.
+### Researcher / Research Captain
+- source-discovery + **source-cross-checker**: discover sources; independently verify relevance and authorization.
+- fact-checker + **claim-verifier**: cross-check claims; independently validate key claims.
+- analyst + **recommendation-reviewer**: prioritize findings; challenge whether recommendations follow from evidence.
+- trend-researcher + **trend-verifier**: assess changes over time; verify dates and alternative explanations.
+- research-reviewer + **citation-auditor**: review quality; audit source traceability and unsupported claims.
 
-### Image Agent / Media
-- **source-validator:** verify provenance and permitted usage.
-- **asset-preparer:** process approved assets into required formats.
-- **metadata-writer:** write filenames, descriptions, accurate alt text.
-- **rights-checker:** confirm documented usage rights; block unclear assets.
-- **media-reviewer:** check quality, consistency, accessibility, compliance.
-Output: asset manifest, metadata, rights notes, review decision.
+### Image Agent / Media Captain
+- source-validator + **provenance-auditor**: validate origins and permitted usage.
+- asset-preparer + **asset-quality-checker**: prepare assets; independently inspect format, dimensions, and quality.
+- metadata-writer + **metadata-auditor**: create metadata/alt text; check accuracy against the actual asset.
+- rights-checker + **license-verifier**: verify documented license and usage constraints.
+- media-reviewer + **accessibility-reviewer**: review quality; independently check legibility and accessibility.
 
-### Publisher / Publishing
-- **content-builder:** prepare scoped content/data changes.
-- **frontend-worker:** implement approved UI/CSS/JS changes.
-- **release-worker:** prepare release candidate and record commit/rollback point.
-- **deployment-checker:** verify Actions and published status.
-- **rollback-worker:** prepare recovery; execute only when authorized.
-Output: changed files, build evidence, release/deployment references, recovery plan.
+### Publisher / Publishing Captain
+- content-builder + **content-reviewer**: prepare content; independently check brief and accuracy.
+- frontend-worker + **frontend-reviewer**: implement UI; review the diff, responsiveness, and scope.
+- release-worker + **release-auditor**: assemble release; audit release manifest and gates.
+- deployment-checker + **deployment-smoke-tester**: check deployment; test published routes and core behavior.
+- rollback-worker + **recovery-verifier**: prepare recovery; verify the recovery point and instructions.
 
-### SEO Agent / SEO
-- **keyword-researcher:** group search terms by intent from permitted evidence.
-- **metadata-worker:** check titles, descriptions, canonicals, robots, headings.
-- **internal-link-worker:** find broken links and suggest improvements.
-- **sitemap-worker:** validate sitemap parsing, URL coverage, canonical consistency.
-- **indexing-diagnostics:** diagnose crawl/indexing evidence without promising indexing.
-Output: URL-level audit and prioritized fixes.
+### SEO Agent / SEO Captain
+- keyword-researcher + **intent-validator**: group keywords; independently validate search intent.
+- metadata-worker + **metadata-auditor**: inspect metadata; independently recheck URLs.
+- internal-link-worker + **link-verifier**: find link issues; independently verify proposed fixes.
+- sitemap-worker + **sitemap-cross-checker**: inspect sitemap; reconcile sitemap, canonical, and route inventory.
+- indexing-diagnostics + **crawl-evidence-reviewer**: diagnose indexing signals; independently review evidence and uncertainty.
 
-### QA Agent / Quality
-- **functional-tester:** test user journeys against acceptance criteria.
-- **ui-tester:** check responsive layout, interactions, visual regressions.
-- **seo-tester:** verify technical SEO on changed pages.
-- **performance-tester:** measure performance with recorded test conditions.
-- **release-gatekeeper:** aggregate evidence and PASS/BLOCK the release.
-Output: test matrix, defects, metrics, release decision.
+### QA Agent / Quality Captain
+- functional-tester + **journey-reviewer**: test flows; independently check coverage and results.
+- ui-tester + **visual-regression-checker**: test UI; compare agreed viewports and baseline evidence.
+- seo-tester + **seo-independent-checker**: run technical SEO checks; independently repeat on changed URLs.
+- performance-tester + **benchmark-reviewer**: measure performance; audit conditions and metric validity.
+- release-gatekeeper + **release-evidence-auditor**: decide release gate; audit every required evidence item.
 
-### Bug Hunter / Diagnostics
-- **log-analyzer:** identify relevant failure signals and timestamps.
-- **reproduction-agent:** reproduce issue and record expected/actual behavior.
-- **root-cause-analyst:** rank causes using supporting/contradicting evidence.
-- **regression-planner:** define tests to catch recurrence.
-- **diagnostic-reviewer:** review completeness and confidence.
-Output: reproducible report, likely cause, confidence, regression plan.
+### Bug Hunter / Diagnostics Captain
+- log-analyzer + **log-cross-checker**: inspect logs; independently correlate timestamps and runs.
+- reproduction-agent + **reproduction-reviewer**: reproduce defect; independently repeat steps where possible.
+- root-cause-analyst + **hypothesis-challenger**: rank causes; challenge with alternative explanations.
+- regression-planner + **regression-reviewer**: propose regression checks; audit coverage.
+- diagnostic-reviewer + **diagnosis-auditor**: review incident; audit confidence and missing evidence.
 
-### Bug Solver / Repair
-- **patch-agent:** propose the smallest safe fix in approved files.
-- **test-agent:** run targeted checks and report exact results.
-- **security-reviewer:** inspect permissions, secrets handling, scope risks.
-- **rollback-planner:** record known-good reference and recovery steps.
-- **repair-reviewer:** review patch, tests, and regression evidence.
-Output: bounded patch, test evidence, security decision, rollback plan.
+### Bug Solver / Repair Captain
+- patch-agent + **patch-reviewer**: propose bounded fix; independently inspect the diff.
+- test-agent + **test-independence-checker**: run tests; check they truly exercise the defect/fix.
+- security-reviewer + **threat-model-reviewer**: inspect risks; independently check permissions and secrets boundaries.
+- rollback-planner + **rollback-verifier**: plan recovery; verify recovery reference and steps.
+- repair-reviewer + **acceptance-auditor**: review repair; map results to acceptance criteria.
 
-### Idea Builder / Innovation
-- **idea-researcher:** gather evidence for proposed feature/site.
-- **opportunity-analyst:** score value, feasibility, cost, risk, uncertainty.
-- **prototype-planner:** define a small experiment and acceptance criteria.
-- **experiment-agent:** record approved baseline, measurements, observation window.
-- **idea-reviewer:** recommend continue/pivot/stop based on evidence.
-Output: ranked ideas and experiment proposal; no production edits without Manager approval.
+### Idea Builder / Innovation Captain
+- idea-researcher + **idea-fact-checker**: gather evidence; independently verify assumptions.
+- opportunity-analyst + **scoring-reviewer**: score opportunity; challenge weights and assumptions.
+- prototype-planner + **scope-reviewer**: define prototype; audit feasibility and acceptance criteria.
+- experiment-agent + **measurement-auditor**: track experiment; audit baseline, metrics, and calculations.
+- idea-reviewer + **experiment-reviewer**: recommend continue/pivot/stop; independently assess evidence.
 
-## How work is divided
-1. Manager records the goal, authorized repository/site, constraints, and success criteria.
-2. Planner breaks it into small, independently reviewable tasks.
-3. Policy Checker blocks unclear authorization/scope, secret exposure, or unapproved destructive actions.
-4. Scheduler builds dependencies and orders ready tasks.
-5. Manager chooses one Captain; that Captain assigns one primary child and may create separate review/test tasks.
-6. Child returns a structured result with evidence and artifacts.
-7. Captain verifies acceptance criteria and requests rework when needed.
-8. Manager coordinates team handoffs; QA independently verifies changes; Publisher releases only after gates pass.
-9. Reporter records completed, blocked, failed, skipped, and unverified work.
+## Dispatch procedure
+1. Manager records the goal, authorized repository/site, constraints, and acceptance criteria.
+2. Planner creates atomic tasks and dependencies.
+3. Scheduler waits until dependencies are complete and resources/file locks are available.
+4. Captain assigns a primary worker and an independent checker to the same task ID before dispatch. The dispatcher must reject a task with fewer than two assigned small agents.
+5. Worker and checker return separate summaries, evidence, artifacts, and next actions. The checker must independently evaluate the result rather than copy the worker.
+6. Captain reviews both. If they disagree or evidence is missing, task becomes VERIFYING/BLOCKED and is not marked complete.
+7. QA performs additional independent release/regression checks where applicable; Publisher deploys only after required gates pass.
+8. Manager coordinates cross-team handoffs and reports verified outcomes only.
 
-## Default task flows
-- Feature/visual change: Manager -> Researcher if needed -> Image Agent if assets -> Publisher -> QA -> SEO if URLs/content changed -> Manager.
-- Bug fix: user/QA report -> Bug Hunter -> Bug Solver -> independent QA -> Publisher after PASS -> Manager.
-- SEO issue: SEO diagnosis -> Researcher if needed -> approved Publisher fix -> QA SEO test -> SEO re-check -> Manager.
-- New idea: Idea Builder -> Manager approval -> prototype work only if approved.
-- Release: Publisher candidate -> QA gate -> deployment verification -> Manager report.
+## Task record requirements
+Every task includes: task ID, site/repository, Captain, primary agent ID, checker agent ID, objective, allowed paths, constraints, success criteria, dependencies, status, and attempt count.
+Each agent result includes: same task ID, agent ID, role (worker/checker), state, summary, independent evidence, artifact references, changed files, and next action.
 
-## Task/result contract
-Task fields: `task_id`, `parent_task_id`, `site`, `repository`, `parent_captain`, `agent_id`, `objective`, `allowed_paths`, `constraints`, `success_criteria`, `priority`, `depends_on`, `status`, `attempt`.
-Result fields: `task_id`, `agent_id`, `state`, `summary`, `evidence[]`, `artifacts[]`, `changed_files[]`, `next_action`.
-
-## Guardrails
-- No overlapping simultaneous edits to the same file; serialize writes or separate scopes.
-- External/browser research is read-only by default; workers access only approved paths/tools.
-- Never put secret values in prompts, logs, artifacts, frontend bundles, JSON, or commits. Use Actions Secrets.
-- Deploy, delete, rollback, credential changes, and external writes require an authorization gate.
-- Default maximum retries: 3. Missing evidence means VERIFYING/BLOCKED, never COMPLETED.
-- WAITING = not eligible; CLAIMED = assigned; WORKING = running; VERIFYING = checks pending; COMPLETED = acceptance criteria plus evidence passed; FAILED = attempted but failed; BLOCKED = cannot proceed; SKIPPED = explicitly unnecessary.
+## Concurrency, security, and failure rules
+- No overlapping simultaneous writes to the same file; serialize writes or use disjoint scopes.
+- One active site/release at a time until runtime proves safe scaling.
+- External/browser work is read-only by default; agents only access authorized paths/tools.
+- Secrets stay in GitHub Actions Secrets, never prompts, logs, artifacts, frontend bundles, JSON, or commits.
+- Deploy, delete, rollback, credential changes, and external writes require authorization.
+- Default retries: 3. Missing evidence or a missing partner blocks completion.
+- WAITING = not eligible; CLAIMED = assigned; WORKING = executing; VERIFYING = review pending; COMPLETED = both results plus Captain approval; FAILED = attempted and failed; BLOCKED = cannot proceed; SKIPPED = explicitly unnecessary.
 
 ## Implementation phases
-A. Contracts and routing map.
-B. Deterministic Python dispatcher: validate task records, assign owners, enforce dependencies/states/file locks.
-C. First real worker: Playwright smoke tests with retained artifacts.
-D. Sandboxed repair worker with mandatory tests/review.
-E. AI-backed Captain delegation after provider secrets/budgets and schema validation.
-F. Prove one full Manager -> Captain -> child -> QA -> Publisher -> Manager run with logs and artifacts.
+A. Update canonical contracts and pair routing (configuration work).
+B. Update roster generator and runtime validator to enforce 90 child roles and 99 total roles.
+C. Implement deterministic dispatcher that refuses tasks with fewer than two assigned agents.
+D. Add first real checker-backed worker (Playwright QA) with retained artifacts.
+E. Trial sandboxed code repair with independent patch review and test evidence.
+F. Connect AI-backed Captain delegation only after provider secrets, budgets, and schema validation are configured.
+G. Prove one full two-agent task from dispatch through independent review and Captain approval.
 
-The 54 roles are registered definitions, not 54 active AI processes. Dispatcher and worker adapters still need to be implemented and run.
+The role definitions are not proof of live execution. Do not claim the pair rule is operational until the dispatcher rejects a one-agent task and a two-agent test passes.
