@@ -44,6 +44,8 @@ jobs:
     steps:
       - name: Checkout runtime
         uses: actions/checkout@v4
+      - name: Register all captain and child-agent roles
+        run: python3 controller/prepare_agents.py
       - name: Apply runtime command
         run: |
           python3 controller/dispatch.py \
@@ -57,6 +59,6 @@ jobs:
         run: |
           git config user.name "Web Controller Agent"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add controller/agent_state.json public/status.json
+          git add controller/agent_state.json public/status.json agents/agent_inventory.json
           git diff --cached --quiet || git commit -m "chore: apply agent runtime command"
           git push
