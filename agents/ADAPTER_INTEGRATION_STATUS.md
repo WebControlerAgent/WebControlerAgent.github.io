@@ -31,8 +31,8 @@ A manual workflow pins mini-SWE-agent v2.4.6, checks CLI availability, and uploa
 
 ## Proposal-only model runtime
 
-- `controller/model_worker_runtime.py` makes two Responses API calls: one for a bounded JSON proposal and a second for independent review.
+- `controller/model_worker_runtime.py` makes two Gemini `generateContent` API calls: one for a bounded JSON proposal and a second for independent review.
 - The model has no tools; model output is never executed, applied, pushed, merged, or deployed. The output is an artifact for Captain review only.
 - `.github/workflows/proposal-worker-runtime.yml` is manually triggered, uses read-only repository permissions, checks out without persisted credentials, and uploads the result artifact.
-- Configure `OPENAI_API_KEY` as a repository Actions Secret before manually running the workflow. An optional repository Actions variable `OPENAI_MODEL` can override the default `gpt-4.1-mini`. Model API calls may incur usage charges; the workflow is not triggered automatically.
+- Configure `GEMINI_API_KEY` as a repository Actions Secret before manually running the workflow. An optional repository Actions variable `GEMINI_MODEL` can override the default `gemini-2.5-flash`. Model API calls may incur usage charges; the workflow is not triggered automatically.
 - Unit tests cover authorized-repository checks, path allowlisting, traversal rejection, proposal size limits, and a missing-secret diagnostic. The runtime writes a JSON diagnostic report on configuration/runtime errors when the output path is writable, so the Actions artifact can help explain a failed run. A passing checker recommendation is still not a merge/deploy authorization.
