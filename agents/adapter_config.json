@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "status": "PARTIAL_INTEGRATION",
+  "result_contract": [
+    "task_id",
+    "agent_id",
+    "state",
+    "summary",
+    "evidence",
+    "artifacts",
+    "changed_files",
+    "next_action"
+  ],
+  "safety": {
+    "default_permissions": "read-only",
+    "code_writes": "isolated branch/worktree only",
+    "deploy": "requires independent checker and explicit approval",
+    "secrets": "GitHub Actions Secrets only; never frontend or committed files"
+  },
+  "adapters": [
+    {
+      "id": "playwright",
+      "state": "CI_TESTS_ADDED_PENDING_FIRST_RUN",
+      "kind": "deterministic_test_runner",
+      "workflow": ".github/workflows/external-agent-ci.yml",
+      "config": "playwright.config.ts",
+      "test_dir": "tests/e2e",
+      "required_secret": false
+    },
+    {
+      "id": "mini-swe-agent",
+      "state": "STAGED_NOT_CONNECTED",
+      "kind": "coding_agent",
+      "upstream": "https://github.com/SWE-agent/mini-swe-agent",
+      "requires": [
+        "pinned package/version",
+        "model API secret",
+        "disposable sandbox",
+        "bounded task contract"
+      ],
+      "writes": "patch artifacts only; no direct deploy"
+    },
+    {
+      "id": "browser-use",
+      "state": "STAGED_NOT_CONNECTED",
+      "kind": "browser_agent",
+      "upstream": "https://github.com/browser-use/browser-use",
+      "requires": [
+        "Python >=3.11",
+        "model API secret",
+        "allowed destination list",
+        "task timeout"
+      ],
+      "mode": "read-only first"
+    },
+    {
+      "id": "seo-agent",
+      "state": "OPTIONAL_STAGED_NOT_CONNECTED",
+      "kind": "seo_audit_agent",
+      "upstream": "https://github.com/dannwaneri/seo-agent",
+      "requires": [
+        "license/dependency review",
+        "required API secrets",
+        "usage budget"
+      ],
+      "mode": "read-only first"
+    },
+    {
+      "id": "langgraph",
+      "state": "DEFERRED",
+      "kind": "orchestration_framework",
+      "upstream": "https://github.com/langchain-ai/langgraph",
+      "requires": [
+        "decision to use this instead of CrewAI"
+      ]
+    },
+    {
+      "id": "crewai",
+      "state": "DEFERRED_ALTERNATIVE",
+      "kind": "orchestration_framework",
+      "upstream": "https://github.com/crewAIInc/crewAI",
+      "requires": [
+        "decision to use this instead of LangGraph"
+      ]
+    }
+  ]
+}
