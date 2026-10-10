@@ -204,7 +204,7 @@ function GalaxyNebula(){
  const textures=useMemo(()=>{
    const make=(inner:string,mid:string)=>{
      const c=document.createElement("canvas");c.width=c.height=256;const x=c.getContext("2d");
-     if(x){const g=x.createRadialGradient(128,128,4,128,128,126);g.addColorStop(0,inner);g.addColorStop(.25,mid);g.addColorStop(.58,mid.replace(/,\\s*[\\d.]+\\)$/,",0.14)"));g.addColorStop(1,"rgba(0,0,0,0)");x.fillStyle=g;x.fillRect(0,0,256,256);}
+     if(x){const g=x.createRadialGradient(128,128,4,128,128,126);g.addColorStop(0,inner);g.addColorStop(.25,mid);g.addColorStop(.58,"rgba(120,100,255,0.13)");g.addColorStop(1,"rgba(0,0,0,0)");x.fillStyle=g;x.fillRect(0,0,256,256);}
      const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t;
    };
    return [make("rgba(255,105,202,0.72)","rgba(201,75,255,0.4)"),make("rgba(70,190,255,0.72)","rgba(81,95,255,0.38)"),make("rgba(255,172,222,0.6)","rgba(255,93,151,0.32)")];
