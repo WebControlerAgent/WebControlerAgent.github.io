@@ -1,0 +1,257 @@
+{
+  "version": 1,
+  "status": "MAPPING_READY_NOT_INSTALLED",
+  "rule": "Every task uses a primary worker and an independent checker; tools can provide evidence but do not automatically count as the checker.",
+  "runtime": {
+    "github_pages": "Static UI only; cannot host persistent workers.",
+    "execution": "GitHub Actions for event-driven jobs or a separate trusted runtime.",
+    "secrets": "Store provider credentials in Actions Secrets or runtime secret storage; never expose them to frontend code.",
+    "writes": "Read-only by default; code-writing tasks use isolated worktrees/branches and cannot deploy directly."
+  },
+  "projects": [
+    {
+      "id": "playwright",
+      "repository": "microsoft/playwright",
+      "url": "https://github.com/microsoft/playwright",
+      "license": "Apache-2.0",
+      "kind": "deterministic_browser_test_framework_not_llm_agent",
+      "status": "MAPPED_NOT_INSTALLED",
+      "mappings": [
+        {
+          "captain": "qa",
+          "worker_roles": [
+            "functional-tester",
+            "ui-tester"
+          ],
+          "checker_roles": [
+            "journey-reviewer",
+            "visual-regression-checker"
+          ]
+        },
+        {
+          "captain": "publisher",
+          "worker_roles": [
+            "deployment-smoke-tester"
+          ],
+          "checker_roles": [
+            "release-evidence-auditor"
+          ]
+        },
+        {
+          "captain": "bug-hunter",
+          "worker_roles": [
+            "reproduction-agent"
+          ],
+          "checker_roles": [
+            "reproduction-reviewer"
+          ]
+        }
+      ],
+      "first_use": "CI smoke tests for app boot, main UI, navigation, console/network errors; save screenshots/traces and structured pass/fail.",
+      "cost_note": "No LLM key required for deterministic tests."
+    },
+    {
+      "id": "mini-swe-agent",
+      "repository": "SWE-agent/mini-swe-agent",
+      "url": "https://github.com/SWE-agent/mini-swe-agent",
+      "license": "MIT",
+      "kind": "coding_agent",
+      "status": "MAPPED_NOT_INSTALLED",
+      "mappings": [
+        {
+          "captain": "bug-solver",
+          "worker_roles": [
+            "patch-agent"
+          ],
+          "checker_roles": [
+            "patch-reviewer",
+            "test-independence-checker"
+          ]
+        },
+        {
+          "captain": "bug-hunter",
+          "worker_roles": [
+            "root-cause-analyst"
+          ],
+          "checker_roles": [
+            "hypothesis-challenger"
+          ]
+        },
+        {
+          "captain": "publisher",
+          "worker_roles": [
+            "frontend-worker"
+          ],
+          "checker_roles": [
+            "frontend-reviewer"
+          ]
+        }
+      ],
+      "first_use": "One isolated code repair task in disposable worktree/branch; produce patch, logs and test evidence; require independent review before merge.",
+      "requirements": [
+        "Python runtime",
+        "supported LLM provider credentials or local model",
+        "sandboxed filesystem/command execution"
+      ],
+      "safety": "No production secrets; no direct deployment permission."
+    },
+    {
+      "id": "browser-use",
+      "repository": "browser-use/browser-use",
+      "url": "https://github.com/browser-use/browser-use",
+      "license": "MIT",
+      "kind": "browser_agent",
+      "status": "MAPPED_NOT_INSTALLED",
+      "mappings": [
+        {
+          "captain": "researcher",
+          "worker_roles": [
+            "source-discovery"
+          ],
+          "checker_roles": [
+            "source-cross-checker"
+          ]
+        },
+        {
+          "captain": "seo-agent",
+          "worker_roles": [
+            "indexing-diagnostics"
+          ],
+          "checker_roles": [
+            "crawl-evidence-reviewer"
+          ]
+        },
+        {
+          "captain": "image-agent",
+          "worker_roles": [
+            "source-validator"
+          ],
+          "checker_roles": [
+            "provenance-auditor"
+          ]
+        }
+      ],
+      "first_use": "Bounded read-only research/checks with allowed domains, timeouts, URLs/sources, and optional screenshots as artifacts.",
+      "requirements": [
+        "Python runtime",
+        "browser dependencies",
+        "LLM provider credentials or supported local model"
+      ],
+      "cost_note": "Model inference and hosted browser services may cost money; local/self-hosted operation has its own hardware requirements."
+    },
+    {
+      "id": "seo-agent",
+      "repository": "dannwaneri/seo-agent",
+      "url": "https://github.com/dannwaneri/seo-agent",
+      "license": "MIT",
+      "kind": "specialized_seo_audit_agent",
+      "status": "MAPPED_OPTIONAL_NOT_INSTALLED",
+      "mappings": [
+        {
+          "captain": "seo-agent",
+          "worker_roles": [
+            "keyword-researcher",
+            "metadata-worker",
+            "internal-link-worker"
+          ],
+          "checker_roles": [
+            "intent-validator",
+            "metadata-auditor",
+            "link-verifier"
+          ]
+        },
+        {
+          "captain": "qa",
+          "worker_roles": [
+            "seo-tester"
+          ],
+          "checker_roles": [
+            "seo-independent-checker"
+          ]
+        }
+      ],
+      "first_use": "Optional read-only SEO report job. Review the current modules/dependencies before enabling and run only needed audit modules.",
+      "requirements": [
+        "Python",
+        "Playwright Chromium",
+        "Anthropic API key",
+        "SearchApi key for modules that use SearchApi"
+      ],
+      "safety": "Do not grant auto-publish permission; check privacy and API usage costs before sending URLs/data."
+    },
+    {
+      "id": "langgraph",
+      "repository": "langchain-ai/langgraph",
+      "url": "https://github.com/langchain-ai/langgraph",
+      "license": "MIT",
+      "kind": "stateful_orchestration_framework",
+      "status": "MAPPED_DEFERRED",
+      "mappings": [
+        {
+          "captain": "manager",
+          "worker_roles": [
+            "planner",
+            "scheduler",
+            "state-keeper"
+          ],
+          "checker_roles": [
+            "plan-auditor",
+            "dependency-auditor",
+            "state-auditor"
+          ]
+        }
+      ],
+      "first_use": "Evaluate as a possible adapter for durable branching/checkpointing/human approvals after real worker adapters exist.",
+      "safety": "Keep the existing task/result schema; not a ready-made worker and not required for the first wave."
+    },
+    {
+      "id": "crewai",
+      "repository": "crewAIInc/crewAI",
+      "url": "https://github.com/crewAIInc/crewAI",
+      "license": "MIT",
+      "kind": "role_based_orchestration_framework",
+      "status": "MAPPED_ALTERNATIVE_NOT_INSTALLED",
+      "mappings": [
+        {
+          "captain": "manager",
+          "worker_roles": [
+            "planner",
+            "scheduler"
+          ],
+          "checker_roles": [
+            "plan-auditor",
+            "dependency-auditor"
+          ]
+        }
+      ],
+      "first_use": "Alternative orchestration prototype only if role delegation is needed beyond the current dispatcher.",
+      "safety": "Choose CrewAI OR LangGraph for the first orchestration experiment; do not layer both at the start."
+    }
+  ],
+  "recommended_order": [
+    "playwright",
+    "mini-swe-agent",
+    "browser-use",
+    "seo-agent_optional",
+    "choose_langgraph_or_crewai_only_if_needed"
+  ],
+  "standard_result_fields": [
+    "task_id",
+    "agent_id",
+    "state",
+    "summary",
+    "evidence",
+    "artifacts",
+    "changed_files",
+    "next_action"
+  ],
+  "license_handling": "Review each upstream LICENSE and dependencies; prefer pinned packages/upstream checkouts. If copying code, preserve copyright/license/NOTICE files and record upstream commit.",
+  "source_repositories": [
+    "https://github.com/microsoft/playwright",
+    "https://github.com/SWE-agent/mini-swe-agent",
+    "https://github.com/browser-use/browser-use",
+    "https://github.com/dannwaneri/seo-agent",
+    "https://github.com/langchain-ai/langgraph",
+    "https://github.com/crewAIInc/crewAI"
+  ]
+}
