@@ -36,15 +36,15 @@ const CAPTAIN_STARS=[
 {id:"qa",name:"Quality",color:"#a5f0b6",accent:"#ddffe5"}
 ];
 const CAPTAIN_ORBITS=[
- {radius:10.8,arm:0,offset:-.06,height:.24,speed:.95},
- {radius:13.6,arm:1,offset:.05,height:-.20,speed:.82},
- {radius:16.0,arm:2,offset:-.04,height:.32,speed:.74},
- {radius:18.2,arm:3,offset:.04,height:-.28,speed:.66},
- {radius:20.4,arm:0,offset:.03,height:.16,speed:.60},
- {radius:22.6,arm:1,offset:-.03,height:-.12,speed:.54},
- {radius:24.8,arm:2,offset:.02,height:.26,speed:.49},
- {radius:27.2,arm:3,offset:-.02,height:-.24,speed:.45},
- {radius:29.4,arm:0,offset:.01,height:.08,speed:.41}
+ {radius:10.8*20+850,arm:0,offset:-.06,height:.24*20,speed:.95},
+ {radius:13.6*20+850,arm:1,offset:.05,height:-.20*20,speed:.82},
+ {radius:16.0*20+850,arm:2,offset:-.04,height:.32*20,speed:.74},
+ {radius:18.2*20+850,arm:3,offset:.04,height:-.28*20,speed:.66},
+ {radius:20.4*20+850,arm:0,offset:.03,height:.16*20,speed:.60},
+ {radius:22.6*20+850,arm:1,offset:-.03,height:-.12*20,speed:.54},
+ {radius:24.8*20+850,arm:2,offset:.02,height:.26*20,speed:.49},
+ {radius:27.2*20+850,arm:3,offset:-.02,height:-.24*20,speed:.45},
+ {radius:29.4*20+850,arm:0,offset:.01,height:.08*20,speed:.41}
 ];
 
 const TEAM_TEMPLATES:Record<string,string[]>={
@@ -131,7 +131,7 @@ function CaptainSun({item,index,onSelect,selected}:{item:any;index:number;onSele
   group.current.position.set(x,orbit.height-x*.1-z*.28+Math.sin(t*.16+phase)*.035,z);
   group.current.rotation.y+=delta*.08;
  });
- return <group ref={group} scale={1.8} onClick={(e)=>{e.stopPropagation();onSelect()}}>
+ return <group ref={group} scale={36} onClick={(e)=>{e.stopPropagation();onSelect()}}>
   <pointLight color={palette.color} intensity={selected?5.2:2.1} distance={selected?8:5.5} decay={2}/>
   <StarGlow color={palette.color} accent={palette.accent} scale={selected?1.12:.9}/>
  </group>;
@@ -145,7 +145,7 @@ function BlackHole({onSelect}:{onSelect:()=>void}){
    if(inner.current){const p=1+Math.sin(clock.elapsedTime*2.1)*.035;inner.current.scale.setScalar(p);}
    if(halo.current){const p=1+Math.sin(clock.elapsedTime*1.2)*.045;halo.current.scale.setScalar(p);}
  });
- return <group ref={ref} scale={2} onClick={(e)=>{e.stopPropagation();onSelect()}}>
+ return <group ref={ref} scale={400} onClick={(e)=>{e.stopPropagation();onSelect()}}>
    <pointLight color="#ff7438" intensity={5.5} distance={15} decay={1.8}/>
    <pointLight color="#8a58ff" intensity={3.5} distance={13} decay={2}/>
    <mesh ref={halo} scale={1.8}><sphereGeometry args={[1.08,48,48]}/><meshBasicMaterial color="#5421a0" transparent opacity={.12} blending={THREE.AdditiveBlending} depthWrite={false}/></mesh>
@@ -389,8 +389,8 @@ function SatelliteGalaxies({onSelect}:{onSelect:(id:number,position:[number,numb
   const t=i/71;
   const size=5*Math.pow(.01/5,t);
   const angle=i*2.3999632297+.4;
-  const radius=58+Math.sqrt(i+1)*5.4;
-  return {id:i,name:galaxyNames[i],size,position:[Math.cos(angle)*radius,Math.sin(i*1.71)*Math.min(5.2,radius*.15),Math.sin(angle)*radius] as [number,number,number],texture:i%textures.length,rotation:angle*.35};
+  const radius=(58+Math.sqrt(i+1)*5.4)*10;
+  return {id:i,name:galaxyNames[i],size,position:[Math.cos(angle)*radius,Math.sin(i*1.71)*Math.min(5.2,(58+Math.sqrt(i+1)*5.4)*.15)*10,Math.sin(angle)*radius] as [number,number,number],texture:i%textures.length,rotation:angle*.35};
   }),[textures.length]);
  const labelTextures=useMemo(()=>galaxies.map(g=>{const canvas=document.createElement("canvas");canvas.width=512;canvas.height=96;const ctx=canvas.getContext("2d");if(ctx){ctx.font="600 34px Arial, sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";ctx.shadowColor=["#ffb45e","#72d8ff","#ff83d0","#7bffe0"][g.texture];ctx.shadowBlur=12;ctx.fillStyle="#eaf5ff";ctx.fillText(g.name,256,48,490);}const t=new THREE.CanvasTexture(canvas);t.colorSpace=THREE.SRGBColorSpace;return t;}),[galaxies]);
  useEffect(()=>()=>{textures.forEach(t=>{t.galaxy.dispose();t.gas.dispose()});labelTextures.forEach(t=>t.dispose())},[textures,labelTextures]);
@@ -439,13 +439,13 @@ function Universe3D({selected,setSelected}:{selected:string|null;setSelected:(id
  const returnToUniverse=()=>{setFocusedGalaxy(null);setTraveling(true);};
  const travelDone=useMemo(()=>()=>setTraveling(false),[]);
  return <div className="universe-canvas-wrap">
-  <Canvas camera={{position:[0,10,22],fov:48,near:.1,far:1000}} dpr={[1,1.7]} gl={{antialias:true}} shadows>
-   <color attach="background" args={["#010208"]}/><fog attach="fog" args={["#010208",105,230]}/><ambientLight intensity={.24}/><directionalLight position={[6,10,4]} intensity={.42}/>
+  <Canvas camera={{position:[0,900,1900],fov:48,near:.1,far:12000}} dpr={[1,1.7]} gl={{antialias:true}} shadows>
+   <color attach="background" args={["#010208"]}/><fog attach="fog" args={["#010208",1400,3600]}/><ambientLight intensity={.24}/><directionalLight position={[6,10,4]} intensity={.42}/>
    <GalaxySystem/><SatelliteGalaxies onSelect={focusGalaxy}/>
    <GalaxyFocusCamera focus={focusedGalaxy} controlsRef={controlsRef} onDone={()=>setTraveling(false)}/>
    <CameraTravel mode={system?"system":"universe"} onDone={travelDone}/>
    {!system?<><BlackHole onSelect={exit}/>{CAPTAIN_STARS.map((x,i)=><CaptainSun key={x.id} item={x} index={i} selected={selected===x.id} onSelect={()=>enter(x.id)}/>)}</>:<SolarSystem captain={captain!} onPlanet={setPlanet}/>} 
-   <OrbitControls ref={controlsRef} enabled={!traveling} enablePan enableZoom minDistance={system?3:focusedGalaxy?2.5:8} maxDistance={system?18:focusedGalaxy?35:180} dampingFactor={.055} enableDamping/>
+   <OrbitControls ref={controlsRef} enabled={!traveling} enablePan enableZoom minDistance={system?3:focusedGalaxy?2.5:8} maxDistance={system?18:focusedGalaxy?35:5000} dampingFactor={.055} enableDamping/>
   </Canvas>
   {system&&<button className="universe-back" onClick={exit}>← RETURN TO GALAXY</button>}
   {focusedGalaxy&&!system&&<button className="universe-back" onClick={returnToUniverse}>← RETURN TO UNIVERSE</button>}
