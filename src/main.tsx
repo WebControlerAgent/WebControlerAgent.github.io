@@ -388,7 +388,7 @@ function SatelliteGalaxies(){
   const t=i/35;
   const size=5*Math.pow(.01/5,t);
   const angle=i*2.3999632297+.4;
-  const radius=17.5+Math.sqrt(i+1)*2.15;
+  const radius=58+Math.sqrt(i+1)*7.5;
   return {id:i,size,position:[Math.cos(angle)*radius,Math.sin(i*1.71)*Math.min(5.2,radius*.15),Math.sin(angle)*radius] as [number,number,number],texture:i%textures.length,rotation:angle*.35};
  }),[textures.length]);
  useEffect(()=>()=>textures.forEach(t=>{t.galaxy.dispose();t.gas.dispose()}),[textures]);
@@ -414,11 +414,11 @@ function Universe3D({selected,setSelected}:{selected:string|null;setSelected:(id
  const travelDone=useMemo(()=>()=>setTraveling(false),[]);
  return <div className="universe-canvas-wrap">
   <Canvas camera={{position:[0,10,22],fov:48,near:.1,far:1000}} dpr={[1,1.7]} gl={{antialias:true}} shadows>
-   <color attach="background" args={["#010208"]}/><fog attach="fog" args={["#010208",28,90]}/><ambientLight intensity={.07}/><directionalLight position={[6,10,4]} intensity={.18}/>
+   <color attach="background" args={["#010208"]}/><fog attach="fog" args={["#010208",105,230]}/><ambientLight intensity={.07}/><directionalLight position={[6,10,4]} intensity={.18}/>
    <GalaxySystem/><SatelliteGalaxies/>
    <CameraTravel mode={system?"system":"universe"} onDone={travelDone}/>
    {!system?<><BlackHole onSelect={exit}/>{CAPTAIN_STARS.map((x,i)=><CaptainSun key={x.id} item={x} index={i} selected={selected===x.id} onSelect={()=>enter(x.id)}/>)}</>:<SolarSystem captain={captain!} onPlanet={setPlanet}/>} 
-   <OrbitControls enabled={!traveling} enablePan enableZoom minDistance={system?3:8} maxDistance={system?18:45} dampingFactor={.055} enableDamping/>
+   <OrbitControls enabled={!traveling} enablePan enableZoom minDistance={system?3:8} maxDistance={system?18:180} dampingFactor={.055} enableDamping/>
   </Canvas>
   {system&&<button className="universe-back" onClick={exit}>← RETURN TO GALAXY</button>}
   {!system&&<a className="gpu-galaxy-link" href="/webgpu-galaxy/" title="Open the experimental GPU-powered galaxy">✦ WEBGPU GALAXY MODE</a>}
