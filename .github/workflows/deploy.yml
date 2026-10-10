@@ -35,6 +35,7 @@ jobs:
         run: |
           python3 controller/prepare_agents.py
           python3 controller/verify_runtime.py
+          python3 controller/test_task_dispatcher.py
 
       - name: Install dependencies
         run: npm install
