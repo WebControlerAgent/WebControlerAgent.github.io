@@ -169,7 +169,7 @@ function Planet({index,onClick}:{index:number;onClick:()=>void}){
  useFrame(({clock},delta)=>{const a=phase+clock.elapsedTime*(.14/(1+index*.42));ref.current.position.set(Math.cos(a)*radius,Math.sin(a*1.7)*(.1+index*.04),Math.sin(a)*radius);ref.current.rotation.y+=delta*(.3+index*.08)});
  return <group ref={ref} onClick={(e)=>{e.stopPropagation();onClick()}}>
    <pointLight color={d.accent} intensity={.035} distance={1}/>
-   <mesh castShadow receiveShadow><sphereGeometry args={[d.size,40,40]}/><meshStandardMaterial color={d.color} roughness={d.rough} metalness={.02}/></mesh>
+   <mesh castShadow receiveShadow><sphereGeometry args={[d.size,40,40]}/><meshStandardMaterial color={d.color} emissive={d.accent} emissiveIntensity={.16} roughness={d.rough} metalness={.02}/></mesh>
    {d.ring&&<mesh rotation={[Math.PI/2.5,.15,0]}><torusGeometry args={[d.size*1.65,d.size*.12,12,64]}/><meshStandardMaterial color="#cbbda9" roughness={.85} metalness={.02}/></mesh>}
  </group>;
 }
@@ -178,10 +178,10 @@ function SolarSystem({captain,onPlanet}:{captain:any;onPlanet:(name:string)=>voi
  const ref=useRef<THREE.Group>(null!); const palette=STAR_PALETTE[CAPTAIN_STARS.findIndex(x=>x.id===captain.id)];
  useFrame((_,delta)=>{ref.current.rotation.y+=delta*.008});
  return <group ref={ref}>
-   <pointLight color={palette.color} intensity={18} distance={18} decay={1.7}/>
+   <pointLight color={palette.color} intensity={24} distance={24} decay={1.5}/>
    <StarGlow color={palette.color} accent={palette.accent} scale={1.15}/>
    {team.map((name,i)=><React.Fragment key={name}>
-     <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[2.0+i*.68,.006,6,96]}/><meshBasicMaterial color="#aebdca" transparent opacity={.13}/></mesh>
+     <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[2.0+i*.68,.006,6,96]}/><meshBasicMaterial color="#c8d8eb" transparent opacity={.25}/></mesh>
      <Planet index={i} onClick={()=>onPlanet(name)}/>
    </React.Fragment>)}
  </group>;
@@ -384,21 +384,26 @@ function SatelliteGalaxies(){
   };
   return palettes.map((p,i)=>({galaxy:make("galaxy",p,i),gas:make("gas",p,i)}));
  },[palettes]);
- const galaxies=useMemo(()=>Array.from({length:36},(_,i)=>{
-  const t=i/35;
+ const galaxyNames=["Andromeda Reach","Cygnus Veil","Orion Drift","Lyra Spiral","Phoenix Arc","Draco Halo","Vela Cloud","Perseus Wake","Aquila Bloom","Carina Expanse","Aurora Ring","Sculptor Reach","Nova Meridian","Indigo Current","Serpens Coil","Cassiopeia Glow","Helix Crossing","Lumen Field","Artemis Drift","Pavo Spiral","Eclipse Crown","Stellar Harbor","Blue Ember","Violet Tide","Corona Passage","Celestial Loom","Hydra Bend","Cetus Lantern","Asterion Gate","Solstice Veil","Opal Current","Crimson Wake","Triton Reach","Nebula Crown","Whispering Arc","Silver Meridian","Polaris Bloom","Eos Crossing","Radiant Coil","Dawnfire Reach","Velorum Drift","Mira Expanse","Astral Orchard","Jade Halo","Cobalt Passage","Ember Spiral","Moonstone Reach","Sapphire Wake","Equinox Field","Starfall Harbor","Orchid Veil","Argo Current","Zephyr Ring","Dusk Meridian","Golden Thread","Prism Reach","Nightglass Arc","Comet Garden","Aether Crossing","Lunar Bloom","Solara Drift","Onyx Current","Frostfire Halo","Magenta Wake","Quiet Horizon","Atlas Spiral","Stardust Reach","Blue Lantern","Velvet Expanse","Radiant Harbor","Farstar Coil","Infinite Veil"] as const;
+ const galaxies=useMemo(()=>Array.from({length:72},(_,i)=>{
+  const t=i/71;
   const size=5*Math.pow(.01/5,t);
   const angle=i*2.3999632297+.4;
-  const radius=58+Math.sqrt(i+1)*7.5;
-  return {id:i,size,position:[Math.cos(angle)*radius,Math.sin(i*1.71)*Math.min(5.2,radius*.15),Math.sin(angle)*radius] as [number,number,number],texture:i%textures.length,rotation:angle*.35};
- }),[textures.length]);
- useEffect(()=>()=>textures.forEach(t=>{t.galaxy.dispose();t.gas.dispose()}),[textures]);
+  const radius=58+Math.sqrt(i+1)*5.4;
+  return {id:i,name:galaxyNames[i],size,position:[Math.cos(angle)*radius,Math.sin(i*1.71)*Math.min(5.2,radius*.15),Math.sin(angle)*radius] as [number,number,number],texture:i%textures.length,rotation:angle*.35};
+  }),[textures.length]);
+ const labelTextures=useMemo(()=>galaxies.map(g=>{const canvas=document.createElement("canvas");canvas.width=512;canvas.height=96;const ctx=canvas.getContext("2d");if(ctx){ctx.font="600 34px Arial, sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";ctx.shadowColor=["#ffb45e","#72d8ff","#ff83d0","#7bffe0"][g.texture];ctx.shadowBlur=12;ctx.fillStyle="#eaf5ff";ctx.fillText(g.name,256,48,490);}const t=new THREE.CanvasTexture(canvas);t.colorSpace=THREE.SRGBColorSpace;return t;}),[galaxies]);
+ useEffect(()=>()=>{textures.forEach(t=>{t.galaxy.dispose();t.gas.dispose()});labelTextures.forEach(t=>t.dispose())},[textures,labelTextures]);
  return <group>
   {galaxies.map(g=><group key={g.id} position={g.position} rotation={[.12*Math.sin(g.id),g.rotation,.08*Math.cos(g.id)]}>
    <sprite scale={[g.size*1.65,g.size*1.16,1]} renderOrder={1}>
     <spriteMaterial map={textures[g.texture].gas} transparent opacity={.38} blending={THREE.AdditiveBlending} depthWrite={false} toneMapped={false}/>
    </sprite>
    <sprite scale={[g.size,g.size*.7,1]} renderOrder={2}>
-    <spriteMaterial map={textures[g.texture].galaxy} transparent opacity={.9} blending={THREE.AdditiveBlending} depthWrite={false} toneMapped={false}/>
+    <spriteMaterial map={textures[g.texture].galaxy} transparent opacity={.96} blending={THREE.AdditiveBlending} depthWrite={false} toneMapped={false}/>
+   </sprite>
+   <sprite position={[0,Math.max(1.5,g.size*.72+1.0),0]} scale={[4.2,.79,1]} renderOrder={8}>
+    <spriteMaterial map={labelTextures[g.id]} transparent opacity={.88} depthWrite={false} depthTest={false} toneMapped={false}/>
    </sprite>
   </group>)}
  </group>;
@@ -414,7 +419,7 @@ function Universe3D({selected,setSelected}:{selected:string|null;setSelected:(id
  const travelDone=useMemo(()=>()=>setTraveling(false),[]);
  return <div className="universe-canvas-wrap">
   <Canvas camera={{position:[0,10,22],fov:48,near:.1,far:1000}} dpr={[1,1.7]} gl={{antialias:true}} shadows>
-   <color attach="background" args={["#010208"]}/><fog attach="fog" args={["#010208",105,230]}/><ambientLight intensity={.07}/><directionalLight position={[6,10,4]} intensity={.18}/>
+   <color attach="background" args={["#010208"]}/><fog attach="fog" args={["#010208",105,230]}/><ambientLight intensity={.24}/><directionalLight position={[6,10,4]} intensity={.42}/>
    <GalaxySystem/><SatelliteGalaxies/>
    <CameraTravel mode={system?"system":"universe"} onDone={travelDone}/>
    {!system?<><BlackHole onSelect={exit}/>{CAPTAIN_STARS.map((x,i)=><CaptainSun key={x.id} item={x} index={i} selected={selected===x.id} onSelect={()=>enter(x.id)}/>)}</>:<SolarSystem captain={captain!} onPlanet={setPlanet}/>} 
