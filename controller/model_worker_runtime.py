@@ -191,7 +191,7 @@ def main() -> int:
 
     def write_report(report: dict[str, Any]) -> None:
         output.parent.mkdir(parents=True, exist_ok=True)
-        output.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\\n", encoding="utf-8")
+        output.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
     api_key = os.environ.get("GEMINI_API_KEY", "")
     if not api_key:
