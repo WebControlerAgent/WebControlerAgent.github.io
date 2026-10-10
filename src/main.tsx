@@ -266,7 +266,7 @@ function GalaxyNebula(){
  });
  return <group>
   {clouds.map((cloud,i)=><sprite key={i} ref={el=>{if(el)sprites.current[i]=el;}} position={cloud.position} rotation={[-Math.PI/2,0,cloud.rotation]} scale={cloud.scale} renderOrder={2}>
-   <spriteMaterial map={textures[cloud.texture]} transparent opacity={.38} blending={THREE.AdditiveBlending} depthWrite={false} depthTest={false} toneMapped={false}/>
+   <spriteMaterial map={textures[cloud.texture]} transparent opacity={.38} blending={THREE.AdditiveBlending} depthWrite={false} depthTest={true} toneMapped={false}/>
   </sprite>)}
  </group>;
 }
