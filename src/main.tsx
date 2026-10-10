@@ -36,15 +36,15 @@ const CAPTAIN_STARS=[
 {id:"qa",name:"Quality",color:"#a5f0b6",accent:"#ddffe5"}
 ];
 const CAPTAIN_ORBITS=[
- {radius:(10.8*20+850)*.9,arm:0,offset:-.06,height:.24*2,speed:.95},
- {radius:(13.6*20+850)*.9,arm:1,offset:.05,height:-.20*2,speed:.82},
- {radius:(16.0*20+850)*.9,arm:2,offset:-.04,height:.32*2,speed:.74},
- {radius:(18.2*20+850)*.9,arm:3,offset:.04,height:-.28*2,speed:.66},
- {radius:(20.4*20+850)*.9,arm:0,offset:.03,height:.16*2,speed:.60},
- {radius:(22.6*20+850)*.9,arm:1,offset:-.03,height:-.12*2,speed:.54},
- {radius:(24.8*20+850)*.9,arm:2,offset:.02,height:.26*2,speed:.49},
- {radius:(27.2*20+850)*.9,arm:3,offset:-.02,height:-.24*2,speed:.45},
- {radius:(29.4*20+850)*.9,arm:0,offset:.01,height:.08*2,speed:.41}
+ {radius:10.8*8+70,arm:0,offset:-.06,height:.24*2,speed:.95},
+ {radius:13.6*8+70,arm:1,offset:.05,height:-.20*2,speed:.82},
+ {radius:16.0*8+70,arm:2,offset:-.04,height:.32*2,speed:.74},
+ {radius:18.2*8+70,arm:3,offset:.04,height:-.28*2,speed:.66},
+ {radius:20.4*8+70,arm:0,offset:.03,height:.16*2,speed:.60},
+ {radius:22.6*8+70,arm:1,offset:-.03,height:-.12*2,speed:.54},
+ {radius:24.8*8+70,arm:2,offset:.02,height:.26*2,speed:.49},
+ {radius:27.2*8+70,arm:3,offset:-.02,height:-.24*2,speed:.45},
+ {radius:29.4*8+70,arm:0,offset:.01,height:.08*2,speed:.41}
 ];
 
 const TEAM_TEMPLATES:Record<string,string[]>={
