@@ -19,6 +19,7 @@ TASK_REQUIRED = (
 )
 ROLE_BY_TASK = {
     "feature_or_visual_change": ("frontend-worker", "frontend-reviewer"),
+    "bug_diagnosis": ("log-analyzer", "log-cross-checker"),
     "bug_fix": ("patch-agent", "patch-reviewer"),
     "seo_issue": ("metadata-worker", "metadata-auditor"),
     "asset_request": ("asset-preparer", "asset-quality-checker"),
@@ -91,6 +92,8 @@ def prepare_assignment(task: dict[str, Any], routing: dict[str, Any], sites: dic
 
     supplied_primary = task.get("primary_agent_id")
     supplied_checker = task.get("checker_agent_id")
+    if bool(supplied_primary) != bool(supplied_checker):
+        raise DispatchError("A task cannot specify only one agent; provide both IDs or let the dispatcher assign the pair")
     expected_primary = f"{captain_id}/{pair['primary']}"
     expected_checker = f"{captain_id}/{pair['checker']}"
     if supplied_primary and supplied_primary != expected_primary:
