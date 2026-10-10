@@ -86,7 +86,7 @@ jobs:
                           lines += ["", "**Checker findings:**"] + [f"- {str(x)[:500]}" for x in findings[:10]]
                   lines += ["", "This workflow does not apply proposals, merge changes, or deploy."]
           with summary_path.open("a", encoding="utf-8") as stream:
-              stream.write("\\n".join(lines) + "\\n")
+              stream.write("\n".join(lines) + "\n")
           PY
       - name: Upload unapplied proposal and checker report
         if: always()
