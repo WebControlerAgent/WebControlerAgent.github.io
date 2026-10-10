@@ -177,25 +177,52 @@ def main() -> int:
     parser.add_argument("task_json")
     parser.add_argument("--output", default="artifacts/worker-runtime/result.json")
     args = parser.parse_args()
+    output = Path(args.output)
+    model = os.environ.get("OPENAI_MODEL") or "gpt-4.1-mini"
+
+    def write_report(report: dict[str, Any]) -> None:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\\n", encoding="utf-8")
+
     api_key = os.environ.get("OPENAI_API_KEY", "")
     if not api_key:
-        print('{"ok":false,"error":"OPENAI_API_KEY secret is not configured"}')
+        report = {
+            "ok": False,
+            "state": "BLOCKED_CONFIGURATION",
+            "error": "OPENAI_API_KEY secret is not configured",
+            "proposal_applied": False,
+        }
+        try:
+            write_report(report)
+        except OSError:
+            pass
+        print(json.dumps(report, indent=2))
         return 2
-    model = os.environ.get("OPENAI_MODEL") or "gpt-4.1-mini"
+
     try:
         task = json.loads(Path(args.task_json).read_text(encoding="utf-8"))
         if not isinstance(task, dict):
             raise RuntimeErrorSafe("Task JSON must be an object")
         result = run_runtime(task, api_key, model)
-        output = Path(args.output)
-        output.parent.mkdir(parents=True, exist_ok=True)
-        output.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        write_report({"ok": True, **result, "model": model})
         print(json.dumps({"ok": True, "task_id": result["task_id"], "state": result["state"],
                           "files_proposed": len(result["primary_worker"]["files"]),
                           "proposal_applied": False, "model": model}, indent=2))
         return 0
     except (OSError, json.JSONDecodeError, RuntimeErrorSafe) as exc:
-        print(json.dumps({"ok": False, "error": str(exc)}, indent=2))
+        report = {
+            "ok": False,
+            "state": "RUNTIME_ERROR",
+            "error": str(exc),
+            "proposal_applied": False,
+            "automatic_merge": False,
+            "automatic_deploy": False,
+        }
+        try:
+            write_report(report)
+        except OSError:
+            pass
+        print(json.dumps(report, indent=2))
         return 2
 
 
