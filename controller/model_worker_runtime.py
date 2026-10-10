@@ -187,7 +187,7 @@ def main() -> int:
     parser.add_argument("--output", default="artifacts/worker-runtime/result.json")
     args = parser.parse_args()
     output = Path(args.output)
-    model = os.environ.get("GEMINI_MODEL") or "gemini-2.5-flash"
+    model = os.environ.get("GEMINI_MODEL") or "gemini-3.8-flash"
 
     def write_report(report: dict[str, Any]) -> None:
         output.parent.mkdir(parents=True, exist_ok=True)
