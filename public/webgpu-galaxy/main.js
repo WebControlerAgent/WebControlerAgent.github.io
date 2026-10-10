@@ -7,15 +7,15 @@ import { GalaxyUI } from './ui.js';
 
 // Configuration
 const config = {
-  starCount: 300000, // Real GPU particle count; 300 million would exceed normal browser GPU memory
+  starCount: 150000, // Lower density so individual stars have more breathing room
   rotationSpeed: 0.1,
   spiralTightness: 2.15,
   mouseForce: 7.0,
   mouseRadius: 10.0,
-  galaxyRadius: 14.0,
+  galaxyRadius: 18.0,
   galaxyThickness: 2.8,
   armCount: 4,
-  armWidth: 2.25,
+  armWidth: 1.7,
   randomness: 1.35,
   particleSize: 0.1, // Per-star size is randomized from 0.005 to 0.1
   starBrightness: 0.48,
