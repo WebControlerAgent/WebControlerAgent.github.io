@@ -214,20 +214,54 @@ function CameraTravel({mode,onDone}:{mode:"universe"|"system";onDone:()=>void}){
 function GalaxyNebula(){
  const sprites=useRef<THREE.Sprite[]>([]);
  const textures=useMemo(()=>{
-   const make=(inner:string,mid:string)=>{
-     const c=document.createElement("canvas");c.width=c.height=256;const x=c.getContext("2d");
-     if(x){const g=x.createRadialGradient(128,128,4,128,128,126);g.addColorStop(0,inner);g.addColorStop(.25,mid);g.addColorStop(.58,"rgba(120,100,255,0.13)");g.addColorStop(1,"rgba(0,0,0,0)");x.fillStyle=g;x.fillRect(0,0,256,256);}
-     const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t;
+   const make=(core:string,mid:string,outer:string)=>{
+     const canvas=document.createElement("canvas");canvas.width=canvas.height=512;
+     const ctx=canvas.getContext("2d");
+     if(ctx){
+       const g=ctx.createRadialGradient(256,256,3,256,256,250);
+       g.addColorStop(0,core);g.addColorStop(.12,mid);g.addColorStop(.34,outer);
+       g.addColorStop(.62,"rgba(90,85,255,0.16)");g.addColorStop(1,"rgba(0,0,0,0)");
+       ctx.fillStyle=g;ctx.fillRect(0,0,512,512);
+       // Soft, uneven wisps break up the perfect game-like circular glow.
+       for(let i=0;i<18;i++){
+         ctx.save();ctx.translate(256,256);ctx.rotate(i*.349);
+         const w=100+(i%5)*22;
+         const haze=ctx.createLinearGradient(-w,0,w,0);
+         haze.addColorStop(0,"rgba(0,0,0,0)");haze.addColorStop(.5,outer);haze.addColorStop(1,"rgba(0,0,0,0)");
+         ctx.globalAlpha=.12+(i%4)*.035;ctx.fillStyle=haze;ctx.beginPath();ctx.ellipse(0,0,w,18+(i%4)*9,0,0,Math.PI*2);ctx.fill();ctx.restore();
+       }
+     }
+     const t=new THREE.CanvasTexture(canvas);t.colorSpace=THREE.SRGBColorSpace;return t;
    };
-   return [make("rgba(255,105,202,0.72)","rgba(201,75,255,0.4)"),make("rgba(70,190,255,0.72)","rgba(81,95,255,0.38)"),make("rgba(255,172,222,0.6)","rgba(255,93,151,0.32)")];
+   return [
+    make("rgba(255,235,255,0.9)","rgba(255,94,205,0.62)","rgba(188,45,255,0.38)"),
+    make("rgba(221,248,255,0.86)","rgba(63,190,255,0.58)","rgba(68,86,255,0.38)"),
+    make("rgba(255,208,225,0.78)","rgba(255,86,153,0.5)","rgba(143,69,255,0.34)"),
+    make("rgba(214,255,255,0.72)","rgba(69,226,255,0.4)","rgba(57,120,255,0.28)")
+   ];
  },[]);
- const clouds=useMemo(()=>Array.from({length:12},(_,i)=>{
-   const arm=i%5,r=3.4+(i%4)*2.35,angle=arm*Math.PI*2/5+r*.49+(i%3-.8)*.22;
-   return {position:[Math.cos(angle)*r,(i%3-1)*.42,Math.sin(angle)*r] as [number,number,number],scale:[3.4+(i%3)*1.2,2.1+(i%4)*.55,1] as [number,number,number],texture:i%3,rotation:angle};
+ const clouds=useMemo(()=>Array.from({length:22},(_,i)=>{
+   const arm=i%5,r=2.8+(i%7)*1.9,angle=arm*Math.PI*2/5+r*.49+(i%4-1.5)*.31;
+   return {
+    position:[Math.cos(angle)*r,(i%5-2)*.18,Math.sin(angle)*r] as [number,number,number],
+    scale:[4.2+(i%4)*1.7,2.6+(i%5)*.72,1] as [number,number,number],
+    texture:i%4,rotation:angle*.35+(i%3)*.2,phase:i*.8
+   };
  }),[]);
  useEffect(()=>()=>textures.forEach(t=>t.dispose()),[textures]);
- useFrame(({clock},delta)=>{sprites.current.forEach((sprite,i)=>{if(sprite){sprite.material.rotation=Math.sin(clock.elapsedTime*.13+i)*.12+clouds[i].rotation*.22; sprite.material.opacity=.24+Math.sin(clock.elapsedTime*.35+i*1.7)*.045;}});});
- return <group>{clouds.map((cloud,i)=><sprite key={i} ref={el=>{if(el)sprites.current[i]=el;}} position={cloud.position} scale={cloud.scale} renderOrder={1}><spriteMaterial map={textures[cloud.texture]} transparent opacity={.24} blending={THREE.AdditiveBlending} depthWrite={false} toneMapped={false}/></sprite>)}</group>;
+ useFrame(({clock})=>{
+   sprites.current.forEach((sprite,i)=>{
+     if(!sprite)return;
+     const cloud=clouds[i],t=clock.elapsedTime;
+     sprite.material.rotation=cloud.rotation+Math.sin(t*.07+cloud.phase)*.09;
+     sprite.material.opacity=.46+Math.sin(t*.22+cloud.phase)*.10;
+   });
+ });
+ return <group>
+  {clouds.map((cloud,i)=><sprite key={i} ref={el=>{if(el)sprites.current[i]=el;}} position={cloud.position} rotation={[-Math.PI/2,0,cloud.rotation]} scale={cloud.scale} renderOrder={2}>
+   <spriteMaterial map={textures[cloud.texture]} transparent opacity={.48} blending={THREE.AdditiveBlending} depthWrite={false} depthTest={false} toneMapped={false}/>
+  </sprite>)}
+ </group>;
 }
 function SpiralGalaxy(){
  const ref=useRef<THREE.Points>(null!);const cloud=useRef<THREE.Points>(null!);
@@ -238,13 +272,13 @@ function SpiralGalaxy(){
   const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(p,3));g.setAttribute("color",new THREE.BufferAttribute(colours,3));return g
  },[]);
  const cloudGeometry=useMemo(()=>{
-  const n=9500,p=new Float32Array(n*3),colours=new Float32Array(n*3);const palette=["#ed5aab","#9e62ff","#438cff","#47d9ff","#ffc1df"].map(v=>new THREE.Color(v));
-  for(let i=0;i<n;i++){const arm=i%5,r=2.1+Math.random()*12.8,ang=arm*Math.PI*2/5+r*.49+(Math.random()-.5)*(.32+r*.035);p[i*3]=Math.cos(ang)*r;p[i*3+1]=(Math.random()-.5)*(.2+r*.035);p[i*3+2]=Math.sin(ang)*r;const q=palette[Math.floor(Math.random()*palette.length)];const f=.12+Math.random()*.36;colours[i*3]=q.r*f;colours[i*3+1]=q.g*f;colours[i*3+2]=q.b*f}
+  const n=22000,p=new Float32Array(n*3),colours=new Float32Array(n*3);const palette=["#ff79c6","#b46dff","#58bfff","#72f0ff","#ffd0ec","#ffb56d"].map(v=>new THREE.Color(v));
+  for(let i=0;i<n;i++){const arm=i%5,r=2.1+Math.random()*12.8,ang=arm*Math.PI*2/5+r*.49+(Math.random()-.5)*(.32+r*.035);p[i*3]=Math.cos(ang)*r;p[i*3+1]=(Math.random()-.5)*(.2+r*.035);p[i*3+2]=Math.sin(ang)*r;const q=palette[Math.floor(Math.random()*palette.length)];const f=.28+Math.random()*.78;colours[i*3]=q.r*f;colours[i*3+1]=q.g*f;colours[i*3+2]=q.b*f}
   const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(p,3));g.setAttribute("color",new THREE.BufferAttribute(colours,3));return g
  },[]);
  useEffect(()=>()=>{geometry.dispose();cloudGeometry.dispose()},[geometry,cloudGeometry]);
  useFrame((_,d)=>{if(ref.current)ref.current.rotation.y+=d*.004;if(cloud.current)cloud.current.rotation.y-=d*.002});
- return <group rotation={[.22,0,-.12]}><points ref={cloud} geometry={cloudGeometry}><pointsMaterial size={.22} vertexColors transparent opacity={.46} sizeAttenuation depthWrite={false} blending={THREE.AdditiveBlending}/></points><points ref={ref} geometry={geometry}><pointsMaterial size={.085} vertexColors transparent opacity={.96} sizeAttenuation depthWrite={false} blending={THREE.AdditiveBlending}/></points><mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[7.6,.11,8,180]}/><meshBasicMaterial color="#a25dff" transparent opacity={.1} blending={THREE.AdditiveBlending}/></mesh><mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[10.2,.07,8,180]}/><meshBasicMaterial color="#55aaff" transparent opacity={.09} blending={THREE.AdditiveBlending}/></mesh></group>;
+ return <group rotation={[.22,0,-.12]}><points ref={cloud} geometry={cloudGeometry}><pointsMaterial size={.31} vertexColors transparent opacity={.78} sizeAttenuation depthWrite={false} blending={THREE.AdditiveBlending} toneMapped={false}/></points><points ref={ref} geometry={geometry}><pointsMaterial size={.105} vertexColors transparent opacity={1} sizeAttenuation depthWrite={false} blending={THREE.AdditiveBlending} toneMapped={false}/></points><mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[7.6,.11,8,180]}/><meshBasicMaterial color="#a25dff" transparent opacity={.1} blending={THREE.AdditiveBlending}/></mesh><mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[10.2,.07,8,180]}/><meshBasicMaterial color="#55aaff" transparent opacity={.09} blending={THREE.AdditiveBlending}/></mesh></group>;
 }
 function Universe3D({selected,setSelected}:{selected:string|null;setSelected:(id:string|null)=>void}){
  const [system,setSystem]=useState<string|null>(null);
