@@ -118,3 +118,45 @@
 
 .gpu-galaxy-link{position:absolute;z-index:9;right:22px;bottom:22px;padding:11px 14px;border:1px solid rgba(113,177,255,.3);border-radius:10px;background:rgba(4,12,28,.84);color:#c4e2ff;text-decoration:none;font:700 9px/1 system-ui;letter-spacing:.13em;backdrop-filter:blur(12px);box-shadow:0 0 28px rgba(40,120,255,.08);transition:background .2s,border-color .2s}.gpu-galaxy-link:hover{background:rgba(12,28,55,.96);border-color:rgba(113,177,255,.65)}
 @media(max-width:600px){.gpu-galaxy-link{right:12px;bottom:12px;padding:10px 11px;font-size:8px}}
+
+
+/* Readability pass: lighter slate-blue interface, while keeping the cinematic space scene */
+body,.app,.scene{background:#101e2e;color:#f1f6fb}
+.topbar3d{background:rgba(20,34,50,.96);border-bottom-color:#40556b}
+.sidebar,.inspector{background:#17283a;border-color:#40556b}
+.side-title,.inspector-head{color:#b1c4d6}
+.agent-row{color:#eef5fb;border-top-color:#2b4054}
+.agent-row small{color:#b0c2d2}
+.agent-row:hover{background:#22394f}
+.agent-row.selected{background:linear-gradient(90deg,#254b68,#1b3044);box-shadow:inset 3px 0 #8bd8ff}
+.legend,.status-card,.task-card{background:#203449;border-color:#40586e;color:#c0d0de}
+.legend b,.task-card b,.detail b,.timeline div{color:#e3edf5}
+.legend p,.legend button,.status-card span,.task-card span,.detail span,.timeline,.timeline small{color:#afc2d2}
+.legend button,.scene-controls button,.site-selector button,.talk{background:#2a455e;border-color:#59758d;color:#f0f7fc}
+.scene-title,.site-selector,.activity,.chat-panel,.site-dashboard{background:rgba(18,33,49,.92);border-color:#50677d}
+.scene-title span,.activity small,.activity>b,.site-selector span{color:#b0c4d5}
+.activity span,.site-selector b{color:#edf5fb}
+.scene-controls button{color:#e4f1fa}
+.world-label,.task-bubble-3d{background:rgba(20,36,53,.94);border-color:#607a91;color:#f2f7fb}
+.chat-panel{background:rgba(18,33,49,.97)}
+.chat-head,.chat-input,.site-panel-head{border-color:#3c5368}
+.chat-head small,.chat-msg span{color:#a8bdce}
+.chat-msg p{background:#263d53;border-color:#4b647b;color:#f0f6fb}
+.chat-msg.you p{background:#31536f;border-color:#6e91ad}
+.chat-input input,.site-form input,.site-form textarea{background:#14273a;border-color:#49647b;color:#f3f8fc}
+.chat-input button,.runtime-action,.site-actions button,.site-actions a,.site-card-actions button{background:#29465f;border-color:#5a7891;color:#e4f3fc}
+.site-overlay{background:#08111bc9}
+.site-panel{background:#172a3d;border-color:#536b80}
+.site-card-wrap,.site-card{background:#20364a;border-color:#405a70;color:#f0f6fb}
+.site-card small,.site-panel-head small,.site-form p{color:#b0c3d2}
+.site-card:hover,.site-card.active,.site-card-wrap.active{background:#29465e;border-color:#6a8aa3}
+.site-form{background:#1c3247;border-color:#486279}
+.site-form>b{color:#d8e8f5}
+.site-form>button{background:#31536e;border-color:#6b8ca7;color:#f3f8fc}
+.office-safe-mode{background:radial-gradient(circle at 50% 20%,#263f58 0,#101e2e 62%)}
+.office-safe-head{border-color:#40566b}
+.office-safe-head span,.office-agent span small{color:#b0c4d5}
+.office-agent{background:linear-gradient(145deg,#20364a,#17283a);border-color:#40576c;color:#f0f6fb}
+.office-agent:hover,.office-agent.selected{background:#29465e;border-color:#6c8ba5}
+.office-safe-note{background:#203449;border-color:#405b70;color:#bfd0de}
+@media(max-width:700px){.sidebar{background:#17283af2;border-color:#40566b}}
