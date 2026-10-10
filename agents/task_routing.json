@@ -1,0 +1,289 @@
+{
+  "version": 1,
+  "status": "PLAN_DEFINED_DISPATCHER_PENDING",
+  "ownership_rule": "one_primary_owner_per_task",
+  "hierarchy": [
+    "manager",
+    "captain",
+    "child_agent",
+    "captain_review",
+    "manager_integration"
+  ],
+  "limits": {
+    "max_active_sites": 1,
+    "max_retries": 3,
+    "completion_requires_evidence": true,
+    "cross_team_handoff_requires_manager_approval": true,
+    "no_overlapping_file_writes": true
+  },
+  "captains": {
+    "manager": {
+      "team": "operations",
+      "children": [
+        "planner",
+        "scheduler",
+        "policy-checker",
+        "state-keeper",
+        "reporter"
+      ],
+      "outputs": [
+        "task_graph",
+        "dispatch_order",
+        "policy_decision",
+        "verified_report"
+      ]
+    },
+    "researcher": {
+      "team": "research",
+      "children": [
+        "source-discovery",
+        "fact-checker",
+        "analyst",
+        "trend-researcher",
+        "research-reviewer"
+      ],
+      "outputs": [
+        "evidence_brief",
+        "prioritized_findings",
+        "open_questions"
+      ]
+    },
+    "image-agent": {
+      "team": "media",
+      "children": [
+        "source-validator",
+        "asset-preparer",
+        "metadata-writer",
+        "rights-checker",
+        "media-reviewer"
+      ],
+      "outputs": [
+        "asset_manifest",
+        "metadata",
+        "rights_notes",
+        "review_result"
+      ]
+    },
+    "publisher": {
+      "team": "publishing",
+      "children": [
+        "content-builder",
+        "frontend-worker",
+        "release-worker",
+        "deployment-checker",
+        "rollback-worker"
+      ],
+      "outputs": [
+        "changed_files",
+        "build_evidence",
+        "release_ref",
+        "deployment_evidence",
+        "rollback_plan"
+      ]
+    },
+    "seo-agent": {
+      "team": "seo",
+      "children": [
+        "keyword-researcher",
+        "metadata-worker",
+        "internal-link-worker",
+        "sitemap-worker",
+        "indexing-diagnostics"
+      ],
+      "outputs": [
+        "url_audit",
+        "prioritized_fixes",
+        "sitemap_report",
+        "diagnosis"
+      ]
+    },
+    "qa": {
+      "team": "quality",
+      "children": [
+        "functional-tester",
+        "ui-tester",
+        "seo-tester",
+        "performance-tester",
+        "release-gatekeeper"
+      ],
+      "outputs": [
+        "test_matrix",
+        "defects",
+        "metrics",
+        "release_decision"
+      ]
+    },
+    "bug-hunter": {
+      "team": "diagnostics",
+      "children": [
+        "log-analyzer",
+        "reproduction-agent",
+        "root-cause-analyst",
+        "regression-planner",
+        "diagnostic-reviewer"
+      ],
+      "outputs": [
+        "reproduction_report",
+        "root_cause",
+        "confidence",
+        "regression_plan"
+      ]
+    },
+    "bug-solver": {
+      "team": "repair",
+      "children": [
+        "patch-agent",
+        "test-agent",
+        "security-reviewer",
+        "rollback-planner",
+        "repair-reviewer"
+      ],
+      "outputs": [
+        "patch",
+        "test_evidence",
+        "security_decision",
+        "rollback_plan"
+      ]
+    },
+    "idea-builder": {
+      "team": "innovation",
+      "children": [
+        "idea-researcher",
+        "opportunity-analyst",
+        "prototype-planner",
+        "experiment-agent",
+        "idea-reviewer"
+      ],
+      "outputs": [
+        "ranked_ideas",
+        "experiment_proposal",
+        "recommendation"
+      ]
+    }
+  },
+  "routes": [
+    {
+      "task_type": "feature_or_visual_change",
+      "captain": "publisher",
+      "flow": [
+        "manager",
+        "researcher_if_needed",
+        "image-agent_if_assets",
+        "publisher",
+        "qa",
+        "seo-agent_if_url_or_content_change",
+        "manager"
+      ]
+    },
+    {
+      "task_type": "bug_fix",
+      "captain": "bug-hunter",
+      "flow": [
+        "bug-hunter",
+        "bug-solver",
+        "qa",
+        "publisher_after_pass",
+        "manager"
+      ]
+    },
+    {
+      "task_type": "seo_issue",
+      "captain": "seo-agent",
+      "flow": [
+        "seo-agent",
+        "researcher_if_needed",
+        "publisher_for_approved_fix",
+        "qa",
+        "seo-agent_recheck",
+        "manager"
+      ]
+    },
+    {
+      "task_type": "new_idea",
+      "captain": "idea-builder",
+      "flow": [
+        "idea-builder",
+        "manager_approval",
+        "prototype_if_approved"
+      ]
+    },
+    {
+      "task_type": "asset_request",
+      "captain": "image-agent",
+      "flow": [
+        "image-agent",
+        "publisher_if_integration_needed",
+        "qa_if_ui_changed",
+        "manager"
+      ]
+    },
+    {
+      "task_type": "release",
+      "captain": "publisher",
+      "flow": [
+        "publisher",
+        "qa_release_gate",
+        "deployment_check",
+        "manager"
+      ]
+    }
+  ],
+  "task_fields": [
+    "task_id",
+    "parent_task_id",
+    "site",
+    "repository",
+    "parent_captain",
+    "agent_id",
+    "objective",
+    "allowed_paths",
+    "constraints",
+    "success_criteria",
+    "priority",
+    "depends_on",
+    "status",
+    "attempt"
+  ],
+  "result_fields": [
+    "task_id",
+    "agent_id",
+    "state",
+    "summary",
+    "evidence",
+    "artifacts",
+    "changed_files",
+    "next_action"
+  ],
+  "phases": [
+    {
+      "id": "A",
+      "name": "Contracts",
+      "status": "PLAN_ONLY"
+    },
+    {
+      "id": "B",
+      "name": "Deterministic dispatcher",
+      "status": "PENDING"
+    },
+    {
+      "id": "C",
+      "name": "Playwright QA worker",
+      "status": "PENDING"
+    },
+    {
+      "id": "D",
+      "name": "Sandboxed repair worker",
+      "status": "PENDING"
+    },
+    {
+      "id": "E",
+      "name": "AI-backed delegation",
+      "status": "PENDING_PROVIDER_SECRETS_AND_ADAPTER"
+    },
+    {
+      "id": "F",
+      "name": "End-to-end acceptance",
+      "status": "PENDING"
+    }
+  ]
+}
