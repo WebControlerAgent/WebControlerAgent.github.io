@@ -335,6 +335,75 @@ function GalaxySystem(){
  useFrame((_,delta)=>{if(ref.current)ref.current.rotation.y+=delta*.0015});
  return <group ref={ref} rotation={[.28,0,-.1]}><GalaxyNebula/></group>;
 }
+
+function SatelliteGalaxies(){
+ const palettes=useMemo(()=>[
+  {core:"#fff0c9",hot:"#ffb45e",gas:"#ff7547"},
+  {core:"#e4f8ff",hot:"#72d8ff",gas:"#367dff"},
+  {core:"#ffe4f4",hot:"#ff83d0",gas:"#9258ff"},
+  {core:"#e0fff7",hot:"#7bffe0",gas:"#2e9dcb"}
+ ],[]);
+ const textures=useMemo(()=>{
+  const make=(kind:"galaxy"|"gas",palette:{core:string;hot:string;gas:string},seed:number)=>{
+   const size=256,canvas=document.createElement("canvas");canvas.width=canvas.height=size;
+   const ctx=canvas.getContext("2d");
+   if(ctx){
+    const cx=size/2,cy=size/2;
+    const glow=ctx.createRadialGradient(cx,cy,1,cx,cy,kind==="gas"?118:96);
+    if(kind==="gas"){
+     glow.addColorStop(0,palette.hot+"22");glow.addColorStop(.36,palette.gas+"35");glow.addColorStop(.68,palette.gas+"20");glow.addColorStop(1,"rgba(0,0,0,0)");
+    }else{
+     glow.addColorStop(0,palette.core+"ff");glow.addColorStop(.07,palette.core+"ee");glow.addColorStop(.2,palette.hot+"bb");glow.addColorStop(.48,palette.gas+"66");glow.addColorStop(1,"rgba(0,0,0,0)");
+    }
+    ctx.fillStyle=glow;ctx.fillRect(0,0,size,size);
+    if(kind==="galaxy"){
+     for(let arm=0;arm<3;arm++){
+      ctx.beginPath();
+      for(let j=0;j<=180;j++){
+       const t=j/180,r=4+t*91,a=arm*Math.PI*2/3+t*5.4+seed*.17;
+       const x=cx+Math.cos(a)*r,y=cy+Math.sin(a)*r*.58;
+       if(j===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+      }
+      const g=ctx.createLinearGradient(cx-80,cy-80,cx+90,cy+90);
+      g.addColorStop(0,palette.core+"00");g.addColorStop(.24,palette.core+"aa");g.addColorStop(.62,palette.hot+"bb");g.addColorStop(1,palette.gas+"00");
+      ctx.strokeStyle=g;ctx.lineWidth=2.2+(seed%3)*.45;ctx.lineCap="round";ctx.stroke();
+     }
+     const core=ctx.createRadialGradient(cx,cy,0,cx,cy,28);
+     core.addColorStop(0,"#ffffff");core.addColorStop(.25,palette.core);core.addColorStop(.65,palette.hot+"cc");core.addColorStop(1,palette.gas+"00");
+     ctx.fillStyle=core;ctx.fillRect(cx-30,cy-30,60,60);
+    }else{
+     ctx.save();ctx.translate(cx,cy);ctx.rotate(-.18);
+     for(let k=0;k<3;k++){
+      ctx.beginPath();ctx.ellipse(0,0,45+k*21,15+k*7,0,0,Math.PI*2);
+      ctx.strokeStyle=palette.gas+(k===0?"66":k===1?"44":"22");ctx.lineWidth=k===0?2.2:1.3;ctx.stroke();
+     }
+     ctx.restore();
+    }
+   }
+   const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;return tex;
+  };
+  return palettes.map((p,i)=>({galaxy:make("galaxy",p,i),gas:make("gas",p,i)}));
+ },[palettes]);
+ const galaxies=useMemo(()=>Array.from({length:36},(_,i)=>{
+  const t=i/35;
+  const size=5*Math.pow(.01/5,t);
+  const angle=i*2.3999632297+.4;
+  const radius=17.5+Math.sqrt(i+1)*2.15;
+  return {id:i,size,position:[Math.cos(angle)*radius,Math.sin(i*1.71)*Math.min(5.2,radius*.15),Math.sin(angle)*radius] as [number,number,number],texture:i%textures.length,rotation:angle*.35};
+ }),[textures.length]);
+ useEffect(()=>()=>textures.forEach(t=>{t.galaxy.dispose();t.gas.dispose()}),[textures]);
+ return <group>
+  {galaxies.map(g=><group key={g.id} position={g.position} rotation={[.12*Math.sin(g.id),g.rotation,.08*Math.cos(g.id)]}>
+   <sprite scale={[g.size*1.65,g.size*1.16,1]} renderOrder={1}>
+    <spriteMaterial map={textures[g.texture].gas} transparent opacity={.38} blending={THREE.AdditiveBlending} depthWrite={false} toneMapped={false}/>
+   </sprite>
+   <sprite scale={[g.size,g.size*.7,1]} renderOrder={2}>
+    <spriteMaterial map={textures[g.texture].galaxy} transparent opacity={.9} blending={THREE.AdditiveBlending} depthWrite={false} toneMapped={false}/>
+   </sprite>
+  </group>)}
+ </group>;
+}
+
 function Universe3D({selected,setSelected}:{selected:string|null;setSelected:(id:string|null)=>void}){
  const [system,setSystem]=useState<string|null>(null);
  const [planet,setPlanet]=useState<string|null>(null);
@@ -346,7 +415,7 @@ function Universe3D({selected,setSelected}:{selected:string|null;setSelected:(id
  return <div className="universe-canvas-wrap">
   <Canvas camera={{position:[0,10,22],fov:48,near:.1,far:1000}} dpr={[1,1.7]} gl={{antialias:true}} shadows>
    <color attach="background" args={["#010208"]}/><fog attach="fog" args={["#010208",28,90]}/><ambientLight intensity={.07}/><directionalLight position={[6,10,4]} intensity={.18}/>
-   <GalaxySystem/>
+   <GalaxySystem/><SatelliteGalaxies/>
    <CameraTravel mode={system?"system":"universe"} onDone={travelDone}/>
    {!system?<><BlackHole onSelect={exit}/>{CAPTAIN_STARS.map((x,i)=><CaptainSun key={x.id} item={x} index={i} selected={selected===x.id} onSelect={()=>enter(x.id)}/>)}</>:<SolarSystem captain={captain!} onPlanet={setPlanet}/>} 
    <OrbitControls enabled={!traveling} enablePan enableZoom minDistance={system?3:8} maxDistance={system?18:45} dampingFactor={.055} enableDamping/>
