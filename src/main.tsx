@@ -36,15 +36,15 @@ const CAPTAIN_STARS=[
 {id:"qa",name:"Quality",color:"#a5f0b6",accent:"#ddffe5"}
 ];
 const CAPTAIN_ORBITS=[
- {radius:5.4,arm:0,offset:-.06,height:.12,speed:.95},
- {radius:6.8,arm:1,offset:.05,height:-.10,speed:.82},
- {radius:8.0,arm:2,offset:-.04,height:.16,speed:.74},
- {radius:9.1,arm:3,offset:.04,height:-.14,speed:.66},
- {radius:10.2,arm:0,offset:.03,height:.08,speed:.60},
- {radius:11.3,arm:1,offset:-.03,height:-.06,speed:.54},
- {radius:12.4,arm:2,offset:.02,height:.13,speed:.49},
+ {radius:10.8,arm:0,offset:-.06,height:.12,speed:.95},
+ {radius:27.2,arm:1,offset:.05,height:-.10,speed:.82},
+ {radius:16.0,arm:2,offset:-.04,height:.16,speed:.74},
+ {radius:18.2,arm:3,offset:.04,height:-.14,speed:.66},
+ {radius:20.4,arm:0,offset:.03,height:.08,speed:.60},
+ {radius:22.6,arm:1,offset:-.03,height:-.06,speed:.54},
+ {radius:24.8,arm:2,offset:.02,height:.13,speed:.49},
  {radius:13.6,arm:3,offset:-.02,height:-.12,speed:.45},
- {radius:14.7,arm:0,offset:.01,height:.04,speed:.41}
+ {radius:29.4,arm:0,offset:.01,height:.04,speed:.41}
 ];
 
 const TEAM_TEMPLATES:Record<string,string[]>={
@@ -60,11 +60,11 @@ const TEAM_TEMPLATES:Record<string,string[]>={
 };
 const prettyTeamName=(id:string)=>id.split("-").map(x=>x.charAt(0).toUpperCase()+x.slice(1)).join(" ");
 const PLANET_DATA=[
- {color:"#8d9aaa",accent:"#dbe4ed",size:.17,rough:.86,ring:false},
- {color:"#b78e68",accent:"#e5c39b",size:.20,rough:.72,ring:true},
- {color:"#66899a",accent:"#b9e2ed",size:.19,rough:.68,ring:false},
- {color:"#9c7f72",accent:"#d9b6a7",size:.22,rough:.82,ring:false},
- {color:"#8c8a82",accent:"#d2d0c7",size:.24,rough:.9,ring:false}
+ {color:"#8d9aaa",accent:"#dbe4ed",size:.34,rough:.86,ring:false},
+ {color:"#b78e68",accent:"#e5c39b",size:.40,rough:.72,ring:true},
+ {color:"#66899a",accent:"#b9e2ed",size:.38,rough:.68,ring:false},
+ {color:"#9c7f72",accent:"#d9b6a7",size:.44,rough:.82,ring:false},
+ {color:"#8c8a82",accent:"#d2d0c7",size:.48,rough:.9,ring:false}
 ];
 const STAR_PALETTE=[
  {color:"#ff6b32",accent:"#ffc078"},
@@ -131,7 +131,7 @@ function CaptainSun({item,index,onSelect,selected}:{item:any;index:number;onSele
   group.current.position.set(x,orbit.height-x*.1-z*.28+Math.sin(t*.16+phase)*.035,z);
   group.current.rotation.y+=delta*.08;
  });
- return <group ref={group} onClick={(e)=>{e.stopPropagation();onSelect()}}>
+ return <group ref={group} scale={1.8} onClick={(e)=>{e.stopPropagation();onSelect()}}>
   <pointLight color={palette.color} intensity={selected?5.2:2.1} distance={selected?8:5.5} decay={2}/>
   <StarGlow color={palette.color} accent={palette.accent} scale={selected?1.12:.9}/>
  </group>;
@@ -145,7 +145,7 @@ function BlackHole({onSelect}:{onSelect:()=>void}){
    if(inner.current){const p=1+Math.sin(clock.elapsedTime*2.1)*.035;inner.current.scale.setScalar(p);}
    if(halo.current){const p=1+Math.sin(clock.elapsedTime*1.2)*.045;halo.current.scale.setScalar(p);}
  });
- return <group ref={ref} onClick={(e)=>{e.stopPropagation();onSelect()}}>
+ return <group ref={ref} scale={2} onClick={(e)=>{e.stopPropagation();onSelect()}}>
    <pointLight color="#ff7438" intensity={5.5} distance={15} decay={1.8}/>
    <pointLight color="#8a58ff" intensity={3.5} distance={13} decay={2}/>
    <mesh ref={halo} scale={1.8}><sphereGeometry args={[1.08,48,48]}/><meshBasicMaterial color="#5421a0" transparent opacity={.12} blending={THREE.AdditiveBlending} depthWrite={false}/></mesh>
@@ -165,7 +165,7 @@ function BlackHole({onSelect}:{onSelect:()=>void}){
  </group>;
 }
 function Planet({index,onClick}:{index:number;onClick:()=>void}){
- const ref=useRef<THREE.Group>(null!); const d=PLANET_DATA[index]; const radius=2.0+index*.68; const phase=index*1.25;
+ const ref=useRef<THREE.Group>(null!); const d=PLANET_DATA[index]; const radius=4.0+index*1.36; const phase=index*1.25;
  useFrame(({clock},delta)=>{const a=phase+clock.elapsedTime*(.14/(1+index*.42));ref.current.position.set(Math.cos(a)*radius,Math.sin(a*1.7)*(.1+index*.04),Math.sin(a)*radius);ref.current.rotation.y+=delta*(.3+index*.08)});
  return <group ref={ref} onClick={(e)=>{e.stopPropagation();onClick()}}>
    <pointLight color={d.accent} intensity={.035} distance={1}/>
@@ -181,7 +181,7 @@ function SolarSystem({captain,onPlanet}:{captain:any;onPlanet:(name:string)=>voi
    <pointLight color={palette.color} intensity={24} distance={24} decay={1.5}/>
    <StarGlow color={palette.color} accent={palette.accent} scale={1.15}/>
    {team.map((name,i)=><React.Fragment key={name}>
-     <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[2.0+i*.68,.006,6,96]}/><meshBasicMaterial color="#c8d8eb" transparent opacity={.25}/></mesh>
+     <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[4.0+i*1.36,.012,6,96]}/><meshBasicMaterial color="#c8d8eb" transparent opacity={.25}/></mesh>
      <Planet index={i} onClick={()=>onPlanet(name)}/>
    </React.Fragment>)}
  </group>;
