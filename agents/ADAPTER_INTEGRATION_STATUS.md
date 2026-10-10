@@ -24,3 +24,7 @@ Provider credentials belong in GitHub Actions Secrets. Never add keys to fronten
 ## Hosting
 
 GitHub Pages serves the UI only. Run jobs in GitHub Actions or a trusted external runtime; Actions runners are ephemeral, not always-on.
+
+## mini-SWE-agent preflight added
+
+A manual workflow pins mini-SWE-agent v2.4.6, checks CLI availability, and uploads a JSON evidence artifact. Model-driven shell execution remains deliberately disabled until a sandboxed model proxy keeps provider credentials outside the agent shell. See `agents/adapters/MINI_SWE_EXECUTION_GATE.md`.
