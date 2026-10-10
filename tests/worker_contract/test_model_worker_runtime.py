@@ -52,6 +52,24 @@ class ModelRuntimeTests(unittest.TestCase):
         with self.assertRaises(RuntimeErrorSafe):
             validate_proposal({"files":[{"path":"public/a.txt","content":"x"*100001}]}, TASK)
 
+    def test_rejects_more_than_ten_files(self):
+        proposal = {"files": [
+            {"path": f"public/file-{i}.json", "content": "{}"} for i in range(11)
+        ]}
+        with self.assertRaises(RuntimeErrorSafe):
+            validate_proposal(proposal, TASK)
+
+    def test_missing_api_key_writes_diagnostic_artifact_without_network(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output = Path(temp_dir) / "artifacts" / "result.json"
+            with patch.dict(os.environ, {"OPENAI_API_KEY": ""}), patch.object(
+                sys, "argv", ["model_worker_runtime.py", "unused-task.json", "--output", str(output)]
+            ), contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(main(), 2)
+            report = json.loads(output.read_text(encoding="utf-8"))
+            self.assertEqual(report["state"], "BLOCKED_CONFIGURATION")
+            self.assertFalse(report["proposal_applied"])
+
     def test_missing_api_key_writes_diagnostic_artifact_without_network(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             output = Path(temp_dir) / "artifacts" / "result.json"
