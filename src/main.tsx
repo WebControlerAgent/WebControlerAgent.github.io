@@ -36,15 +36,15 @@ const CAPTAIN_STARS=[
 {id:"qa",name:"Quality",color:"#a5f0b6",accent:"#ddffe5"}
 ];
 const CAPTAIN_ORBITS=[
- {radius:10.8*20+850,arm:0,offset:-.06,height:.24*2,speed:.95},
- {radius:13.6*20+850,arm:1,offset:.05,height:-.20*2,speed:.82},
- {radius:16.0*20+850,arm:2,offset:-.04,height:.32*2,speed:.74},
- {radius:18.2*20+850,arm:3,offset:.04,height:-.28*2,speed:.66},
- {radius:20.4*20+850,arm:0,offset:.03,height:.16*2,speed:.60},
- {radius:22.6*20+850,arm:1,offset:-.03,height:-.12*2,speed:.54},
- {radius:24.8*20+850,arm:2,offset:.02,height:.26*2,speed:.49},
- {radius:27.2*20+850,arm:3,offset:-.02,height:-.24*2,speed:.45},
- {radius:29.4*20+850,arm:0,offset:.01,height:.08*2,speed:.41}
+ {radius:(10.8*20+850)*.9,arm:0,offset:-.06,height:.24*2,speed:.95},
+ {radius:(13.6*20+850)*.9,arm:1,offset:.05,height:-.20*2,speed:.82},
+ {radius:(16.0*20+850)*.9,arm:2,offset:-.04,height:.32*2,speed:.74},
+ {radius:(18.2*20+850)*.9,arm:3,offset:.04,height:-.28*2,speed:.66},
+ {radius:(20.4*20+850)*.9,arm:0,offset:.03,height:.16*2,speed:.60},
+ {radius:(22.6*20+850)*.9,arm:1,offset:-.03,height:-.12*2,speed:.54},
+ {radius:(24.8*20+850)*.9,arm:2,offset:.02,height:.26*2,speed:.49},
+ {radius:(27.2*20+850)*.9,arm:3,offset:-.02,height:-.24*2,speed:.45},
+ {radius:(29.4*20+850)*.9,arm:0,offset:.01,height:.08*2,speed:.41}
 ];
 
 const TEAM_TEMPLATES:Record<string,string[]>={
@@ -389,8 +389,8 @@ function SatelliteGalaxies({onSelect}:{onSelect:(id:number,position:[number,numb
   const t=i/71;
   const size=5*Math.pow(.01/5,t);
   const angle=i*2.3999632297+.4;
-  const radius=(58+Math.sqrt(i+1)*5.4)*30;
-  return {id:i,name:galaxyNames[i],size,position:[Math.cos(angle)*radius,Math.sin(i*1.71)*Math.min(5.2,(58+Math.sqrt(i+1)*5.4)*.15)*30,Math.sin(angle)*radius] as [number,number,number],texture:i%textures.length,rotation:angle*.35};
+  const radius=(58+Math.sqrt(i+1)*5.4)*25;
+  return {id:i,name:galaxyNames[i],size,position:[Math.cos(angle)*radius,Math.sin(i*1.71)*Math.min(5.2,(58+Math.sqrt(i+1)*5.4)*.15)*25,Math.sin(angle)*radius] as [number,number,number],texture:i%textures.length,rotation:angle*.35};
   }),[textures.length]);
  const labelTextures=useMemo(()=>galaxies.map(g=>{const canvas=document.createElement("canvas");canvas.width=512;canvas.height=96;const ctx=canvas.getContext("2d");if(ctx){ctx.font="600 34px Arial, sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";ctx.shadowColor=["#ffb45e","#72d8ff","#ff83d0","#7bffe0"][g.texture];ctx.shadowBlur=12;ctx.fillStyle="#eaf5ff";ctx.fillText(g.name,256,48,490);}const t=new THREE.CanvasTexture(canvas);t.colorSpace=THREE.SRGBColorSpace;return t;}),[galaxies]);
  useEffect(()=>()=>{textures.forEach(t=>{t.galaxy.dispose();t.gas.dispose()});labelTextures.forEach(t=>t.dispose())},[textures,labelTextures]);
@@ -402,7 +402,7 @@ function SatelliteGalaxies({onSelect}:{onSelect:(id:number,position:[number,numb
    <sprite scale={[g.size*40,g.size*.7*40,1]} renderOrder={2}>
     <spriteMaterial map={textures[g.texture].galaxy} transparent opacity={.96} blending={THREE.AdditiveBlending} depthWrite={false} toneMapped={false}/>
    </sprite>
-   <sprite position={[0,Math.max(1.5,g.size*.72+1.0),0]} scale={[4.2,.79,1]} renderOrder={8}>
+   <sprite position={[0,Math.max(24,g.size*1.16*20+12),0]} scale={[42,7.9,1]} renderOrder={8}>
     <spriteMaterial map={labelTextures[g.id]} transparent opacity={.88} depthWrite={false} depthTest={false} toneMapped={false}/>
    </sprite>
   </group>)}
