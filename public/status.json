@@ -1,7 +1,7 @@
 {
   "ok": true,
-  "started_at": "2026-10-10T10:22:05Z",
-  "finished_at": "2026-10-10T10:22:05Z",
+  "started_at": "2026-10-10T16:04:47Z",
+  "finished_at": "2026-10-10T16:04:47Z",
   "sources_checked": 0,
   "targets_configured": 0,
   "discovered": [],
@@ -360,22 +360,5 @@
         "at": "2026-10-08T12:30:00Z"
       }
     ]
-  },
-  "worker_runtime": {
-    "status": "PROPOSAL_ONLY_MODEL_RUNTIME_ADDED_NOT_YET_RUN",
-    "adapter": "controller/model_worker_runtime.py",
-    "workflow": ".github/workflows/proposal-worker-runtime.yml",
-    "sample_task": "tasks/demo-ui-review.json",
-    "tests": "tests/worker_contract/test_model_worker_runtime.py",
-    "mode": "two_model_calls_proposal_then_independent_review",
-    "model_tools_enabled": false,
-    "shell_commands_executed": false,
-    "proposal_applied": false,
-    "repository_write_access": false,
-    "automatic_merge": false,
-    "automatic_deploy": false,
-    "captain_approval_required": true,
-    "activation": "manual workflow_dispatch; requires GEMINI_API_KEY Actions secret",
-    "note": "No model run has been verified yet. Gemini API usage may incur charges when manually triggered."
   }
 }
