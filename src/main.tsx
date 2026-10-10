@@ -440,7 +440,7 @@ function Universe3D({selected,setSelected}:{selected:string|null;setSelected:(id
  const travelDone=useMemo(()=>()=>setTraveling(false),[]);
  return <div className="universe-canvas-wrap">
   <Canvas camera={{position:[0,900,1900],fov:48,near:.1,far:12000}} dpr={[1,1.7]} gl={{antialias:true}} shadows>
-   <color attach="background" args={["#010208"]}/><fog attach="fog" args={["#010208",1800,5200]}/><ambientLight intensity={.24}/><directionalLight position={[6,10,4]} intensity={.42}/>
+   <color attach="background" args={["#081426"]}/><fog attach="fog" args={["#081426",1800,5200]}/><ambientLight intensity={.24}/><directionalLight position={[6,10,4]} intensity={.42}/>
    <GalaxySystem/><SatelliteGalaxies onSelect={focusGalaxy}/>
    <GalaxyFocusCamera focus={focusedGalaxy} controlsRef={controlsRef} onDone={()=>setTraveling(false)}/>
    <CameraTravel mode={system?"system":"universe"} onDone={travelDone}/>
