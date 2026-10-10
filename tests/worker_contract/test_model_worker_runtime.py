@@ -1,6 +1,14 @@
 """Unit tests for the proposal-only model runtime; no network/API calls."""
+import contextlib
+import io
+import json
+import os
+import sys
+import tempfile
 import unittest
-from controller.model_worker_runtime import RuntimeErrorSafe, validate_proposal, validate_task
+from pathlib import Path
+from unittest.mock import patch
+from controller.model_worker_runtime import RuntimeErrorSafe, main, validate_proposal, validate_task
 
 TASK = {
     "task_id": "runtime-test-001",
@@ -43,6 +51,17 @@ class ModelRuntimeTests(unittest.TestCase):
     def test_rejects_large_file(self):
         with self.assertRaises(RuntimeErrorSafe):
             validate_proposal({"files":[{"path":"public/a.txt","content":"x"*100001}]}, TASK)
+
+    def test_missing_api_key_writes_diagnostic_artifact_without_network(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output = Path(temp_dir) / "artifacts" / "result.json"
+            with patch.dict(os.environ, {"OPENAI_API_KEY": ""}), patch.object(
+                sys, "argv", ["model_worker_runtime.py", "unused-task.json", "--output", str(output)]
+            ), contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(main(), 2)
+            report = json.loads(output.read_text(encoding="utf-8"))
+            self.assertEqual(report["state"], "BLOCKED_CONFIGURATION")
+            self.assertFalse(report["proposal_applied"])
 
 if __name__ == "__main__":
     unittest.main()
