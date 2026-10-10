@@ -46,6 +46,48 @@ jobs:
           print("Task path accepted:", candidate.relative_to(root))
           PY
           python controller/model_worker_runtime.py "$TASK_FILE" --output artifacts/worker-runtime/result.json
+      - name: Summarize runtime result
+        if: always()
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          report_path = Path("artifacts/worker-runtime/result.json")
+          summary_path = Path(os.environ["GITHUB_STEP_SUMMARY"])
+          lines = ["## Proposal-only AI Worker result", ""]
+          if not report_path.is_file():
+              lines += ["**State:** NO_REPORT", "", "No JSON report was produced. Check the preceding workflow step logs."]
+          else:
+              try:
+                  report = json.loads(report_path.read_text(encoding="utf-8"))
+              except (OSError, json.JSONDecodeError):
+                  lines += ["**State:** INVALID_REPORT", "", "The result file could not be parsed as JSON."]
+              else:
+                  lines += [
+                      f"**State:** {report.get('state', 'UNKNOWN')}",
+                      f"**Task:** {report.get('task_id', 'not available')}",
+                      f"**Model:** {report.get('model', 'not available')}",
+                      f"**Proposal applied:** {report.get('proposal_applied', False)}",
+                  ]
+                  if report.get("error"):
+                      lines += ["", "**Error:**", "", str(report["error"])[:1500]]
+                  primary = report.get("primary_worker", {})
+                  if isinstance(primary, dict):
+                      lines += ["", "**Proposed files:**"]
+                      changed = primary.get("changed_files", [])
+                      lines += [f"- {p}" for p in changed[:10]] if changed else ["- None"]
+                  checker = report.get("independent_checker", {})
+                  if isinstance(checker, dict) and checker:
+                      lines += ["", f"**Checker recommendation:** {checker.get('recommendation', 'unknown')}"]
+                      findings = checker.get("findings", [])
+                      if findings:
+                          lines += ["", "**Checker findings:**"] + [f"- {str(x)[:500]}" for x in findings[:10]]
+                  lines += ["", "This workflow does not apply proposals, merge changes, or deploy."]
+          with summary_path.open("a", encoding="utf-8") as stream:
+              stream.write("\\n".join(lines) + "\\n")
+          PY
       - name: Upload unapplied proposal and checker report
         if: always()
         uses: actions/upload-artifact@v4
