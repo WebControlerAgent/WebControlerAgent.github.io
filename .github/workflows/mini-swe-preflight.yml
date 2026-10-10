@@ -34,9 +34,10 @@ jobs:
       - name: Check CLI and review patch artifact only
         env:
           GITHUB_RUN_ID: ${{ github.run_id }}
+          PATCH_PATH: ${{ inputs.inspect_patch }}
         run: |
-          if [ -n "${{ inputs.inspect_patch }}" ]; then
-            python agents/adapters/mini_swe_preflight.py "${{ inputs.inspect_patch }}"
+          if [ -n "$PATCH_PATH" ]; then
+            python agents/adapters/mini_swe_preflight.py "$PATCH_PATH"
           else
             python agents/adapters/mini_swe_preflight.py
           fi
