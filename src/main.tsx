@@ -145,7 +145,7 @@ function BlackHole({onSelect}:{onSelect:()=>void}){
    if(inner.current){const p=1+Math.sin(clock.elapsedTime*2.1)*.035;inner.current.scale.setScalar(p);}
    if(halo.current){const p=1+Math.sin(clock.elapsedTime*1.2)*.045;halo.current.scale.setScalar(p);}
  });
- return <group ref={ref} scale={400} onClick={(e)=>{e.stopPropagation();onSelect()}}>
+ return <group ref={ref} scale={20} onClick={(e)=>{e.stopPropagation();onSelect()}}>
    <pointLight color="#ff7438" intensity={5.5} distance={15} decay={1.8}/>
    <pointLight color="#8a58ff" intensity={3.5} distance={13} decay={2}/>
    <mesh ref={halo} scale={1.8}><sphereGeometry args={[1.08,48,48]}/><meshBasicMaterial color="#5421a0" transparent opacity={.12} blending={THREE.AdditiveBlending} depthWrite={false}/></mesh>
