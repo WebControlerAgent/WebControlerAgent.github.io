@@ -78,43 +78,45 @@ const STAR_PALETTE=[
  {color:"#82ed62",accent:"#d7ffb8"}
 ];
 function StarGlow({color,accent,scale=1}:{color:string;accent:string;scale?:number}){
- const ref=useRef<THREE.Group>(null!);
- const flare=useRef<THREE.Sprite>(null!);
- const streak=useRef<THREE.Sprite>(null!);
- const flareTexture=useMemo(()=>{
-  const canvas=document.createElement("canvas");canvas.width=canvas.height=512;
-  const ctx=canvas.getContext("2d");
+ const ref=useRef<THREE.Group>(null!);const flame=useRef<THREE.Sprite>(null!);const flare=useRef<THREE.Sprite>(null!);const streak=useRef<THREE.Sprite>(null!);
+ const flameTexture=useMemo(()=>{
+  const canvas=document.createElement("canvas");canvas.width=canvas.height=512;const ctx=canvas.getContext("2d");
   if(ctx){
-   const glow=ctx.createRadialGradient(256,256,1,256,256,235);
-   glow.addColorStop(0,"rgba(255,255,255,1)");glow.addColorStop(.035,"rgba(255,255,255,1)");
-   glow.addColorStop(.075,accent+"ff");glow.addColorStop(.16,accent+"bb");glow.addColorStop(.32,accent+"55");
-   glow.addColorStop(.58,accent+"18");glow.addColorStop(1,"rgba(0,0,0,0)");
-   ctx.fillStyle=glow;ctx.fillRect(0,0,512,512);
-   const rays=[[256,28,256,484,.58,2.8],[28,256,484,256,.58,2.8],[64,64,448,448,.32,1.5],[64,448,448,64,.32,1.5]];
-   for(const [x1,y1,x2,y2,alpha,width] of rays){
-    const g=ctx.createLinearGradient(x1,y1,x2,y2);
-    g.addColorStop(0,"rgba(255,255,255,0)");g.addColorStop(.42,"rgba(255,255,255,0)");
-    g.addColorStop(.495,"rgba(255,255,255,"+alpha+")");g.addColorStop(.505,"rgba(255,255,255,"+alpha+")");
-    g.addColorStop(.58,"rgba(255,255,255,0)");g.addColorStop(1,"rgba(255,255,255,0)");
-    ctx.strokeStyle=g;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+   const halo=ctx.createRadialGradient(256,256,2,256,256,228);
+   halo.addColorStop(0,"rgba(255,255,255,.98)");halo.addColorStop(.08,accent+"ee");halo.addColorStop(.25,accent+"88");halo.addColorStop(.48,color+"38");halo.addColorStop(1,"rgba(0,0,0,0)");
+   ctx.fillStyle=halo;ctx.fillRect(0,0,512,512);
+   for(let i=0;i<26;i++){
+    const a=i/26*Math.PI*2,inner=78+(i%4)*10,reach=140+(i*37%100),bend=Math.sin(i*2.17)*42;
+    const x1=256+Math.cos(a)*inner,y1=256+Math.sin(a)*inner,x2=256+Math.cos(a)*reach,y2=256+Math.sin(a)*reach;
+    const mx=(x1+x2)/2+Math.cos(a+Math.PI/2)*bend,my=(y1+y2)/2+Math.sin(a+Math.PI/2)*bend;
+    const g=ctx.createLinearGradient(x1,y1,x2,y2);g.addColorStop(0,"rgba(255,255,255,.9)");g.addColorStop(.25,accent+"cc");g.addColorStop(.68,color+"70");g.addColorStop(1,"rgba(0,0,0,0)");
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.quadraticCurveTo(mx,my,x2,y2);ctx.strokeStyle=g;ctx.lineWidth=3+(i%4)*1.8;ctx.lineCap="round";ctx.stroke();
    }
-   const cross=ctx.createRadialGradient(256,256,0,256,256,58);
-   cross.addColorStop(0,"rgba(255,255,255,1)");cross.addColorStop(.22,"rgba(255,255,255,.98)");
-   cross.addColorStop(.48,accent+"ff");cross.addColorStop(1,accent+"00");
-   ctx.fillStyle=cross;ctx.fillRect(198,198,116,116);
+   const core=ctx.createRadialGradient(256,256,0,256,256,86);core.addColorStop(0,"#ffffff");core.addColorStop(.2,"#ffffff");core.addColorStop(.43,accent+"ff");core.addColorStop(.72,color+"88");core.addColorStop(1,"rgba(0,0,0,0)");
+   ctx.fillStyle=core;ctx.fillRect(168,168,176,176);
+  }
+  const t=new THREE.CanvasTexture(canvas);t.colorSpace=THREE.SRGBColorSpace;return t;
+ },[accent,color]);
+ const flareTexture=useMemo(()=>{
+  const canvas=document.createElement("canvas");canvas.width=canvas.height=512;const ctx=canvas.getContext("2d");
+  if(ctx){
+   const glow=ctx.createRadialGradient(256,256,1,256,256,235);glow.addColorStop(0,"rgba(255,255,255,1)");glow.addColorStop(.035,"rgba(255,255,255,1)");glow.addColorStop(.075,accent+"ff");glow.addColorStop(.16,accent+"bb");glow.addColorStop(.32,accent+"55");glow.addColorStop(.58,accent+"18");glow.addColorStop(1,"rgba(0,0,0,0)");
+   ctx.fillStyle=glow;ctx.fillRect(0,0,512,512);
+   const rays=[[256,28,256,484,.4,2.2],[28,256,484,256,.4,2.2],[64,64,448,448,.2,1.2],[64,448,448,64,.2,1.2]];
+   for(const [x1,y1,x2,y2,alpha,width] of rays){const g=ctx.createLinearGradient(x1,y1,x2,y2);g.addColorStop(0,"rgba(255,255,255,0)");g.addColorStop(.42,"rgba(255,255,255,0)");g.addColorStop(.495,"rgba(255,255,255,"+alpha+")");g.addColorStop(.505,"rgba(255,255,255,"+alpha+")");g.addColorStop(.58,"rgba(255,255,255,0)");g.addColorStop(1,"rgba(255,255,255,0)");ctx.strokeStyle=g;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();}
   }
   const t=new THREE.CanvasTexture(canvas);t.colorSpace=THREE.SRGBColorSpace;return t;
  },[accent]);
- useEffect(()=>()=>flareTexture.dispose(),[flareTexture]);
- useFrame(({clock},delta)=>{
-  ref.current.rotation.y+=delta*.12;ref.current.rotation.z+=delta*.035;
-  const t=clock.elapsedTime;
-  if(flare.current){const p=1+Math.sin(t*1.8)*.035;flare.current.scale.set(3.8*p,3.8*p,1);flare.current.material.opacity=.66+Math.sin(t*1.8)*.035;}
-  if(streak.current){const p=1+Math.sin(t*1.4+.7)*.025;streak.current.scale.set(4.8*p,.72/p,1);streak.current.material.opacity=.2+Math.sin(t*1.4+.7)*.025;}
+ useEffect(()=>()=>{flameTexture.dispose();flareTexture.dispose()},[flameTexture,flareTexture]);
+ useFrame(({clock},delta)=>{ref.current.rotation.y+=delta*.12;ref.current.rotation.z+=delta*.035;const t=clock.elapsedTime;
+  if(flame.current){const p=1+Math.sin(t*2.2)*.045;flame.current.scale.set(2.15*p,2.45/p,1);flame.current.material.opacity=.42+Math.sin(t*2.2)*.055;}
+  if(flare.current){const p=1+Math.sin(t*1.8)*.025;flare.current.scale.set(2.55*p,2.55*p,1);flare.current.material.opacity=.48+Math.sin(t*1.8)*.025;}
+  if(streak.current){const p=1+Math.sin(t*1.4+.7)*.02;streak.current.scale.set(3.3*p,.48/p,1);streak.current.material.opacity=.15+Math.sin(t*1.4+.7)*.02;}
  });
  return <group ref={ref} scale={scale}>
-  <sprite ref={streak} scale={[4.8,.72,1]} renderOrder={5}><spriteMaterial map={flareTexture} color="#ffffff" transparent opacity={.2} blending={THREE.AdditiveBlending} depthWrite={false} depthTest={false} toneMapped={false}/></sprite>
-  <sprite ref={flare} scale={[3.8,3.8,1]} renderOrder={6}><spriteMaterial map={flareTexture} color="#ffffff" transparent opacity={.66} blending={THREE.AdditiveBlending} depthWrite={false} depthTest={false} toneMapped={false}/></sprite>
+  <sprite ref={flame} scale={[2.15,2.45,1]} renderOrder={4}><spriteMaterial map={flameTexture} color="#ffffff" transparent opacity={.42} blending={THREE.AdditiveBlending} depthWrite={false} depthTest={false} toneMapped={false}/></sprite>
+  <sprite ref={streak} scale={[3.3,.48,1]} renderOrder={5}><spriteMaterial map={flareTexture} color="#ffffff" transparent opacity={.15} blending={THREE.AdditiveBlending} depthWrite={false} depthTest={false} toneMapped={false}/></sprite>
+  <sprite ref={flare} scale={[2.55,2.55,1]} renderOrder={6}><spriteMaterial map={flareTexture} color="#ffffff" transparent opacity={.48} blending={THREE.AdditiveBlending} depthWrite={false} depthTest={false} toneMapped={false}/></sprite>
   <mesh><sphereGeometry args={[.25,48,48]}/><meshBasicMaterial color="#ffffff" toneMapped={false}/></mesh>
   <mesh scale={1.45}><sphereGeometry args={[.27,40,40]}/><meshBasicMaterial color={color} transparent opacity={.32} blending={THREE.AdditiveBlending} depthWrite={false}/></mesh>
  </group>;
