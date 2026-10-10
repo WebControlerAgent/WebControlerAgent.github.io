@@ -35,11 +35,16 @@ const CAPTAIN_STARS=[
 {id:"publisher",name:"Publishing",color:"#8fc7ff",accent:"#d9edff"},
 {id:"qa",name:"Quality",color:"#a5f0b6",accent:"#ddffe5"}
 ];
-const ORBIT_PERIOD_HOURS=12;
 const CAPTAIN_ORBITS=[
- {radius:6.6,tilt:.22,speed:1.00},{radius:7.5,tilt:-.31,speed:.88},{radius:8.5,tilt:.10,speed:.76},
- {radius:9.5,tilt:-.42,speed:.68},{radius:10.5,tilt:.28,speed:.61},{radius:11.5,tilt:-.18,speed:.55},
- {radius:12.5,tilt:.36,speed:.50},{radius:13.5,tilt:-.27,speed:.46},{radius:14.5,tilt:.16,speed:.42}
+ {radius:5.4,arm:0,offset:-.06,height:.12,speed:.95},
+ {radius:6.8,arm:1,offset:.05,height:-.10,speed:.82},
+ {radius:8.0,arm:2,offset:-.04,height:.16,speed:.74},
+ {radius:9.1,arm:3,offset:.04,height:-.14,speed:.66},
+ {radius:10.2,arm:0,offset:.03,height:.08,speed:.60},
+ {radius:11.3,arm:1,offset:-.03,height:-.06,speed:.54},
+ {radius:12.4,arm:2,offset:.02,height:.13,speed:.49},
+ {radius:13.6,arm:3,offset:-.02,height:-.12,speed:.45},
+ {radius:14.7,arm:0,offset:.01,height:.04,speed:.41}
 ];
 
 const TEAM_TEMPLATES:Record<string,string[]>={
@@ -77,64 +82,56 @@ function StarGlow({color,accent,scale=1}:{color:string;accent:string;scale?:numb
  const flare=useRef<THREE.Sprite>(null!);
  const streak=useRef<THREE.Sprite>(null!);
  const flareTexture=useMemo(()=>{
-   const canvas=document.createElement("canvas");canvas.width=canvas.height=512;
-   const ctx=canvas.getContext("2d");
-   if(ctx){
-     const glow=ctx.createRadialGradient(256,256,1,256,256,235);
-     glow.addColorStop(0,"rgba(255,255,255,1)");
-     glow.addColorStop(.035,"rgba(255,255,255,1)");
-     glow.addColorStop(.075,accent+"ff");
-     glow.addColorStop(.16,accent+"bb");
-     glow.addColorStop(.32,accent+"55");
-     glow.addColorStop(.58,accent+"18");
-     glow.addColorStop(1,"rgba(0,0,0,0)");
-     ctx.fillStyle=glow;ctx.fillRect(0,0,512,512);
-     // Long, tapered diffraction spikes give each captain a crisp celestial silhouette.
-     const rays=[[256,5,256,507,1,4.2],[5,256,507,256,1,4.2],[35,35,477,477,.86,2.4],[35,477,477,35,.86,2.4],[175,4,337,508,.62,1.5],[4,175,508,337,.62,1.5],[337,4,175,508,.62,1.5],[508,175,4,337,.62,1.5]];
-     for(const [x1,y1,x2,y2,alpha,width] of rays){
-       const g=ctx.createLinearGradient(x1,y1,x2,y2);
-       g.addColorStop(0,"rgba(255,255,255,0)");g.addColorStop(.42,"rgba(255,255,255,0)");
-       g.addColorStop(.495,"rgba(255,255,255,"+alpha+")");g.addColorStop(.505,"rgba(255,255,255,"+alpha+")");
-       g.addColorStop(.58,"rgba(255,255,255,0)");g.addColorStop(1,"rgba(255,255,255,0)");
-       ctx.strokeStyle=g;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
-     }
-     const cross=ctx.createRadialGradient(256,256,0,256,256,58);
-     cross.addColorStop(0,"rgba(255,255,255,1)");cross.addColorStop(.22,"rgba(255,255,255,.98)");
-     cross.addColorStop(.48,accent+"ff");cross.addColorStop(1,accent+"00");
-     ctx.fillStyle=cross;ctx.fillRect(198,198,116,116);
+  const canvas=document.createElement("canvas");canvas.width=canvas.height=512;
+  const ctx=canvas.getContext("2d");
+  if(ctx){
+   const glow=ctx.createRadialGradient(256,256,1,256,256,235);
+   glow.addColorStop(0,"rgba(255,255,255,1)");glow.addColorStop(.035,"rgba(255,255,255,1)");
+   glow.addColorStop(.075,accent+"ff");glow.addColorStop(.16,accent+"bb");glow.addColorStop(.32,accent+"55");
+   glow.addColorStop(.58,accent+"18");glow.addColorStop(1,"rgba(0,0,0,0)");
+   ctx.fillStyle=glow;ctx.fillRect(0,0,512,512);
+   const rays=[[256,28,256,484,.58,2.8],[28,256,484,256,.58,2.8],[64,64,448,448,.32,1.5],[64,448,448,64,.32,1.5]];
+   for(const [x1,y1,x2,y2,alpha,width] of rays){
+    const g=ctx.createLinearGradient(x1,y1,x2,y2);
+    g.addColorStop(0,"rgba(255,255,255,0)");g.addColorStop(.42,"rgba(255,255,255,0)");
+    g.addColorStop(.495,"rgba(255,255,255,"+alpha+")");g.addColorStop(.505,"rgba(255,255,255,"+alpha+")");
+    g.addColorStop(.58,"rgba(255,255,255,0)");g.addColorStop(1,"rgba(255,255,255,0)");
+    ctx.strokeStyle=g;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
    }
-   const t=new THREE.CanvasTexture(canvas);t.colorSpace=THREE.SRGBColorSpace;return t;
+   const cross=ctx.createRadialGradient(256,256,0,256,256,58);
+   cross.addColorStop(0,"rgba(255,255,255,1)");cross.addColorStop(.22,"rgba(255,255,255,.98)");
+   cross.addColorStop(.48,accent+"ff");cross.addColorStop(1,accent+"00");
+   ctx.fillStyle=cross;ctx.fillRect(198,198,116,116);
+  }
+  const t=new THREE.CanvasTexture(canvas);t.colorSpace=THREE.SRGBColorSpace;return t;
  },[accent]);
  useEffect(()=>()=>flareTexture.dispose(),[flareTexture]);
  useFrame(({clock},delta)=>{
-   ref.current.rotation.y+=delta*.22;ref.current.rotation.z+=delta*.07;
-   const t=clock.elapsedTime;
-   if(flare.current){const p=1+Math.sin(t*2.4)*.09;flare.current.scale.set(5.6*p,5.6*p,1);flare.current.material.opacity=.9+Math.sin(t*2.4)*.07;}
-   if(streak.current){const p=1+Math.sin(t*1.7+.7)*.08;streak.current.scale.set(7.4*p,1.12/p,1);streak.current.material.opacity=.36+Math.sin(t*1.7+.7)*.07;}
+  ref.current.rotation.y+=delta*.12;ref.current.rotation.z+=delta*.035;
+  const t=clock.elapsedTime;
+  if(flare.current){const p=1+Math.sin(t*1.8)*.035;flare.current.scale.set(3.8*p,3.8*p,1);flare.current.material.opacity=.66+Math.sin(t*1.8)*.035;}
+  if(streak.current){const p=1+Math.sin(t*1.4+.7)*.025;streak.current.scale.set(4.8*p,.72/p,1);streak.current.material.opacity=.2+Math.sin(t*1.4+.7)*.025;}
  });
  return <group ref={ref} scale={scale}>
-   <sprite ref={streak} scale={[7.4,1.12,1]} renderOrder={5}><spriteMaterial map={flareTexture} color="#ffffff" transparent opacity={.36} blending={THREE.AdditiveBlending} depthWrite={false} depthTest={false} toneMapped={false}/></sprite>
-   <sprite ref={flare} scale={[5.6,5.6,1]} renderOrder={6}><spriteMaterial map={flareTexture} color="#ffffff" transparent opacity={.9} blending={THREE.AdditiveBlending} depthWrite={false} depthTest={false} toneMapped={false}/></sprite>
-   <mesh><sphereGeometry args={[.25,48,48]}/><meshBasicMaterial color="#ffffff" toneMapped={false}/></mesh>
-   <mesh scale={1.45}><sphereGeometry args={[.27,40,40]}/><meshBasicMaterial color={accent} transparent opacity={.72} blending={THREE.AdditiveBlending} depthWrite={false}/></mesh>
-   <mesh rotation={[Math.PI/2,.25,0]}><torusGeometry args={[.58,.014,8,128]}/><meshBasicMaterial color={accent} transparent opacity={.7} blending={THREE.AdditiveBlending} depthWrite={false}/></mesh>
-   <mesh rotation={[Math.PI/2,-.4,.8]}><torusGeometry args={[.72,.008,8,128]}/><meshBasicMaterial color={color} transparent opacity={.42} blending={THREE.AdditiveBlending} depthWrite={false}/></mesh>
+  <sprite ref={streak} scale={[4.8,.72,1]} renderOrder={5}><spriteMaterial map={flareTexture} color="#ffffff" transparent opacity={.2} blending={THREE.AdditiveBlending} depthWrite={false} depthTest={false} toneMapped={false}/></sprite>
+  <sprite ref={flare} scale={[3.8,3.8,1]} renderOrder={6}><spriteMaterial map={flareTexture} color="#ffffff" transparent opacity={.66} blending={THREE.AdditiveBlending} depthWrite={false} depthTest={false} toneMapped={false}/></sprite>
+  <mesh><sphereGeometry args={[.25,48,48]}/><meshBasicMaterial color="#ffffff" toneMapped={false}/></mesh>
+  <mesh scale={1.45}><sphereGeometry args={[.27,40,40]}/><meshBasicMaterial color={color} transparent opacity={.32} blending={THREE.AdditiveBlending} depthWrite={false}/></mesh>
  </group>;
 }
 function CaptainSun({item,index,onSelect,selected}:{item:any;index:number;onSelect:()=>void;selected:boolean}){
- const group=useRef<THREE.Group>(null!); const phase=index*(Math.PI*2/9); const palette=STAR_PALETTE[index]; const orbit=CAPTAIN_ORBITS[index];
+ const group=useRef<THREE.Group>(null!);const phase=index*(Math.PI*2/9);const palette=STAR_PALETTE[index];const orbit=CAPTAIN_ORBITS[index];
  useFrame(({clock},delta)=>{
-   const angle=phase+(clock.elapsedTime/(ORBIT_PERIOD_HOURS*3600))*Math.PI*2*orbit.speed;
-   group.current.position.set(Math.cos(angle)*orbit.radius,Math.sin(angle+orbit.tilt)*(.55+index*.035),Math.sin(angle)*orbit.radius);
-   group.current.rotation.y+=delta*.12;
+  const t=clock.elapsedTime;
+  const radius=orbit.radius+Math.sin(t*.11+phase)*.025;
+  const angle=orbit.arm*(Math.PI/2)+2.05*Math.log(radius/1.2)+orbit.offset+t*.0015+Math.sin(t*.09+phase)*.012;
+  const x=Math.cos(angle)*radius,z=Math.sin(angle)*radius;
+  group.current.position.set(x,orbit.height-x*.1-z*.28+Math.sin(t*.16+phase)*.035,z);
+  group.current.rotation.y+=delta*.08;
  });
  return <group ref={group} onClick={(e)=>{e.stopPropagation();onSelect()}}>
-   <pointLight color={palette.color} intensity={selected?7:3.2} distance={7.5} decay={2}/>
-   <StarGlow color={palette.color} accent={palette.accent} scale={selected?1.3:1.05}/>
-   <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[.82,.018,10,128]}/><meshBasicMaterial color={palette.accent} transparent opacity={selected?.72:.34} blending={THREE.AdditiveBlending}/></mesh>
-   <mesh rotation={[Math.PI/2,.2,.45]}><torusGeometry args={[.7,.035,10,96]}/><meshBasicMaterial color={palette.color} transparent opacity={.28} blending={THREE.AdditiveBlending}/></mesh>
-   <mesh rotation={[Math.PI/2,0,.8]}><torusGeometry args={[1.05,.008,8,128]}/><meshBasicMaterial color={palette.color} transparent opacity={selected?.26:.1} blending={THREE.AdditiveBlending}/></mesh>
-   {selected&&<mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[1.24,.014,10,128]}/><meshBasicMaterial color={palette.accent} transparent opacity={.72} blending={THREE.AdditiveBlending}/></mesh>}
+  <pointLight color={palette.color} intensity={selected?5.2:2.1} distance={selected?8:5.5} decay={2}/>
+  <StarGlow color={palette.color} accent={palette.accent} scale={selected?1.12:.9}/>
  </group>;
 }
 function BlackHole({onSelect}:{onSelect:()=>void}){
@@ -214,71 +211,99 @@ function CameraTravel({mode,onDone}:{mode:"universe"|"system";onDone:()=>void}){
 function GalaxyNebula(){
  const sprites=useRef<THREE.Sprite[]>([]);
  const textures=useMemo(()=>{
-   const make=(core:string,mid:string,outer:string)=>{
-     const canvas=document.createElement("canvas");canvas.width=canvas.height=512;
-     const ctx=canvas.getContext("2d");
-     if(ctx){
-       const g=ctx.createRadialGradient(256,256,3,256,256,250);
-       g.addColorStop(0,core);g.addColorStop(.12,mid);g.addColorStop(.42,outer);
-       g.addColorStop(.68,"rgba(90,85,255,0.24)");g.addColorStop(1,"rgba(0,0,0,0)");
-       ctx.fillStyle=g;ctx.fillRect(0,0,512,512);
-       // Soft, uneven wisps break up the perfect game-like circular glow.
-       for(let i=0;i<26;i++){
-         ctx.save();ctx.translate(256,256);ctx.rotate(i*.349);
-         const w=100+(i%5)*22;
-         const haze=ctx.createLinearGradient(-w,0,w,0);
-         haze.addColorStop(0,"rgba(0,0,0,0)");haze.addColorStop(.5,outer);haze.addColorStop(1,"rgba(0,0,0,0)");
-         ctx.globalAlpha=.19+(i%4)*.045;ctx.fillStyle=haze;ctx.beginPath();ctx.ellipse(0,0,w,18+(i%4)*9,0,0,Math.PI*2);ctx.fill();ctx.restore();
-       }
-     }
-     const t=new THREE.CanvasTexture(canvas);t.colorSpace=THREE.SRGBColorSpace;return t;
-   };
-   return [
-    make("rgba(255,235,255,0.9)","rgba(255,94,205,0.62)","rgba(188,45,255,0.38)"),
-    make("rgba(221,248,255,0.86)","rgba(63,190,255,0.58)","rgba(68,86,255,0.38)"),
-    make("rgba(255,208,225,0.78)","rgba(255,86,153,0.5)","rgba(143,69,255,0.34)"),
-    make("rgba(214,255,255,0.72)","rgba(69,226,255,0.4)","rgba(57,120,255,0.28)")
-   ];
+  const make=(core:string,mid:string,outer:string,seed:number)=>{
+   const canvas=document.createElement("canvas");canvas.width=canvas.height=512;
+   const ctx=canvas.getContext("2d");
+   if(ctx){
+    const g=ctx.createRadialGradient(256,256,2,256,256,250);
+    g.addColorStop(0,core);g.addColorStop(.09,mid);g.addColorStop(.28,outer);
+    g.addColorStop(.52,"rgba(85,75,255,0.18)");g.addColorStop(1,"rgba(0,0,0,0)");
+    ctx.fillStyle=g;ctx.fillRect(0,0,512,512);
+    for(let i=0;i<42;i++){
+     const angle=i*2.399+seed*.71,length=42+((i*37+seed*13)%115),width=5+((i*11+seed*7)%19);
+     const x=256+Math.cos(angle)*length*.34,y=256+Math.sin(angle)*length*.34;
+     ctx.save();ctx.translate(x,y);ctx.rotate(angle+.28*Math.sin(i*1.7+seed));
+     const filament=ctx.createLinearGradient(-length,0,length,0);
+     filament.addColorStop(0,"rgba(0,0,0,0)");filament.addColorStop(.38,outer);filament.addColorStop(.58,mid);filament.addColorStop(1,"rgba(0,0,0,0)");
+     ctx.globalAlpha=.11+((i*17+seed)%7)*.018;ctx.fillStyle=filament;
+     ctx.beginPath();ctx.ellipse(0,0,length,width,0,0,Math.PI*2);ctx.fill();ctx.restore();
+    }
+    for(let i=0;i<8;i++){
+     const angle=i*2.17+seed,rx=90+(i*19)%90,ry=8+(i*7)%17;
+     ctx.save();ctx.translate(256,256);ctx.rotate(angle);ctx.globalAlpha=.16;ctx.fillStyle="rgba(3,4,22,0.7)";
+     ctx.beginPath();ctx.ellipse(rx*.15,0,rx,ry,0,0,Math.PI*2);ctx.fill();ctx.restore();
+    }
+   }
+   const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;return texture;
+  };
+  return [
+   make("rgba(255,230,255,0.72)","rgba(255,87,201,0.47)","rgba(174,49,255,0.28)",1),
+   make("rgba(219,246,255,0.68)","rgba(65,177,255,0.42)","rgba(67,80,244,0.29)",2),
+   make("rgba(255,201,229,0.62)","rgba(255,78,153,0.38)","rgba(137,64,237,0.25)",3),
+   make("rgba(212,255,255,0.62)","rgba(62,216,255,0.36)","rgba(48,113,255,0.23)",4)
+  ];
  },[]);
  const clouds=useMemo(()=>Array.from({length:38},(_,i)=>{
-   const arm=i%5,r=2.8+(i%7)*1.9,angle=arm*Math.PI*2/5+r*.49+(i%4-1.5)*.31;
-   return {
-    position:[Math.cos(angle)*r,(i%5-2)*.18,Math.sin(angle)*r] as [number,number,number],
-    scale:[6.0+(i%4)*2.15,3.8+(i%5)*1.05,1] as [number,number,number],
-    texture:i%4,rotation:angle*.35+(i%3)*.2,phase:i*.8
-   };
+  const arm=i%4,step=Math.floor(i/4),r=3.2+(step%10)*1.25+(i%3)*.16;
+  const angle=arm*(Math.PI/2)+2.05*Math.log(r/1.2)+Math.sin(i*12.9898)*(.055+.18/r);
+  return {
+   position:[Math.cos(angle)*r,Math.sin(i*2.1)*(.18+r*.012),Math.sin(angle)*r] as [number,number,number],
+   scale:[3.2+(i%4)*.9,1.25+(i%3)*.48,1] as [number,number,number],
+   texture:i%4,rotation:(angle+Math.PI/2)*.22+(i%3)*.16,phase:i*.73
+  };
  }),[]);
  useEffect(()=>()=>textures.forEach(t=>t.dispose()),[textures]);
  useFrame(({clock})=>{
-   sprites.current.forEach((sprite,i)=>{
-     if(!sprite)return;
-     const cloud=clouds[i],t=clock.elapsedTime;
-     sprite.material.rotation=cloud.rotation+Math.sin(t*.07+cloud.phase)*.09;
-     sprite.material.opacity=.72+Math.sin(t*.22+cloud.phase)*.12;
-   });
+  const t=clock.elapsedTime;
+  sprites.current.forEach((sprite,i)=>{
+   if(!sprite)return;
+   const cloud=clouds[i];
+   sprite.material.rotation=cloud.rotation+Math.sin(t*.045+cloud.phase)*.025;
+   sprite.material.opacity=.38+Math.sin(t*.12+cloud.phase)*.035;
+  });
  });
  return <group>
   {clouds.map((cloud,i)=><sprite key={i} ref={el=>{if(el)sprites.current[i]=el;}} position={cloud.position} rotation={[-Math.PI/2,0,cloud.rotation]} scale={cloud.scale} renderOrder={2}>
-   <spriteMaterial map={textures[cloud.texture]} transparent opacity={.72} blending={THREE.AdditiveBlending} depthWrite={false} depthTest={false} toneMapped={false}/>
+   <spriteMaterial map={textures[cloud.texture]} transparent opacity={.38} blending={THREE.AdditiveBlending} depthWrite={false} depthTest={false} toneMapped={false}/>
   </sprite>)}
  </group>;
 }
 function SpiralGalaxy(){
  const ref=useRef<THREE.Points>(null!);const cloud=useRef<THREE.Points>(null!);
  const geometry=useMemo(()=>{
-  const n=24000,p=new Float32Array(n*3),colours=new Float32Array(n*3);
-  const palette=["#3e9dff","#78d8ff","#ff75bd","#b26dff","#ffb0d2","#f9d5ff","#ffd78a"].map(v=>new THREE.Color(v));
-  for(let i=0;i<n;i++){const arm=i%5,r=.55+Math.pow(Math.random(),.72)*15.5,ang=arm*Math.PI*2/5+r*.49+(Math.random()-.5)*(.18+r*.035),spread=(Math.random()-.5)*(.16+r*.026);p[i*3]=Math.cos(ang+spread)*r;p[i*3+1]=(Math.random()-.5)*(.08+r*.012);p[i*3+2]=Math.sin(ang+spread)*r;const q=palette[Math.floor(Math.random()*palette.length)].clone().multiplyScalar(.38+Math.random()*.9);colours[i*3]=q.r;colours[i*3+1]=q.g;colours[i*3+2]=q.b}
-  const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(p,3));g.setAttribute("color",new THREE.BufferAttribute(colours,3));return g
+  const n=28000,p=new Float32Array(n*3),colours=new Float32Array(n*3);
+  const palette=["#347fe8","#64c9ff","#ff75c9","#a96bff","#d9b9ff","#f6d8ff","#ffd5a0"].map(v=>new THREE.Color(v));
+  for(let i=0;i<n;i++){
+   const arm=i%4,r=.42+Math.pow(Math.random(),.76)*15.2,theta=arm*(Math.PI/2)+2.05*Math.log(r/1.2);
+   const angularJitter=(Math.random()-.5)*(.12+.42/r),radialJitter=(Math.random()-.5)*(.12+Math.min(.48,r*.025));
+   const a=theta+angularJitter,rr=Math.max(.35,r+radialJitter);
+   p[i*3]=Math.cos(a)*rr;p[i*3+1]=(Math.random()-.5)*(.035+rr*.014);p[i*3+2]=Math.sin(a)*rr;
+   const c=palette[Math.floor(Math.random()*palette.length)],edgeFade=Math.max(.14,1-Math.pow(r/17,1.65)*.76),coreBoost=.62+.38*Math.exp(-r*.22),brightness=(.24+Math.random()*.55)*edgeFade*coreBoost;
+   colours[i*3]=c.r*brightness;colours[i*3+1]=c.g*brightness;colours[i*3+2]=c.b*brightness;
+  }
+  const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(p,3));g.setAttribute("color",new THREE.BufferAttribute(colours,3));return g;
  },[]);
  const cloudGeometry=useMemo(()=>{
-  const n=22000,p=new Float32Array(n*3),colours=new Float32Array(n*3);const palette=["#ff79c6","#b46dff","#58bfff","#72f0ff","#ffd0ec","#ffb56d"].map(v=>new THREE.Color(v));
-  for(let i=0;i<n;i++){const arm=i%5,r=2.1+Math.random()*12.8,ang=arm*Math.PI*2/5+r*.49+(Math.random()-.5)*(.32+r*.035);p[i*3]=Math.cos(ang)*r;p[i*3+1]=(Math.random()-.5)*(.2+r*.035);p[i*3+2]=Math.sin(ang)*r;const q=palette[Math.floor(Math.random()*palette.length)];const f=.28+Math.random()*.78;colours[i*3]=q.r*f;colours[i*3+1]=q.g*f;colours[i*3+2]=q.b*f}
-  const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(p,3));g.setAttribute("color",new THREE.BufferAttribute(colours,3));return g
+  const n=20000,p=new Float32Array(n*3),colours=new Float32Array(n*3);
+  const palette=["#e96ac7","#9461e9","#4ca9f0","#55d9e8","#d7a9f0","#e5a6cf"].map(v=>new THREE.Color(v));
+  for(let i=0;i<n;i++){
+   const arm=i%4,r=1.65+Math.pow(Math.random(),.9)*13.8,theta=arm*(Math.PI/2)+2.05*Math.log(r/1.2),a=theta+(Math.random()-.5)*(.2+.5/r);
+   p[i*3]=Math.cos(a)*r;p[i*3+1]=(Math.random()-.5)*(.11+r*.023);p[i*3+2]=Math.sin(a)*r;
+   const c=palette[Math.floor(Math.random()*palette.length)],fade=Math.max(.1,1-Math.pow(r/16,1.5)*.82),f=(.2+Math.random()*.42)*fade;
+   colours[i*3]=c.r*f;colours[i*3+1]=c.g*f;colours[i*3+2]=c.b*f;
+  }
+  const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(p,3));g.setAttribute("color",new THREE.BufferAttribute(colours,3));return g;
  },[]);
  useEffect(()=>()=>{geometry.dispose();cloudGeometry.dispose()},[geometry,cloudGeometry]);
- useFrame((_,d)=>{if(ref.current)ref.current.rotation.y+=d*.004;if(cloud.current)cloud.current.rotation.y-=d*.002});
- return <group rotation={[.22,0,-.12]}><points ref={cloud} geometry={cloudGeometry}><pointsMaterial size={.31} vertexColors transparent opacity={.78} sizeAttenuation depthWrite={false} blending={THREE.AdditiveBlending} toneMapped={false}/></points><points ref={ref} geometry={geometry}><pointsMaterial size={.105} vertexColors transparent opacity={1} sizeAttenuation depthWrite={false} blending={THREE.AdditiveBlending} toneMapped={false}/></points><mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[7.6,.11,8,180]}/><meshBasicMaterial color="#a25dff" transparent opacity={.1} blending={THREE.AdditiveBlending}/></mesh><mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[10.2,.07,8,180]}/><meshBasicMaterial color="#55aaff" transparent opacity={.09} blending={THREE.AdditiveBlending}/></mesh></group>;
+ return <group>
+  <points ref={cloud} geometry={cloudGeometry}><pointsMaterial size={.24} vertexColors transparent opacity={.68} sizeAttenuation depthWrite={false} blending={THREE.AdditiveBlending} toneMapped={false}/></points>
+  <points ref={ref} geometry={geometry}><pointsMaterial size={.082} vertexColors transparent opacity={.94} sizeAttenuation depthWrite={false} blending={THREE.AdditiveBlending} toneMapped={false}/></points>
+ </group>;
+}
+function GalaxySystem(){
+ const ref=useRef<THREE.Group>(null!);
+ useFrame((_,delta)=>{if(ref.current)ref.current.rotation.y+=delta*.0015});
+ return <group ref={ref} rotation={[.28,0,-.1]}><GalaxyNebula/><SpiralGalaxy/></group>;
 }
 function Universe3D({selected,setSelected}:{selected:string|null;setSelected:(id:string|null)=>void}){
  const [system,setSystem]=useState<string|null>(null);
@@ -291,9 +316,9 @@ function Universe3D({selected,setSelected}:{selected:string|null;setSelected:(id
  return <div className="universe-canvas-wrap">
   <Canvas camera={{position:[0,10,22],fov:48,near:.1,far:1000}} dpr={[1,1.7]} gl={{antialias:true}} shadows>
    <color attach="background" args={["#010208"]}/><fog attach="fog" args={["#010208",28,90]}/><ambientLight intensity={.07}/><directionalLight position={[6,10,4]} intensity={.18}/>
-   <Stars radius={100} depth={65} count={12000} factor={1.8} saturation={.7} fade speed={.22}/><GalaxyNebula/><SpiralGalaxy/>
+   <Stars radius={100} depth={65} count={12000} factor={1.8} saturation={.7} fade speed={.22}/><GalaxySystem/>
    <CameraTravel mode={system?"system":"universe"} onDone={travelDone}/>
-   {!system?<><BlackHole onSelect={exit}/>{CAPTAIN_STARS.map((x,i)=><React.Fragment key={x.id}><mesh rotation={[CAPTAIN_ORBITS[i].tilt,0,i*.35]}><torusGeometry args={[CAPTAIN_ORBITS[i].radius,.006,6,160]}/><meshBasicMaterial color={STAR_PALETTE[i].accent} transparent opacity={.08} blending={THREE.AdditiveBlending}/></mesh><CaptainSun item={x} index={i} selected={selected===x.id} onSelect={()=>enter(x.id)}/></React.Fragment>)}</>:<SolarSystem captain={captain!} onPlanet={setPlanet}/>} 
+   {!system?<><BlackHole onSelect={exit}/>{CAPTAIN_STARS.map((x,i)=><CaptainSun key={x.id} item={x} index={i} selected={selected===x.id} onSelect={()=>enter(x.id)}/>)}</>:<SolarSystem captain={captain!} onPlanet={setPlanet}/>} 
    <OrbitControls enabled={!traveling} enablePan enableZoom minDistance={system?3:8} maxDistance={system?18:45} dampingFactor={.055} enableDamping/>
   </Canvas>
   {system&&<button className="universe-back" onClick={exit}>← RETURN TO GALAXY</button>}
