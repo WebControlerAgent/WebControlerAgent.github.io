@@ -181,7 +181,7 @@ def main() -> int:
     if not api_key:
         print('{"ok":false,"error":"OPENAI_API_KEY secret is not configured"}')
         return 2
-    model = os.environ.get("OPENAI_MODEL", "gpt-4.1-mini")
+    model = os.environ.get("OPENAI_MODEL") or "gpt-4.1-mini"
     try:
         task = json.loads(Path(args.task_json).read_text(encoding="utf-8"))
         if not isinstance(task, dict):
