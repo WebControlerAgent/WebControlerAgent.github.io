@@ -3,7 +3,6 @@ import { pass } from 'three/tsl';
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GalaxySimulation } from './galaxy.js';
-import { GalaxyUI } from './ui.js';
 
 // Configuration
 const config = {
@@ -181,10 +180,10 @@ const cloudTexture = createProceduralCloudTexture();
 
 // Create galaxy simulation with preloaded texture
 const galaxySimulation = new GalaxySimulation(scene, config, cloudTexture);
-galaxySimulation.createGalaxySystem();
+// Star-particle system intentionally disabled.
 
 // Create starry background
-createStarryBackground(scene);
+// Background star particles intentionally disabled.
 
 // Setup bloom
 function setupBloom() {
@@ -201,35 +200,7 @@ function setupBloom() {
   postProcessing.outputNode = scenePassColor.add(bloomPassNode);
 }
 
-// Create UI with callbacks
-const ui = new GalaxyUI(config, {
-  onUniformChange: (key, value) => galaxySimulation.updateUniforms({ [key]: value }),
-
-  onBloomChange: (property, value) => {
-    if (bloomPassNode) bloomPassNode[property].value = value;
-  },
-
-  onStarCountChange: (newCount) => {
-    galaxySimulation.updateStarCount(newCount);
-    document.getElementById('star-count').textContent = newCount.toLocaleString();
-  },
-
-  onCloudCountChange: (_newCount) => {
-    // Dust rendering is disabled; keep the cloud count at zero.
-    galaxySimulation.updateUniforms({ cloudCount: 0 });
-    const cloudCountLabel = document.getElementById('cloud-count');
-    if (cloudCountLabel) cloudCountLabel.textContent = 'Disabled';
-  },
-
-  onCloudTintChange: (color) => {
-    galaxySimulation.updateUniforms({ cloudTintColor: color });
-  },
-
-  onRegenerate: () => {
-    galaxySimulation.updateUniforms(config);
-    galaxySimulation.regenerate();
-  }
-});
+// Particle controls removed because star and dust particles are disabled.
 
 // FPS counter
 let frameCount = 0;
@@ -247,7 +218,6 @@ function updateFPS() {
     lastTime = currentTime;
 
     document.getElementById('fps').textContent = fps;
-    ui.updateFPS(fps);
   }
 }
 
@@ -264,8 +234,7 @@ async function animate() {
   // Update controls
   controls.update();
 
-  // Update galaxy
-  await galaxySimulation.update(renderer, deltaTime, mouse3D, mousePressed);
+  // Star and dust particle simulations are disabled; render the clean scene only.
 
   // Render
   if (postProcessing) {
@@ -288,11 +257,11 @@ window.addEventListener('resize', () => {
 renderer.init().then(() => {
   postProcessing = new THREE.PostProcessing(renderer);
   setupBloom();
-  ui.setBloomNode(bloomPassNode);
   const status = document.getElementById('status');
-  if (status) status.textContent = 'GPU simulation active · drag the galaxy to interact';
+  if (status) status.textContent = 'Star and dust particles disabled';
 
-  document.getElementById('star-count').textContent = config.starCount.toLocaleString();
+  const starCount = document.getElementById('star-count');
+  if (starCount) starCount.textContent = 'Disabled';
   animate();
 }).catch(err => {
   console.error('Failed to initialize renderer:', err);
