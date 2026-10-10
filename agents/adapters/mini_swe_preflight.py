@@ -1,8 +1,8 @@
 """Preflight and independent patch gate for mini-SWE-agent.
 
-This script does not execute model-generated shell commands. It validates the
-agent CLI and can inspect a proposed unified diff as a patch artifact. Actual
-agent execution stays disabled until a sandboxed model proxy is configured.
+This script never executes model-generated shell commands. It checks the CLI
+and reviews a patch artifact. Actual agent execution stays disabled until a
+sandboxed model proxy is configured.
 """
 from __future__ import annotations
 
@@ -34,28 +34,52 @@ def run_cli_check() -> dict:
         return {"available": False, "error": type(exc).__name__}
 
 
+def _patch_paths(content: str) -> list[str]:
+    """Return both old and new paths so deletions/renames cannot bypass policy."""
+    paths = []
+    for line in content.splitlines():
+        if line.startswith("--- ") or line.startswith("+++ "):
+            value = line[4:].split("\t", 1)[0].strip()
+            if value == "/dev/null":
+                continue
+            if value.startswith(("a/", "b/")):
+                value = value[2:]
+            paths.append(value)
+    return list(dict.fromkeys(paths))
+
+
+def _path_block_reason(name: str) -> str | None:
+    if not name or name.startswith("/") or "\\" in name or ".." in Path(name).parts:
+        return "Path traversal, absolute path, or invalid separator"
+    if name in BLOCKED_NAMES or Path(name).name in BLOCKED_NAMES:
+        return "Protected credential/environment filename"
+    if any(part in name for part in BLOCKED_PARTS):
+        return "Protected workflow or dependency lockfile"
+    if not name.startswith(ALLOWED_PREFIXES):
+        return "Path outside allowed prefixes"
+    return None
+
+
 def inspect_patch(path: str) -> dict:
     patch_path = Path(path)
-    if not patch_path.exists():
-        return {"review_state": "NO_PATCH", "reason": "Patch artifact not supplied."}
+    if not patch_path.exists() or not patch_path.is_file():
+        return {"review_state": "NO_PATCH", "reason": "Patch artifact not supplied or not a regular file."}
     raw = patch_path.read_bytes()
     if len(raw) > MAX_PATCH_BYTES:
         return {"review_state": "BLOCKED", "reason": "Patch exceeds size limit."}
     content = raw.decode("utf-8", errors="replace")
-    changed = []
-    for line in content.splitlines():
-        if line.startswith("+++ b/"):
-            changed.append(line[6:])
+    changed = _patch_paths(content)
     blocked = []
     for name in changed:
-        if name.startswith("/") or ".." in Path(name).parts:
-            blocked.append({"path": name, "reason": "Path traversal or absolute path"})
-        elif name in BLOCKED_NAMES or any(part in name for part in BLOCKED_PARTS):
-            blocked.append({"path": name, "reason": "Protected path"})
-        elif not name.startswith(ALLOWED_PREFIXES):
-            blocked.append({"path": name, "reason": "Path outside allowed prefixes"})
+        reason = _path_block_reason(name)
+        if reason:
+            blocked.append({"path": name, "reason": reason})
+    has_diff = content.startswith("diff --git ") or ("--- " in content and "+++ " in content)
+    state = "BLOCKED" if blocked else (
+        "PATCH_PRESENT_REQUIRES_HUMAN_REVIEW" if changed and has_diff else "INVALID_PATCH"
+    )
     return {
-        "review_state": "BLOCKED" if blocked else ("PATCH_PRESENT_REQUIRES_HUMAN_REVIEW" if changed else "INVALID_PATCH"),
+        "review_state": state,
         "changed_files": changed,
         "blocked_paths": blocked,
         "patch_bytes": len(raw),
@@ -79,7 +103,8 @@ def main() -> int:
         "evidence": [
             "CLI help availability check only; no model prompt was sent.",
             "No model-generated shell commands were executed.",
-            "No repository write token or deploy permission was provided."
+            "No repository write token or deploy permission was provided.",
+            "Patch policy checks both old and new paths, including rename/deletion headers."
         ],
         "artifacts": [str(OUT)],
         "changed_files": [],
