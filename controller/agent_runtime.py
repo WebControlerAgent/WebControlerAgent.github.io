@@ -22,6 +22,7 @@ AGENTS = {
     "qa": {"name": "QA Agent", "role": "Final Verification"},
     "bug-hunter": {"name": "Bug Hunter", "role": "Find & Diagnose"},
     "bug-solver": {"name": "Bug Solver", "role": "Repair & Fix"},
+    "idea-builder": {"name": "Idea Builder", "role": "Innovation Captain"},
 }
 
 PIPELINE = [
