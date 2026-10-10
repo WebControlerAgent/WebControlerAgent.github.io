@@ -425,23 +425,28 @@ function GalaxyFocusCamera({focus,controlsRef,onDone}:{focus:{position:[number,n
  });
  return null;
 }
-\nfunction Universe3D({selected,setSelected}:{selected:string|null;setSelected:(id:string|null)=>void}){
+
+function Universe3D({selected,setSelected}:{selected:string|null;setSelected:(id:string|null)=>void}){
  const [system,setSystem]=useState<string|null>(null);
  const [planet,setPlanet]=useState<string|null>(null);
  const [traveling,setTraveling]=useState(false);
  const captain=CAPTAIN_STARS.find(x=>x.id===system);
  const enter=(id:string)=>{setPlanet(null);setTraveling(true);setSystem(id);setSelected(id)};
- const exit=()=>{setPlanet(null);setFocusedGalaxy(null);setTraveling(true);setSystem(null);setSelected("manager")};\n const focusGalaxy=(id:number,position:[number,number,number],size:number,name:string)=>{setSystem(null);setFocusedGalaxy({id,name,position,size});setTraveling(true);};\n const returnToUniverse=()=>{setFocusedGalaxy(null);setTraveling(true);};
+ const exit=()=>{setPlanet(null);setFocusedGalaxy(null);setTraveling(true);setSystem(null);setSelected("manager")};
+ const focusGalaxy=(id:number,position:[number,number,number],size:number,name:string)=>{setSystem(null);setFocusedGalaxy({id,name,position,size});setTraveling(true);};
+ const returnToUniverse=()=>{setFocusedGalaxy(null);setTraveling(true);};
  const travelDone=useMemo(()=>()=>setTraveling(false),[]);
  return <div className="universe-canvas-wrap">
   <Canvas camera={{position:[0,10,22],fov:48,near:.1,far:1000}} dpr={[1,1.7]} gl={{antialias:true}} shadows>
    <color attach="background" args={["#010208"]}/><fog attach="fog" args={["#010208",105,230]}/><ambientLight intensity={.24}/><directionalLight position={[6,10,4]} intensity={.42}/>
-   <GalaxySystem/><SatelliteGalaxies onSelect={focusGalaxy}/>\n   <GalaxyFocusCamera focus={focusedGalaxy} controlsRef={controlsRef} onDone={()=>setTraveling(false)}/>
+   <GalaxySystem/><SatelliteGalaxies onSelect={focusGalaxy}/>
+   <GalaxyFocusCamera focus={focusedGalaxy} controlsRef={controlsRef} onDone={()=>setTraveling(false)}/>
    <CameraTravel mode={system?"system":"universe"} onDone={travelDone}/>
    {!system?<><BlackHole onSelect={exit}/>{CAPTAIN_STARS.map((x,i)=><CaptainSun key={x.id} item={x} index={i} selected={selected===x.id} onSelect={()=>enter(x.id)}/>)}</>:<SolarSystem captain={captain!} onPlanet={setPlanet}/>} 
    <OrbitControls ref={controlsRef} enabled={!traveling} enablePan enableZoom minDistance={system?3:focusedGalaxy?2.5:8} maxDistance={system?18:focusedGalaxy?35:180} dampingFactor={.055} enableDamping/>
   </Canvas>
-  {system&&<button className="universe-back" onClick={exit}>← RETURN TO GALAXY</button>}\n  {focusedGalaxy&&!system&&<button className="universe-back" onClick={returnToUniverse}>← RETURN TO UNIVERSE</button>}\n  {focusedGalaxy&&!system&&<div className="system-hud"><b>{focusedGalaxy.name.toUpperCase()}</b><span>GALAXY EXPLORER • SCROLL TO ZOOM • DRAG TO ORBIT</span></div>}
+  {system&&<button className="universe-back" onClick={exit}>← RETURN TO GALAXY</button>}
+  {focusedGalaxy&&!system&&<button className="universe-back" onClick={returnToUniverse}>← RETURN TO UNIVERSE</button>}\n  {focusedGalaxy&&!system&&<div className="system-hud"><b>{focusedGalaxy.name.toUpperCase()}</b><span>GALAXY EXPLORER • SCROLL TO ZOOM • DRAG TO ORBIT</span></div>}
   {!system&&<a className="gpu-galaxy-link" href="/webgpu-galaxy/" title="Open the experimental GPU-powered galaxy">✦ WEBGPU GALAXY MODE</a>}
   {system&&<div className="system-hud"><b>{captain?.name.toUpperCase()} SOLAR SYSTEM</b><span>CAPTAIN STAR • {((TEAM_TEMPLATES[captain?.id??"manager"]??TEAM_TEMPLATES.manager).length)} TEAM PLANETS</span>{planet&&<small>SELECTED PLANET: {prettyTeamName(planet)}</small>}</div>}
  </div>;
