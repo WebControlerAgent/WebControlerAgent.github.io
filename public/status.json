@@ -360,5 +360,22 @@
         "at": "2026-10-08T12:30:00Z"
       }
     ]
+  },
+  "worker_runtime": {
+    "status": "DETERMINISTIC_QUEUE_PACKET_ADAPTER_ADDED",
+    "adapter": "controller/worker_queue.py",
+    "tests": "tests/worker_contract/test_worker_queue.py",
+    "queue_state": "PENDING_WORKER_RUNTIME",
+    "jobs_per_task": [
+      "primary_worker",
+      "independent_checker"
+    ],
+    "model_invoked": false,
+    "command_execution": false,
+    "repository_write_access": false,
+    "automatic_merge": false,
+    "automatic_deploy": false,
+    "captain_approval_required": true,
+    "note": "Packets are prepared for a future isolated runtime; this does not mean AI workers are running."
   }
 }
