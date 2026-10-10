@@ -214,9 +214,12 @@ const ui = new GalaxyUI(config, {
     document.getElementById('star-count').textContent = newCount.toLocaleString();
   },
 
-  onCloudCountChange: (newCount) => {
-    galaxySimulation.updateUniforms({ cloudCount: newCount });
-    },
+  onCloudCountChange: (_newCount) => {
+    // Dust rendering is disabled; keep the cloud count at zero.
+    galaxySimulation.updateUniforms({ cloudCount: 0 });
+    const cloudCountLabel = document.getElementById('cloud-count');
+    if (cloudCountLabel) cloudCountLabel.textContent = 'Disabled';
+  },
 
   onCloudTintChange: (color) => {
     galaxySimulation.updateUniforms({ cloudTintColor: color });
