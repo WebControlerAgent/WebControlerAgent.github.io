@@ -17,7 +17,7 @@ const config = {
   armCount: 4,
   armWidth: 2.25,
   randomness: 1.35,
-  particleSize: 0.008, // Tiny stars: become clear mainly when zooming in
+  particleSize: 0.00001, // Extremely tiny stars; visible only at extreme zoom
   starBrightness: 0.48,
   denseStarColor: '#3998ff',
   sparseStarColor: '#ffb36b',
@@ -25,7 +25,7 @@ const config = {
   bloomRadius: 0.12,
   bloomThreshold: 0.28,
   cloudCount: 18000, // GPU-safe real count; millions need a different hierarchical renderer
-  cloudSize: 0.34, // Tiny cloud particles, intended to resolve on close zoom
+  cloudSize: 0.00001, // Extremely tiny cloud particles; visible only at extreme zoom
   cloudOpacity: 0.10,
   cloudTintColor: '#9bbdff'
 };
