@@ -1,0 +1,189 @@
+{
+  "version": 1,
+  "purpose": "Research-backed external open-source projects that may be integrated as workers behind the existing AIWCU captain/team/task runtime.",
+  "status_semantics": "RESEARCHED_NOT_INSTALLED means reviewed as a candidate only; it is not imported, executed, or connected to AIWCU.",
+  "runtime_constraints": {
+    "hosting": "GitHub Pages serves the static UI; agent workers must run in GitHub Actions or a separate trusted runtime.",
+    "secrets": "Provider and service API keys must be stored as GitHub Actions secrets, never committed to source files or exposed to the browser.",
+    "execution": "GitHub Actions jobs are event-driven and ephemeral; they do not provide always-on workers.",
+    "safety": "Use scoped permissions, approval gates for writes/deployments, timeouts, logs, and QA evidence before completion."
+  },
+  "candidates": [
+    {
+      "id": "mini-swe-agent",
+      "repository": "SWE-agent/mini-swe-agent",
+      "url": "https://github.com/SWE-agent/mini-swe-agent",
+      "license": "MIT",
+      "status": "RESEARCHED_NOT_INSTALLED",
+      "best_for": [
+        "bug-solver",
+        "bug-hunter",
+        "publisher",
+        "qa"
+      ],
+      "capabilities": [
+        "issue-driven code changes",
+        "terminal-based debugging",
+        "small coding-agent runtime"
+      ],
+      "integration_shape": "Run as a sandboxed GitHub Actions job for a single assigned task; return patch, logs, tests and structured result.",
+      "requirements": [
+        "compatible LLM provider/API key",
+        "isolated working tree or sandbox",
+        "explicit write permissions only when needed"
+      ],
+      "limitations": [
+        "not a persistent worker",
+        "must validate generated changes with existing build/tests"
+      ]
+    },
+    {
+      "id": "browser-use",
+      "repository": "browser-use/browser-use",
+      "url": "https://github.com/browser-use/browser-use",
+      "license": "MIT",
+      "status": "RESEARCHED_NOT_INSTALLED",
+      "best_for": [
+        "researcher",
+        "seo-agent",
+        "qa",
+        "image-agent"
+      ],
+      "capabilities": [
+        "browser-driven research",
+        "real webpage interaction",
+        "browser-based checks"
+      ],
+      "integration_shape": "Run a bounded Python browser task in a GitHub Actions job; save evidence and a JSON result as artifacts.",
+      "requirements": [
+        "Python 3.11+ per current README",
+        "LLM provider credentials or supported local model",
+        "browser dependencies"
+      ],
+      "limitations": [
+        "model inference may cost money",
+        "dynamic sites and anti-bot controls can make results unreliable",
+        "not a substitute for deterministic tests"
+      ]
+    },
+    {
+      "id": "seo-agent",
+      "repository": "dannwaneri/seo-agent",
+      "url": "https://github.com/dannwaneri/seo-agent",
+      "license": "MIT",
+      "status": "RESEARCHED_NOT_INSTALLED",
+      "best_for": [
+        "seo-agent",
+        "researcher",
+        "qa"
+      ],
+      "capabilities": [
+        "technical SEO audits",
+        "broken-link checks",
+        "internal-link and topic-cluster analysis",
+        "Search Console export analysis"
+      ],
+      "integration_shape": "Use as a separately pinned audit job and upload structured reports; initially read-only.",
+      "requirements": [
+        "Python 3.11+ per README",
+        "Anthropic API key",
+        "SearchApi key for SERP and AI-visibility modules",
+        "Playwright Chromium"
+      ],
+      "limitations": [
+        "some features depend on paid APIs",
+        "not all modules are needed for the first integration"
+      ]
+    },
+    {
+      "id": "playwright",
+      "repository": "microsoft/playwright",
+      "url": "https://github.com/microsoft/playwright",
+      "license": "Apache-2.0",
+      "status": "RESEARCHED_NOT_INSTALLED",
+      "best_for": [
+        "qa",
+        "publisher",
+        "bug-hunter"
+      ],
+      "capabilities": [
+        "deterministic browser tests",
+        "navigation and interaction checks",
+        "screenshots and test traces"
+      ],
+      "integration_shape": "Add a deterministic CI test suite for boot success, key UI panels, navigation, and console/network errors.",
+      "requirements": [
+        "Node.js dependencies",
+        "browser binaries installed in CI"
+      ],
+      "limitations": [
+        "testing framework, not an autonomous reasoning agent; intentionally recommended as a reliable QA layer"
+      ]
+    },
+    {
+      "id": "crewai",
+      "repository": "crewAIInc/crewAI",
+      "url": "https://github.com/crewAIInc/crewAI",
+      "license": "MIT",
+      "status": "RESEARCHED_NOT_INSTALLED",
+      "best_for": [
+        "manager",
+        "all captains"
+      ],
+      "capabilities": [
+        "role-based agent collaboration",
+        "delegation",
+        "event-driven flows"
+      ],
+      "integration_shape": "Optional orchestration replacement/prototype behind existing task contract; do not run it alongside another orchestration framework initially.",
+      "requirements": [
+        "Python 3.10-3.13 per current README",
+        "LLM provider credentials"
+      ],
+      "limitations": [
+        "adds dependencies and a second orchestration layer; assess only after worker adapters exist"
+      ]
+    },
+    {
+      "id": "langgraph",
+      "repository": "langchain-ai/langgraph",
+      "url": "https://github.com/langchain-ai/langgraph",
+      "license": "MIT",
+      "status": "RESEARCHED_NOT_INSTALLED",
+      "best_for": [
+        "manager",
+        "qa",
+        "bug-hunter",
+        "bug-solver"
+      ],
+      "capabilities": [
+        "stateful workflows",
+        "checkpointing patterns",
+        "explicit branching and retry flow"
+      ],
+      "integration_shape": "Alternative to CrewAI if durable graph-based orchestration is needed; preserve current JSON task/result contract.",
+      "requirements": [
+        "Python runtime",
+        "LLM provider integration for reasoning steps"
+      ],
+      "limitations": [
+        "framework rather than a ready-made worker; avoid installing both CrewAI and LangGraph before a clear need"
+      ]
+    }
+  ],
+  "recommended_order": [
+    "Add deterministic Playwright smoke tests first; no LLM is needed for basic tests.",
+    "Prototype mini-swe-agent for one isolated bug-fix task and require build/test evidence.",
+    "Add browser-use for bounded research/browser QA tasks.",
+    "Add the SEO agent in read-only mode only after required API keys and usage budgets are configured.",
+    "Choose either CrewAI or LangGraph only if the existing Manager runtime cannot provide the needed orchestration."
+  ],
+  "sources": [
+    "https://github.com/SWE-agent/mini-swe-agent",
+    "https://github.com/browser-use/browser-use",
+    "https://github.com/dannwaneri/seo-agent",
+    "https://github.com/microsoft/playwright",
+    "https://github.com/crewAIInc/crewAI",
+    "https://github.com/langchain-ai/langgraph"
+  ]
+}
