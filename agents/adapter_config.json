@@ -29,16 +29,18 @@
     },
     {
       "id": "mini-swe-agent",
-      "state": "STAGED_NOT_CONNECTED",
+      "state": "PREFLIGHT_WORKFLOW_COMMITTED_EXECUTION_DISABLED_PENDING_SANDBOXED_MODEL_PROXY",
       "kind": "coding_agent",
       "upstream": "https://github.com/SWE-agent/mini-swe-agent",
       "requires": [
-        "pinned package/version",
-        "model API secret",
-        "disposable sandbox",
-        "bounded task contract"
+        "sandboxed model proxy that keeps provider credentials outside agent shell",
+        "disposable worktree and explicit path allowlist",
+        "independent checker and human approval"
       ],
-      "writes": "patch artifacts only; no direct deploy"
+      "writes": "patch artifacts only; no direct merge or deploy",
+      "workflow": ".github/workflows/mini-swe-preflight.yml",
+      "adapter": "agents/adapters/mini_swe_preflight.py",
+      "pinned_version": "2.4.6"
     },
     {
       "id": "browser-use",
