@@ -100,7 +100,7 @@
       "repository": "microsoft/playwright",
       "url": "https://github.com/microsoft/playwright",
       "license": "Apache-2.0",
-      "status": "RESEARCHED_NOT_INSTALLED",
+      "status": "CI_TEST_SUITE_ADDED_PENDING_FIRST_RUN",
       "best_for": [
         "qa",
         "publisher",
@@ -185,5 +185,6 @@
     "https://github.com/microsoft/playwright",
     "https://github.com/crewAIInc/crewAI",
     "https://github.com/langchain-ai/langgraph"
-  ]
+  ],
+  "status": "PARTIAL_INTEGRATION_PLAYWRIGHT_CI_ADDED"
 }
