@@ -333,7 +333,7 @@ function SpiralGalaxy(){
 function GalaxySystem(){
  const ref=useRef<THREE.Group>(null!);
  useFrame((_,delta)=>{if(ref.current)ref.current.rotation.y+=delta*.0015});
- return <group ref={ref} rotation={[.28,0,-.1]}><GalaxyNebula/><SpiralGalaxy/></group>;
+ return <group ref={ref} rotation={[.28,0,-.1]}><GalaxyNebula/></group>;
 }
 function Universe3D({selected,setSelected}:{selected:string|null;setSelected:(id:string|null)=>void}){
  const [system,setSystem]=useState<string|null>(null);
@@ -346,7 +346,7 @@ function Universe3D({selected,setSelected}:{selected:string|null;setSelected:(id
  return <div className="universe-canvas-wrap">
   <Canvas camera={{position:[0,10,22],fov:48,near:.1,far:1000}} dpr={[1,1.7]} gl={{antialias:true}} shadows>
    <color attach="background" args={["#010208"]}/><fog attach="fog" args={["#010208",28,90]}/><ambientLight intensity={.07}/><directionalLight position={[6,10,4]} intensity={.18}/>
-   <Stars radius={100} depth={65} count={12000} factor={1.8} saturation={.7} fade speed={.22}/><GalaxySystem/>
+   <GalaxySystem/>
    <CameraTravel mode={system?"system":"universe"} onDone={travelDone}/>
    {!system?<><BlackHole onSelect={exit}/>{CAPTAIN_STARS.map((x,i)=><CaptainSun key={x.id} item={x} index={i} selected={selected===x.id} onSelect={()=>enter(x.id)}/>)}</>:<SolarSystem captain={captain!} onPlanet={setPlanet}/>} 
    <OrbitControls enabled={!traveling} enablePan enableZoom minDistance={system?3:8} maxDistance={system?18:45} dampingFactor={.055} enableDamping/>
