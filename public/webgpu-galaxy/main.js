@@ -17,15 +17,14 @@ const config = {
   armCount: 4,
   armWidth: 2.25,
   randomness: 1.35,
-  particleSize: 0.00001, // Extremely tiny stars; visible only at extreme zoom
+  particleSize: 0.1, // Per-star size is randomized from 0.005 to 0.1
   starBrightness: 0.48,
   denseStarColor: '#3998ff',
   sparseStarColor: '#ffb36b',
   bloomStrength: 0.24,
   bloomRadius: 0.12,
   bloomThreshold: 0.28,
-  cloudCount: 18000, // GPU-safe real count; millions need a different hierarchical renderer
-  cloudSize: 0.00001, // Extremely tiny cloud particles; visible only at extreme zoom
+  cloudCount: 0, // Dust/cloud particles disabled
   cloudOpacity: 0.10,
   cloudTintColor: '#9bbdff'
 };
@@ -218,12 +217,10 @@ const ui = new GalaxyUI(config, {
 
   onCloudCountChange: (newCount) => {
     galaxySimulation.updateUniforms({ cloudCount: newCount });
-    galaxySimulation.createClouds();
-  },
+    },
 
   onCloudTintChange: (color) => {
     galaxySimulation.updateUniforms({ cloudTintColor: color });
-    galaxySimulation.createClouds();
   },
 
   onRegenerate: () => {
