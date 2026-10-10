@@ -24,3 +24,8 @@ GitHub Pages hosts the static console; it cannot keep agents running in the back
 ## Candidate catalog
 
 See [external_integrations.json](./external_integrations.json) for repository links, suggested captain mappings, requirements, limitations and current status.
+
+
+## Detailed copy/integration mapping
+
+See [OPEN_SOURCE_AGENT_COPY_MAP.md](./OPEN_SOURCE_AGENT_COPY_MAP.md) for Captain/role pair mappings, safe copy/install rules, and staged implementation. The machine-readable version is [open_source_agent_mapping.json](./open_source_agent_mapping.json).
