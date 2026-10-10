@@ -37,8 +37,8 @@ def main():
             raise SystemExit(f"Missing team contract for captain {captain['id']}: {team}")
         declared = teams[team]
         defined = contracts[team]
-        if len(declared) != 5 or len(defined) != 5:
-            raise SystemExit(f"Team {team} must have exactly five child-agent roles")
+        if len(declared) != 10 or len(defined) != 10:
+            raise SystemExit(f"Team {team} must have exactly ten child-agent roles (five worker/checker pairs)")
         declared_ids = set(declared)
         defined_ids = {item[0] for item in defined}
         if declared_ids != defined_ids:
@@ -58,8 +58,8 @@ def main():
                 "adapter": "contract-defined",
             })
     child_ids = [a["id"] for a in child_agents]
-    if len(child_agents) != 45 or len(set(child_ids)) != 45:
-        raise SystemExit(f"Expected 45 unique child-agent roles; found {len(child_agents)}")
+    if len(child_agents) != 90 or len(set(child_ids)) != 90:
+        raise SystemExit(f"Expected 90 unique child-agent roles; found {len(child_agents)}")
 
     inventory = {
         "version": 1,
@@ -68,6 +68,8 @@ def main():
         "captain_count": len(captains),
         "child_agent_count": len(child_agents),
         "total_roles": len(captains) + len(child_agents),
+        "minimum_small_agents_per_task": 2,
+        "task_pairing_policy": "primary_worker_plus_independent_checker",
         "captains": [{
             "id": a["id"],
             "name": a["name"],
@@ -114,6 +116,8 @@ def main():
         "captains_ready": len(captains),
         "child_agents_ready": len(child_agents),
         "total_roles_ready": len(captains) + len(child_agents),
+        "minimum_small_agents_per_task": 2,
+        "task_pairing_policy": "primary_worker_plus_independent_checker",
     }
     write("controller/agent_state.json", state)
 
@@ -131,6 +135,7 @@ def main():
     status["agent_runtime"] = state
     write("public/status.json", status)
     print(f"Agent registry ready: {len(captains)} captains + {len(child_agents)} child roles = {len(captains)+len(child_agents)} roles")
+    print("Task policy: every dispatched task requires a primary worker plus an independent checker.")
     print("Execution status: registered/WAITING; no role is falsely marked as actively running.")
 
 if __name__ == "__main__":
