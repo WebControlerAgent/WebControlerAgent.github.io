@@ -213,44 +213,72 @@ function CameraTravel({mode,onDone}:{mode:"universe"|"system";onDone:()=>void}){
 function GalaxyNebula(){
  const sprites=useRef<THREE.Sprite[]>([]);
  const textures=useMemo(()=>{
-  const make=(core:string,mid:string,outer:string,seed:number)=>{
-   const canvas=document.createElement("canvas");canvas.width=canvas.height=512;
+  const smooth=(t:number)=>t*t*(3-2*t);
+  const make=(coreHex:string,midHex:string,outerHex:string,seed:number)=>{
+   const size=384;
+   const canvas=document.createElement("canvas");canvas.width=canvas.height=size;
    const ctx=canvas.getContext("2d");
+   const core=new THREE.Color(coreHex),mid=new THREE.Color(midHex),outer=new THREE.Color(outerHex);
+   const hash=(x:number,y:number,s:number)=>{const v=Math.sin(x*127.1+y*311.7+s*74.7)*43758.5453;return v-Math.floor(v)};
+   const grids=[5,10,20,40].map((n,layer)=>({n,data:Array.from({length:n*n},(_,i)=>hash(i%n,Math.floor(i/n),seed+layer*19))}));
+   const sample=(grid:{n:number;data:number[]},u:number,v:number)=>{
+    const x=u*(grid.n-1),y=v*(grid.n-1),x0=Math.floor(x),y0=Math.floor(y),x1=Math.min(grid.n-1,x0+1),y1=Math.min(grid.n-1,y0+1);
+    const tx=smooth(x-x0),ty=smooth(y-y0),at=(xx:number,yy:number)=>grid.data[yy*grid.n+xx];
+    const a=at(x0,y0)*(1-tx)+at(x1,y0)*tx,b=at(x0,y1)*(1-tx)+at(x1,y1)*tx;
+    return a*(1-ty)+b*ty;
+   };
    if(ctx){
-    const g=ctx.createRadialGradient(256,256,2,256,256,250);
-    g.addColorStop(0,core);g.addColorStop(.09,mid);g.addColorStop(.28,outer);
-    g.addColorStop(.52,"rgba(85,75,255,0.18)");g.addColorStop(1,"rgba(0,0,0,0)");
-    ctx.fillStyle=g;ctx.fillRect(0,0,512,512);
-    for(let i=0;i<42;i++){
-     const angle=i*2.399+seed*.71,length=42+((i*37+seed*13)%115),width=5+((i*11+seed*7)%19);
-     const x=256+Math.cos(angle)*length*.34,y=256+Math.sin(angle)*length*.34;
-     ctx.save();ctx.translate(x,y);ctx.rotate(angle+.28*Math.sin(i*1.7+seed));
-     const filament=ctx.createLinearGradient(-length,0,length,0);
-     filament.addColorStop(0,"rgba(0,0,0,0)");filament.addColorStop(.38,outer);filament.addColorStop(.58,mid);filament.addColorStop(1,"rgba(0,0,0,0)");
-     ctx.globalAlpha=.11+((i*17+seed)%7)*.018;ctx.fillStyle=filament;
-     ctx.beginPath();ctx.ellipse(0,0,length,width,0,0,Math.PI*2);ctx.fill();ctx.restore();
+    const image=ctx.createImageData(size,size);
+    for(let y=0;y<size;y++)for(let x=0;x<size;x++){
+     const u=x/(size-1),v=y/(size-1),dx=(u-.5)*2,dy=(v-.5)*2;
+     const radius=Math.sqrt(dx*dx*.76+dy*dy*1.35);
+     const warpU=u+Math.sin(v*9+seed)*.035+Math.sin(v*23+seed*2)*.012;
+     const warpV=v+Math.sin(u*8-seed)*.025;
+     const n0=sample(grids[0],warpU,warpV),n1=sample(grids[1],warpU,warpV),n2=sample(grids[2],warpU,warpV),n3=sample(grids[3],warpU,warpV);
+     const fbm=n0*.43+n1*.28+n2*.19+n3*.10;
+     const angle=Math.atan2(dy,dx);
+     const filament=.5+.5*Math.sin(angle*4.2+radius*17+fbm*5+seed);
+     const envelope=Math.max(0,1-radius*.96);
+     const threshold=Math.max(0,(fbm-.29)/.71);
+     const density=Math.pow(threshold,1.32)*envelope*(.58+.42*filament);
+     const center=Math.max(0,Math.min(1,(.72-radius)*1.65))*Math.max(0,Math.min(1,(fbm-.38)*2.2));
+     const t=Math.max(0,Math.min(1,(fbm-.30)*2.1));
+     const r0=outer.r*(1-t)+mid.r*t,g0=outer.g*(1-t)+mid.g*t,b0=outer.b*(1-t)+mid.b*t;
+     const idx=(y*size+x)*4;
+     image.data[idx]=Math.round((r0*(1-center)+core.r*center)*255);
+     image.data[idx+1]=Math.round((g0*(1-center)+core.g*center)*255);
+     image.data[idx+2]=Math.round((b0*(1-center)+core.b*center)*255);
+     image.data[idx+3]=Math.round(Math.min(.72,Math.pow(density,1.12)*.82)*255);
     }
-    for(let i=0;i<8;i++){
-     const angle=i*2.17+seed,rx=90+(i*19)%90,ry=8+(i*7)%17;
-     ctx.save();ctx.translate(256,256);ctx.rotate(angle);ctx.globalAlpha=.16;ctx.fillStyle="rgba(3,4,22,0.7)";
-     ctx.beginPath();ctx.ellipse(rx*.15,0,rx,ry,0,0,Math.PI*2);ctx.fill();ctx.restore();
+    ctx.putImageData(image,0,0);
+    // Fine, irregular filaments break up the cloud silhouette so it reads as gas, not a smooth orb.
+    for(let i=0;i<34;i++){
+     const angle=i*2.399+seed*.8,reach=55+((i*47+seed*17)%145),start=18+((i*23+seed*7)%72);
+     const x=size/2+Math.cos(angle)*start,y=size/2+Math.sin(angle)*start;
+     const ex=size/2+Math.cos(angle+.18*Math.sin(i+seed))*reach,ey=size/2+Math.sin(angle+.18*Math.sin(i+seed))*reach;
+     const bend=Math.sin(i*1.71+seed)*24;
+     const grad=ctx.createLinearGradient(x,y,ex,ey);
+     grad.addColorStop(0,"rgba(255,255,255,0)");grad.addColorStop(.38,midHex+"88");grad.addColorStop(.76,outerHex+"55");grad.addColorStop(1,"rgba(0,0,0,0)");
+     ctx.beginPath();ctx.moveTo(x,y);ctx.quadraticCurveTo((x+ex)/2-Math.sin(angle)*bend,(y+ey)/2+Math.cos(angle)*bend,ex,ey);
+     ctx.strokeStyle=grad;ctx.globalAlpha=.12+((i*13+seed)%5)*.025;ctx.lineWidth=1+(i%4)*1.25;ctx.stroke();
     }
+    ctx.globalAlpha=1;
    }
-   const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;return texture;
+   const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;texture.needsUpdate=true;return texture;
   };
   return [
-   make("rgba(255,230,255,0.72)","rgba(255,87,201,0.47)","rgba(174,49,255,0.28)",1),
-   make("rgba(219,246,255,0.68)","rgba(65,177,255,0.42)","rgba(67,80,244,0.29)",2),
-   make("rgba(255,201,229,0.62)","rgba(255,78,153,0.38)","rgba(137,64,237,0.25)",3),
-   make("rgba(212,255,255,0.62)","rgba(62,216,255,0.36)","rgba(48,113,255,0.23)",4)
+   make("#fff0b4","#ff9d43","#c63e2d",1),
+   make("#d8f7ff","#46c8ff","#3946d9",2),
+   make("#ffe0f1","#ff4fa8","#8239e9",3),
+   make("#d7fff8","#46e2d2","#3159d8",4)
   ];
  },[]);
- const clouds=useMemo(()=>Array.from({length:38},(_,i)=>{
-  const arm=i%4,step=Math.floor(i/4),r=3.2+(step%10)*1.25+(i%3)*.16;
+ const clouds=useMemo(()=>Array.from({length:46},(_,i)=>{
+  const arm=i%4,step=Math.floor(i/4),r=3.0+(step%12)*1.04+(i%3)*.19;
   const angle=arm*(Math.PI/2)+2.05*Math.log(r/1.2)+Math.sin(i*12.9898)*(.055+.18/r);
   return {
    position:[Math.cos(angle)*r,Math.sin(i*2.1)*(.18+r*.012),Math.sin(angle)*r] as [number,number,number],
-   scale:[3.2+(i%4)*.9,1.25+(i%3)*.48,1] as [number,number,number],
+   scale:[3.0+(i%4)*.88,1.15+(i%3)*.44,1] as [number,number,number],
    texture:i%4,rotation:(angle+Math.PI/2)*.22+(i%3)*.16,phase:i*.73
   };
  }),[]);
@@ -261,12 +289,12 @@ function GalaxyNebula(){
    if(!sprite)return;
    const cloud=clouds[i];
    sprite.material.rotation=cloud.rotation+Math.sin(t*.045+cloud.phase)*.025;
-   sprite.material.opacity=.38+Math.sin(t*.12+cloud.phase)*.035;
+   sprite.material.opacity=.56+Math.sin(t*.12+cloud.phase)*.045;
   });
  });
  return <group>
   {clouds.map((cloud,i)=><sprite key={i} ref={el=>{if(el)sprites.current[i]=el;}} position={cloud.position} rotation={[-Math.PI/2,0,cloud.rotation]} scale={cloud.scale} renderOrder={2}>
-   <spriteMaterial map={textures[cloud.texture]} transparent opacity={.38} blending={THREE.AdditiveBlending} depthWrite={false} depthTest={true} toneMapped={false}/>
+   <spriteMaterial map={textures[cloud.texture]} transparent opacity={.56} blending={THREE.AdditiveBlending} depthWrite={false} depthTest={true} toneMapped={false}/>
   </sprite>)}
  </group>;
 }
