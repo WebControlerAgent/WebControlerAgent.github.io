@@ -352,6 +352,7 @@ function Universe3D({selected,setSelected}:{selected:string|null;setSelected:(id
    <OrbitControls enabled={!traveling} enablePan enableZoom minDistance={system?3:8} maxDistance={system?18:45} dampingFactor={.055} enableDamping/>
   </Canvas>
   {system&&<button className="universe-back" onClick={exit}>← RETURN TO GALAXY</button>}
+  {!system&&<a className="gpu-galaxy-link" href="/webgpu-galaxy/" title="Open the experimental GPU-powered galaxy">✦ WEBGPU GALAXY MODE</a>}
   {system&&<div className="system-hud"><b>{captain?.name.toUpperCase()} SOLAR SYSTEM</b><span>CAPTAIN STAR • {((TEAM_TEMPLATES[captain?.id??"manager"]??TEAM_TEMPLATES.manager).length)} TEAM PLANETS</span>{planet&&<small>SELECTED PLANET: {prettyTeamName(planet)}</small>}</div>}
  </div>;
 }
