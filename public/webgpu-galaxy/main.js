@@ -224,7 +224,6 @@ const ui = new GalaxyUI(config, {
 
   onRegenerate: () => {
     galaxySimulation.updateUniforms(config);
-    galaxySimulation.createClouds();
     galaxySimulation.regenerate();
   }
 });
