@@ -77,70 +77,48 @@ function StarGlow({color,accent,scale=1}:{color:string;accent:string;scale?:numb
  const flare=useRef<THREE.Sprite>(null!);
  const streak=useRef<THREE.Sprite>(null!);
  const flareTexture=useMemo(()=>{
-   const canvas=document.createElement("canvas");
-   canvas.width=canvas.height=256;
+   const canvas=document.createElement("canvas");canvas.width=canvas.height=512;
    const ctx=canvas.getContext("2d");
    if(ctx){
-     const glow=ctx.createRadialGradient(128,128,2,128,128,116);
-     glow.addColorStop(0,"rgba(255,255,255,0.98)");
-     glow.addColorStop(.10,accent+"ee");
-     glow.addColorStop(.30,accent+"70");
-     glow.addColorStop(.62,accent+"18");
+     const glow=ctx.createRadialGradient(256,256,1,256,256,235);
+     glow.addColorStop(0,"rgba(255,255,255,1)");
+     glow.addColorStop(.035,"rgba(255,255,255,1)");
+     glow.addColorStop(.075,accent+"ff");
+     glow.addColorStop(.16,accent+"bb");
+     glow.addColorStop(.32,accent+"55");
+     glow.addColorStop(.58,accent+"18");
      glow.addColorStop(1,"rgba(0,0,0,0)");
-     ctx.fillStyle=glow;
-     ctx.fillRect(0,0,256,256);
-     // Sharp diffraction spikes make the captain read as a star, not a glowing ball.
-     const rays=[
-       [128,3,128,253,1,2.2],[3,128,253,128,.98,2.2],
-       [18,18,238,238,.82,1.6],[18,238,238,18,.82,1.6],
-       [75,5,181,251,.58,1],[5,75,251,181,.58,1],
-       [181,5,75,251,.58,1],[251,75,5,181,.58,1]
-     ];
+     ctx.fillStyle=glow;ctx.fillRect(0,0,512,512);
+     // Long, tapered diffraction spikes give each captain a crisp celestial silhouette.
+     const rays=[[256,5,256,507,1,4.2],[5,256,507,256,1,4.2],[35,35,477,477,.86,2.4],[35,477,477,35,.86,2.4],[175,4,337,508,.62,1.5],[4,175,508,337,.62,1.5],[337,4,175,508,.62,1.5],[508,175,4,337,.62,1.5]];
      for(const [x1,y1,x2,y2,alpha,width] of rays){
-       const ray=ctx.createLinearGradient(x1,y1,x2,y2);
-       ray.addColorStop(0,"rgba(255,255,255,0)");ray.addColorStop(.38,"rgba(255,255,255,0)");
-       ray.addColorStop(.49,"rgba(255,255,255,"+alpha+")");ray.addColorStop(.51,"rgba(255,255,255,"+alpha+")");
-       ray.addColorStop(.62,"rgba(255,255,255,0)");ray.addColorStop(1,"rgba(255,255,255,0)");
-       ctx.strokeStyle=ray;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+       const g=ctx.createLinearGradient(x1,y1,x2,y2);
+       g.addColorStop(0,"rgba(255,255,255,0)");g.addColorStop(.42,"rgba(255,255,255,0)");
+       g.addColorStop(.495,"rgba(255,255,255,"+alpha+")");g.addColorStop(.505,"rgba(255,255,255,"+alpha+")");
+       g.addColorStop(.58,"rgba(255,255,255,0)");g.addColorStop(1,"rgba(255,255,255,0)");
+       ctx.strokeStyle=g;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
      }
-     const core=ctx.createRadialGradient(128,128,0,128,128,27);
-     core.addColorStop(0,"rgba(255,255,255,1)");
-     core.addColorStop(.28,accent+"ff");
-     core.addColorStop(1,accent+"00");
-     ctx.fillStyle=core;ctx.fillRect(101,101,54,54);
+     const cross=ctx.createRadialGradient(256,256,0,256,256,58);
+     cross.addColorStop(0,"rgba(255,255,255,1)");cross.addColorStop(.22,"rgba(255,255,255,.98)");
+     cross.addColorStop(.48,accent+"ff");cross.addColorStop(1,accent+"00");
+     ctx.fillStyle=cross;ctx.fillRect(198,198,116,116);
    }
-   const texture=new THREE.CanvasTexture(canvas);
-   texture.colorSpace=THREE.SRGBColorSpace;
-   return texture;
+   const t=new THREE.CanvasTexture(canvas);t.colorSpace=THREE.SRGBColorSpace;return t;
  },[accent]);
  useEffect(()=>()=>flareTexture.dispose(),[flareTexture]);
  useFrame(({clock},delta)=>{
-   ref.current.rotation.y+=delta*.22;
-   ref.current.rotation.z+=delta*.07;
-   if(flare.current){
-     const pulse=1+Math.sin(clock.elapsedTime*2.8)*.055;
-     flare.current.scale.set(3.35*pulse,3.35*pulse,1);
-     flare.current.material.opacity=.78+Math.sin(clock.elapsedTime*2.8)*.07;
-   }
-   if(streak.current){
-     const shimmer=1+Math.sin(clock.elapsedTime*1.9+.7)*.06;
-     streak.current.scale.set(4.8*shimmer,1.05/shimmer,1);
-     streak.current.material.opacity=.22+Math.sin(clock.elapsedTime*1.9+.7)*.045;
-   }
+   ref.current.rotation.y+=delta*.22;ref.current.rotation.z+=delta*.07;
+   const t=clock.elapsedTime;
+   if(flare.current){const p=1+Math.sin(t*2.4)*.09;flare.current.scale.set(5.6*p,5.6*p,1);flare.current.material.opacity=.9+Math.sin(t*2.4)*.07;}
+   if(streak.current){const p=1+Math.sin(t*1.7+.7)*.08;streak.current.scale.set(7.4*p,1.12/p,1);streak.current.material.opacity=.36+Math.sin(t*1.7+.7)*.07;}
  });
  return <group ref={ref} scale={scale}>
-   {/* Camera-facing starburst plus a thin horizontal anamorphic streak. */}
-   <sprite ref={streak} scale={[4.8,1.05,1]} renderOrder={3}>
-     <spriteMaterial map={flareTexture} color="#ffffff" transparent opacity={.22} blending={THREE.AdditiveBlending} depthWrite={false} depthTest={false} toneMapped={false}/>
-   </sprite>
-   <sprite ref={flare} scale={[3.35,3.35,1]} renderOrder={4}>
-     <spriteMaterial map={flareTexture} color="#ffffff" transparent opacity={.78} blending={THREE.AdditiveBlending} depthWrite={false} depthTest={false} toneMapped={false}/>
-   </sprite>
-   <mesh><sphereGeometry args={[.43,64,64]}/><meshStandardMaterial color={color} emissive={color} emissiveIntensity={4.8} roughness={.16} metalness={.02}/></mesh>
-   <mesh scale={1.2}><sphereGeometry args={[.43,48,48]}/><meshBasicMaterial color={accent} transparent opacity={.14} blending={THREE.AdditiveBlending}/></mesh>
-   <mesh scale={1.62}><sphereGeometry args={[.58,40,40]}/><meshBasicMaterial color={accent} transparent opacity={.07} blending={THREE.AdditiveBlending}/></mesh>
-   <mesh scale={2.2}><sphereGeometry args={[.58,32,32]}/><meshBasicMaterial color={color} transparent opacity={.028} blending={THREE.AdditiveBlending}/></mesh>
-   <mesh rotation={[Math.PI/2,0,.35]}><torusGeometry args={[.88,.012,8,96]}/><meshBasicMaterial color={accent} transparent opacity={.28} blending={THREE.AdditiveBlending}/></mesh>
+   <sprite ref={streak} scale={[7.4,1.12,1]} renderOrder={5}><spriteMaterial map={flareTexture} color="#ffffff" transparent opacity={.36} blending={THREE.AdditiveBlending} depthWrite={false} depthTest={false} toneMapped={false}/></sprite>
+   <sprite ref={flare} scale={[5.6,5.6,1]} renderOrder={6}><spriteMaterial map={flareTexture} color="#ffffff" transparent opacity={.9} blending={THREE.AdditiveBlending} depthWrite={false} depthTest={false} toneMapped={false}/></sprite>
+   <mesh><sphereGeometry args={[.25,48,48]}/><meshBasicMaterial color="#ffffff" toneMapped={false}/></mesh>
+   <mesh scale={1.45}><sphereGeometry args={[.27,40,40]}/><meshBasicMaterial color={accent} transparent opacity={.72} blending={THREE.AdditiveBlending} depthWrite={false}/></mesh>
+   <mesh rotation={[Math.PI/2,.25,0]}><torusGeometry args={[.58,.014,8,128]}/><meshBasicMaterial color={accent} transparent opacity={.7} blending={THREE.AdditiveBlending} depthWrite={false}/></mesh>
+   <mesh rotation={[Math.PI/2,-.4,.8]}><torusGeometry args={[.72,.008,8,128]}/><meshBasicMaterial color={color} transparent opacity={.42} blending={THREE.AdditiveBlending} depthWrite={false}/></mesh>
  </group>;
 }
 function CaptainSun({item,index,onSelect,selected}:{item:any;index:number;onSelect:()=>void;selected:boolean}){
@@ -221,6 +199,24 @@ function CameraTravel({mode,onDone}:{mode:"universe"|"system";onDone:()=>void}){
  });
  return null;
 }
+function GalaxyNebula(){
+ const sprites=useRef<THREE.Sprite[]>([]);
+ const textures=useMemo(()=>{
+   const make=(inner:string,mid:string)=>{
+     const c=document.createElement("canvas");c.width=c.height=256;const x=c.getContext("2d");
+     if(x){const g=x.createRadialGradient(128,128,4,128,128,126);g.addColorStop(0,inner);g.addColorStop(.25,mid);g.addColorStop(.58,mid.replace(/,\\s*[\\d.]+\\)$/,",0.14)"));g.addColorStop(1,"rgba(0,0,0,0)");x.fillStyle=g;x.fillRect(0,0,256,256);}
+     const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t;
+   };
+   return [make("rgba(255,105,202,0.72)","rgba(201,75,255,0.4)"),make("rgba(70,190,255,0.72)","rgba(81,95,255,0.38)"),make("rgba(255,172,222,0.6)","rgba(255,93,151,0.32)")];
+ },[]);
+ const clouds=useMemo(()=>Array.from({length:12},(_,i)=>{
+   const arm=i%5,r=3.4+(i%4)*2.35,angle=arm*Math.PI*2/5+r*.49+(i%3-.8)*.22;
+   return {position:[Math.cos(angle)*r,(i%3-1)*.42,Math.sin(angle)*r] as [number,number,number],scale:[3.4+(i%3)*1.2,2.1+(i%4)*.55,1] as [number,number,number],texture:i%3,rotation:angle};
+ }),[]);
+ useEffect(()=>()=>textures.forEach(t=>t.dispose()),[textures]);
+ useFrame(({clock},delta)=>{sprites.current.forEach((sprite,i)=>{if(sprite){sprite.material.rotation=Math.sin(clock.elapsedTime*.13+i)*.12+clouds[i].rotation*.22; sprite.material.opacity=.24+Math.sin(clock.elapsedTime*.35+i*1.7)*.045;}});});
+ return <group>{clouds.map((cloud,i)=><sprite key={i} ref={el=>{if(el)sprites.current[i]=el;}} position={cloud.position} scale={cloud.scale} renderOrder={1}><spriteMaterial map={textures[cloud.texture]} transparent opacity={.24} blending={THREE.AdditiveBlending} depthWrite={false} toneMapped={false}/></sprite>)}</group>;
+}
 function SpiralGalaxy(){
  const ref=useRef<THREE.Points>(null!);const cloud=useRef<THREE.Points>(null!);
  const geometry=useMemo(()=>{
@@ -236,7 +232,7 @@ function SpiralGalaxy(){
  },[]);
  useEffect(()=>()=>{geometry.dispose();cloudGeometry.dispose()},[geometry,cloudGeometry]);
  useFrame((_,d)=>{if(ref.current)ref.current.rotation.y+=d*.004;if(cloud.current)cloud.current.rotation.y-=d*.002});
- return <group rotation={[.22,0,-.12]}><points ref={cloud} geometry={cloudGeometry}><pointsMaterial size={.15} vertexColors transparent opacity={.36} sizeAttenuation depthWrite={false} blending={THREE.AdditiveBlending}/></points><points ref={ref} geometry={geometry}><pointsMaterial size={.065} vertexColors transparent opacity={.9} sizeAttenuation depthWrite={false} blending={THREE.AdditiveBlending}/></points><mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[7.6,.11,8,180]}/><meshBasicMaterial color="#a25dff" transparent opacity={.1} blending={THREE.AdditiveBlending}/></mesh><mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[10.2,.07,8,180]}/><meshBasicMaterial color="#55aaff" transparent opacity={.09} blending={THREE.AdditiveBlending}/></mesh></group>;
+ return <group rotation={[.22,0,-.12]}><points ref={cloud} geometry={cloudGeometry}><pointsMaterial size={.22} vertexColors transparent opacity={.46} sizeAttenuation depthWrite={false} blending={THREE.AdditiveBlending}/></points><points ref={ref} geometry={geometry}><pointsMaterial size={.085} vertexColors transparent opacity={.96} sizeAttenuation depthWrite={false} blending={THREE.AdditiveBlending}/></points><mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[7.6,.11,8,180]}/><meshBasicMaterial color="#a25dff" transparent opacity={.1} blending={THREE.AdditiveBlending}/></mesh><mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[10.2,.07,8,180]}/><meshBasicMaterial color="#55aaff" transparent opacity={.09} blending={THREE.AdditiveBlending}/></mesh></group>;
 }
 function Universe3D({selected,setSelected}:{selected:string|null;setSelected:(id:string|null)=>void}){
  const [system,setSystem]=useState<string|null>(null);
@@ -249,7 +245,7 @@ function Universe3D({selected,setSelected}:{selected:string|null;setSelected:(id
  return <div className="universe-canvas-wrap">
   <Canvas camera={{position:[0,10,22],fov:48,near:.1,far:1000}} dpr={[1,1.7]} gl={{antialias:true}} shadows>
    <color attach="background" args={["#010208"]}/><fog attach="fog" args={["#010208",28,90]}/><ambientLight intensity={.07}/><directionalLight position={[6,10,4]} intensity={.18}/>
-   <Stars radius={100} depth={65} count={9000} factor={1.55} saturation={.55} fade speed={.16}/><SpiralGalaxy/>
+   <Stars radius={100} depth={65} count={12000} factor={1.8} saturation={.7} fade speed={.22}/><GalaxyNebula/><SpiralGalaxy/>
    <CameraTravel mode={system?"system":"universe"} onDone={travelDone}/>
    {!system?<><BlackHole onSelect={exit}/>{CAPTAIN_STARS.map((x,i)=><React.Fragment key={x.id}><mesh rotation={[CAPTAIN_ORBITS[i].tilt,0,i*.35]}><torusGeometry args={[CAPTAIN_ORBITS[i].radius,.006,6,160]}/><meshBasicMaterial color={STAR_PALETTE[i].accent} transparent opacity={.08} blending={THREE.AdditiveBlending}/></mesh><CaptainSun item={x} index={i} selected={selected===x.id} onSelect={()=>enter(x.id)}/></React.Fragment>)}</>:<SolarSystem captain={captain!} onPlanet={setPlanet}/>} 
    <OrbitControls enabled={!traveling} enablePan enableZoom minDistance={system?3:8} maxDistance={system?18:45} dampingFactor={.055} enableDamping/>
