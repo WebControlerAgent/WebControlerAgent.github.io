@@ -430,6 +430,8 @@ function Universe3D({selected,setSelected}:{selected:string|null;setSelected:(id
  const [system,setSystem]=useState<string|null>(null);
  const [planet,setPlanet]=useState<string|null>(null);
  const [traveling,setTraveling]=useState(false);
+ const [focusedGalaxy,setFocusedGalaxy]=useState<{id:number;name:string;position:[number,number,number];size:number}|null>(null);
+ const controlsRef=useRef<any>(null);
  const captain=CAPTAIN_STARS.find(x=>x.id===system);
  const enter=(id:string)=>{setPlanet(null);setTraveling(true);setSystem(id);setSelected(id)};
  const exit=()=>{setPlanet(null);setFocusedGalaxy(null);setTraveling(true);setSystem(null);setSelected("manager")};
@@ -446,7 +448,8 @@ function Universe3D({selected,setSelected}:{selected:string|null;setSelected:(id
    <OrbitControls ref={controlsRef} enabled={!traveling} enablePan enableZoom minDistance={system?3:focusedGalaxy?2.5:8} maxDistance={system?18:focusedGalaxy?35:180} dampingFactor={.055} enableDamping/>
   </Canvas>
   {system&&<button className="universe-back" onClick={exit}>← RETURN TO GALAXY</button>}
-  {focusedGalaxy&&!system&&<button className="universe-back" onClick={returnToUniverse}>← RETURN TO UNIVERSE</button>}\n  {focusedGalaxy&&!system&&<div className="system-hud"><b>{focusedGalaxy.name.toUpperCase()}</b><span>GALAXY EXPLORER • SCROLL TO ZOOM • DRAG TO ORBIT</span></div>}
+  {focusedGalaxy&&!system&&<button className="universe-back" onClick={returnToUniverse}>← RETURN TO UNIVERSE</button>}
+  {focusedGalaxy&&!system&&<div className="system-hud"><b>{focusedGalaxy.name.toUpperCase()}</b><span>GALAXY EXPLORER • SCROLL TO ZOOM • DRAG TO ORBIT</span></div>}
   {!system&&<a className="gpu-galaxy-link" href="/webgpu-galaxy/" title="Open the experimental GPU-powered galaxy">✦ WEBGPU GALAXY MODE</a>}
   {system&&<div className="system-hud"><b>{captain?.name.toUpperCase()} SOLAR SYSTEM</b><span>CAPTAIN STAR • {((TEAM_TEMPLATES[captain?.id??"manager"]??TEAM_TEMPLATES.manager).length)} TEAM PLANETS</span>{planet&&<small>SELECTED PLANET: {prettyTeamName(planet)}</small>}</div>}
  </div>;
