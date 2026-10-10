@@ -1,74 +1,128 @@
 {
-  "version": 1,
-  "description": "Cloneable team templates. Every current captain is the root of a future expandable team.",
+  "version": 2,
+  "description": "Nine Captain teams, each with 10 child roles: five execution/coordination roles and five complementary independent verification roles.",
   "templates": {
     "operations": [
       "planner",
       "scheduler",
       "policy-checker",
       "state-keeper",
-      "reporter"
+      "reporter",
+      "plan-auditor",
+      "dependency-auditor",
+      "authorization-auditor",
+      "state-auditor",
+      "evidence-auditor"
     ],
     "research": [
       "source-discovery",
       "fact-checker",
       "analyst",
       "trend-researcher",
-      "research-reviewer"
+      "research-reviewer",
+      "source-cross-checker",
+      "claim-verifier",
+      "recommendation-reviewer",
+      "trend-verifier",
+      "citation-auditor"
     ],
     "media": [
       "source-validator",
       "asset-preparer",
       "metadata-writer",
       "rights-checker",
-      "media-reviewer"
+      "media-reviewer",
+      "provenance-auditor",
+      "asset-quality-checker",
+      "metadata-auditor",
+      "license-verifier",
+      "accessibility-reviewer"
     ],
     "publishing": [
       "content-builder",
       "frontend-worker",
       "release-worker",
       "deployment-checker",
-      "rollback-worker"
+      "rollback-worker",
+      "content-reviewer",
+      "frontend-reviewer",
+      "release-auditor",
+      "deployment-smoke-tester",
+      "recovery-verifier"
     ],
     "seo": [
       "keyword-researcher",
       "metadata-worker",
       "internal-link-worker",
       "sitemap-worker",
-      "indexing-diagnostics"
+      "indexing-diagnostics",
+      "intent-validator",
+      "metadata-auditor",
+      "link-verifier",
+      "sitemap-cross-checker",
+      "crawl-evidence-reviewer"
     ],
     "quality": [
       "functional-tester",
       "ui-tester",
       "seo-tester",
       "performance-tester",
-      "release-gatekeeper"
+      "release-gatekeeper",
+      "journey-reviewer",
+      "visual-regression-checker",
+      "seo-independent-checker",
+      "benchmark-reviewer",
+      "release-evidence-auditor"
     ],
     "diagnostics": [
       "log-analyzer",
       "reproduction-agent",
       "root-cause-analyst",
       "regression-planner",
-      "diagnostic-reviewer"
+      "diagnostic-reviewer",
+      "log-cross-checker",
+      "reproduction-reviewer",
+      "hypothesis-challenger",
+      "regression-reviewer",
+      "diagnosis-auditor"
     ],
     "repair": [
       "patch-agent",
       "test-agent",
       "security-reviewer",
       "rollback-planner",
-      "repair-reviewer"
+      "repair-reviewer",
+      "patch-reviewer",
+      "test-independence-checker",
+      "threat-model-reviewer",
+      "rollback-verifier",
+      "acceptance-auditor"
     ],
     "innovation": [
       "idea-researcher",
       "opportunity-analyst",
       "prototype-planner",
       "experiment-agent",
-      "idea-reviewer"
+      "idea-reviewer",
+      "idea-fact-checker",
+      "scoring-reviewer",
+      "scope-reviewer",
+      "measurement-auditor",
+      "experiment-reviewer"
     ]
   },
   "expansion": {
     "rule": "Any template can be cloned into Team N under its captain without changing the global runtime contract.",
     "example": "seo-agent -> seo-team-01 -> seo-agent-01..N",
     "max_depth": null
+  },
+  "pairing_policy": {
+    "minimum_small_agents_per_task": 2,
+    "roles_per_pair": [
+      "primary_worker",
+      "independent_checker"
+    ],
+    "checker_must_produce_independent_evidence": true,
+    "captain_reviews_both_results": true
   }
 }
