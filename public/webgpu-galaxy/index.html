@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#030611" />
+  <title>AIWCU • WebGPU Galaxy Mode</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.181.1/build/three.module.js",
+      "three/webgpu": "https://cdn.jsdelivr.net/npm/three@0.181.1/build/three.webgpu.js",
+      "three/tsl": "https://cdn.jsdelivr.net/npm/three@0.181.1/build/three.tsl.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.181.1/examples/jsm/",
+      "tweakpane": "https://esm.sh/tweakpane@4.0.5"
+    }
+  }
+  </script>
+</head>
+<body>
+  <a class="back-link" href="/">← AIWCU UNIVERSE</a>
+  <div id="info">
+    <p class="eyebrow">AIWCU • EXPERIMENTAL RENDERER</p>
+    <h1>WebGPU Galaxy</h1>
+    <div class="stats">FPS <span id="fps">--</span><i></i> STARS <span id="star-count">300,000</span></div>
+    <p class="hint">Drag to orbit · Right-drag to pan · Scroll to zoom · Press and drag inside the galaxy to disturb the particles.</p>
+    <p id="status" role="status">Initializing GPU particle simulation…</p>
+  </div>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
