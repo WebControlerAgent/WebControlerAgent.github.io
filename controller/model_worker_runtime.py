@@ -11,6 +11,7 @@ import json
 import os
 import re
 import sys
+import time
 import urllib.error
 import urllib.request
 import urllib.parse
@@ -70,15 +71,25 @@ def api_json(api_key: str, model: str, prompt: str) -> dict[str, Any]:
         headers={"Content-Type": "application/json"},
         method="POST",
     )
-    try:
-        with urllib.request.urlopen(request, timeout=90) as response:
-            payload = json.loads(response.read().decode("utf-8"))
-    except urllib.error.HTTPError as exc:
-        # Do not include request headers or the API key in surfaced errors.
-        detail = exc.read(1200).decode("utf-8", errors="replace")
-        raise RuntimeErrorSafe(f"Gemini API returned HTTP {exc.code}: {detail}") from None
-    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
-        raise RuntimeErrorSafe(f"Gemini request failed: {type(exc).__name__}") from None
+    # Retry temporary provider overload/rate-limit responses. Never retry
+    # permanent errors such as an invalid model (404) or invalid key (401/403).
+    for attempt in range(3):
+        try:
+            with urllib.request.urlopen(request, timeout=90) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+            break
+        except urllib.error.HTTPError as exc:
+            # Do not include request headers or the API key in surfaced errors.
+            detail = exc.read(1200).decode("utf-8", errors="replace")
+            if exc.code in (429, 500, 502, 503, 504) and attempt < 2:
+                time.sleep(2 ** (attempt + 1))
+                continue
+            raise RuntimeErrorSafe(f"Gemini API returned HTTP {exc.code}: {detail}") from None
+        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
+            if attempt < 2:
+                time.sleep(2 ** (attempt + 1))
+                continue
+            raise RuntimeErrorSafe(f"Gemini request failed: {type(exc).__name__}") from None
 
     chunks = []
     for candidate in payload.get("candidates", []):
