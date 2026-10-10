@@ -156,7 +156,7 @@ def main() -> int:
     except DispatchError as exc:
         print(json.dumps({"ok": False, "dispatch": "BLOCKED", "error": str(exc)}, indent=2))
         return 2
-    output = json.dumps({"ok": True, "assignment": assignment}, indent=2, ensure_ascii=False) + "\\n"
+    output = json.dumps({"ok": True, "assignment": assignment}, indent=2, ensure_ascii=False) + chr(10)
     if args.output:
         output_path = Path(args.output)
         if not output_path.is_absolute():
