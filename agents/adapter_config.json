@@ -42,7 +42,7 @@
     },
     {
       "id": "browser-use",
-      "state": "STAGED_NOT_CONNECTED",
+      "state": "ADAPTER_COMMITTED_MANUAL_RUN_REQUIRES_OPENAI_API_KEY",
       "kind": "browser_agent",
       "upstream": "https://github.com/browser-use/browser-use",
       "requires": [
