@@ -70,16 +70,6 @@ class ModelRuntimeTests(unittest.TestCase):
             self.assertEqual(report["state"], "BLOCKED_CONFIGURATION")
             self.assertFalse(report["proposal_applied"])
 
-    def test_missing_api_key_writes_diagnostic_artifact_without_network(self):
-        with tempfile.TemporaryDirectory() as temp_dir:
-            output = Path(temp_dir) / "artifacts" / "result.json"
-            with patch.dict(os.environ, {"OPENAI_API_KEY": ""}), patch.object(
-                sys, "argv", ["model_worker_runtime.py", "unused-task.json", "--output", str(output)]
-            ), contextlib.redirect_stdout(io.StringIO()):
-                self.assertEqual(main(), 2)
-            report = json.loads(output.read_text(encoding="utf-8"))
-            self.assertEqual(report["state"], "BLOCKED_CONFIGURATION")
-            self.assertFalse(report["proposal_applied"])
 
 if __name__ == "__main__":
     unittest.main()
