@@ -27,6 +27,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Register all captain and child-agent roles
+        run: python3 controller/prepare_agents.py
+
       - name: Parse command
         env:
           DISPATCH_COMMAND: ${{ inputs.command }}
@@ -155,7 +158,7 @@ jobs:
         run: |
           git config user.name 'Web Controller Agent'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add controller/agent_state.json public/status.json
+          git add controller/agent_state.json public/status.json agents/agent_inventory.json
           git diff --cached --quiet || git commit -m 'chore: persist autonomous agent pipeline state'
           git push
 
