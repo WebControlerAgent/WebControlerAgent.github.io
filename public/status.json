@@ -362,20 +362,20 @@
     ]
   },
   "worker_runtime": {
-    "status": "DETERMINISTIC_QUEUE_PACKET_ADAPTER_ADDED",
-    "adapter": "controller/worker_queue.py",
-    "tests": "tests/worker_contract/test_worker_queue.py",
-    "queue_state": "PENDING_WORKER_RUNTIME",
-    "jobs_per_task": [
-      "primary_worker",
-      "independent_checker"
-    ],
-    "model_invoked": false,
-    "command_execution": false,
+    "status": "PROPOSAL_ONLY_MODEL_RUNTIME_ADDED_NOT_YET_RUN",
+    "adapter": "controller/model_worker_runtime.py",
+    "workflow": ".github/workflows/proposal-worker-runtime.yml",
+    "sample_task": "tasks/demo-ui-review.json",
+    "tests": "tests/worker_contract/test_model_worker_runtime.py",
+    "mode": "two_model_calls_proposal_then_independent_review",
+    "model_tools_enabled": false,
+    "shell_commands_executed": false,
+    "proposal_applied": false,
     "repository_write_access": false,
     "automatic_merge": false,
     "automatic_deploy": false,
     "captain_approval_required": true,
-    "note": "Packets are prepared for a future isolated runtime; this does not mean AI workers are running."
+    "activation": "manual workflow_dispatch; requires OPENAI_API_KEY Actions secret",
+    "note": "No model run has been verified yet. API usage may incur charges when manually triggered."
   }
 }
