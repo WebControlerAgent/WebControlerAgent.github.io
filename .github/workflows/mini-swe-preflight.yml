@@ -1,0 +1,50 @@
+name: mini-SWE-agent Preflight and Patch Gate
+
+on:
+  workflow_dispatch:
+    inputs:
+      inspect_patch:
+        description: Optional patch file already present in the checked-out repository
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mini-swe-preflight
+  cancel-in-progress: true
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pinned mini-SWE-agent
+        run: python -m pip install "mini-swe-agent==2.4.6"
+      - name: Check CLI and review patch artifact only
+        env:
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        run: |
+          if [ -n "${{ inputs.inspect_patch }}" ]; then
+            python agents/adapters/mini_swe_preflight.py "${{ inputs.inspect_patch }}"
+          else
+            python agents/adapters/mini_swe_preflight.py
+          fi
+      - name: Upload preflight report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mini-swe-preflight-report
+          path: artifacts/mini-swe-preflight.json
+          if-no-files-found: ignore
+          retention-days: 7
