@@ -2,11 +2,9 @@ import * as THREE from 'three/webgpu';
 import { pass } from 'three/tsl';
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { GalaxySimulation } from './galaxy.js';
 
 // Configuration
 const config = {
-  starCount: 150000, // Lower density so individual stars have more breathing room
   rotationSpeed: 0.1,
   spiralTightness: 2.15,
   mouseForce: 7.0,
@@ -16,16 +14,9 @@ const config = {
   armCount: 4,
   armWidth: 1.7,
   randomness: 1.35,
-  particleSize: 0.1, // Per-star size is randomized from 0.005 to 0.1
-  starBrightness: 0.48,
-  denseStarColor: '#3998ff',
-  sparseStarColor: '#ffb36b',
   bloomStrength: 0.24,
   bloomRadius: 0.12,
   bloomThreshold: 0.28,
-  cloudCount: 0, // Dust/cloud particles disabled
-  cloudOpacity: 0.10,
-  cloudTintColor: '#9bbdff'
 };
 
 // Scene setup
@@ -136,51 +127,7 @@ function createStarryBackground(scene, count = 5000) {
   return stars;
 }
 
-// Preload cloud texture
-function createProceduralCloudTexture() {
-  const canvas = document.createElement('canvas');
-  canvas.width = canvas.height = 256;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return new THREE.Texture();
-  const glow = ctx.createRadialGradient(128, 128, 4, 128, 128, 122);
-  glow.addColorStop(0, 'rgba(255,255,255,0.88)');
-  glow.addColorStop(0.18, 'rgba(235,244,255,0.62)');
-  glow.addColorStop(0.42, 'rgba(160,190,255,0.24)');
-  glow.addColorStop(0.72, 'rgba(100,140,255,0.07)');
-  glow.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = glow;
-  ctx.fillRect(0, 0, 256, 256);
-  // Uneven wisps make overlapping cloud particles read as gas, not solid dots.
-  for (let i = 0; i < 42; i++) {
-    const angle = i * 2.399963;
-    const radius = 12 + ((i * 37) % 88);
-    const x = 128 + Math.cos(angle) * radius * 0.55;
-    const y = 128 + Math.sin(angle) * radius * 0.55;
-    const rx = 5 + ((i * 11) % 22);
-    const ry = 2 + ((i * 7) % 9);
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(angle + Math.sin(i * 1.7) * 0.5);
-    const wisp = ctx.createLinearGradient(-rx * 2, 0, rx * 2, 0);
-    wisp.addColorStop(0, 'rgba(255,255,255,0)');
-    wisp.addColorStop(0.5, 'rgba(255,255,255,0.3)');
-    wisp.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = wisp;
-    ctx.beginPath();
-    ctx.ellipse(0, 0, rx * 2, ry, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  }
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.needsUpdate = true;
-  return texture;
-}
-const cloudTexture = createProceduralCloudTexture();
-
-// Create galaxy simulation with preloaded texture
-const galaxySimulation = new GalaxySimulation(scene, config, cloudTexture);
-// Star-particle system intentionally disabled.
+// No star, dust, cloud, or particle systems are created in this mode.
 
 // Create starry background
 // Background star particles intentionally disabled.
@@ -234,7 +181,14 @@ async function animate() {
   // Update controls
   controls.update();
 
-  // Star and dust particle simulations are disabled; render the clean scene only.
+  // Keep the scene empty: no Points, Sprites, or particle simulation objects.
+  for (const object of [...scene.children]) {
+    if (object.isPoints || object.isSprite || object.isInstancedMesh) {
+      scene.remove(object);
+      object.geometry?.dispose?.();
+      object.material?.dispose?.();
+    }
+  }
 
   // Render
   if (postProcessing) {
@@ -258,10 +212,10 @@ renderer.init().then(() => {
   postProcessing = new THREE.PostProcessing(renderer);
   setupBloom();
   const status = document.getElementById('status');
-  if (status) status.textContent = 'Star and dust particles disabled';
+  if (status) status.textContent = 'Clean scene active · all particles removed';
 
   const starCount = document.getElementById('star-count');
-  if (starCount) starCount.textContent = 'Disabled';
+  if (starCount) starCount.textContent = '0';
   animate();
 }).catch(err => {
   console.error('Failed to initialize renderer:', err);
