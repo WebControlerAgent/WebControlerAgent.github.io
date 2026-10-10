@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "status": "PAIR_POLICY_AND_RESULT_ACCEPTANCE_GATE_IMPLEMENTED_WORKER_EXECUTION_PENDING",
+  "status": "PAIR_POLICY_RESULT_GATE_AND_DETERMINISTIC_QUEUE_PACKETS_IMPLEMENTED_AI_WORKER_EXECUTION_PENDING",
   "ownership_rule": "one_primary_owner_per_task",
   "hierarchy": [
     "manager",
@@ -515,7 +515,7 @@
     {
       "id": "B",
       "name": "Deterministic dispatcher",
-      "status": "PENDING"
+      "status": "DISPATCHER_AND_DETERMINISTIC_QUEUE_PACKET_ADAPTER_IMPLEMENTED"
     },
     {
       "id": "C",
@@ -540,7 +540,7 @@
     {
       "id": "G",
       "name": "Two-agent-per-task enforcement and independent review",
-      "status": "RESULT_PAIR_VALIDATOR_IMPLEMENTED_WORKER_ADAPTER_EXECUTION_PENDING"
+      "status": "RESULT_PAIR_VALIDATOR_AND_TWO_JOB_PACKET_GENERATION_IMPLEMENTED_AI_EXECUTION_PENDING"
     }
   ],
   "pair_policy": {
