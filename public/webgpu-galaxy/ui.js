@@ -14,7 +14,6 @@ export class GalaxyUI {
   setupUI() {
     this.setupPerformanceFolder();
     this.setupAppearanceFolder();
-    this.setupCloudsFolder();
     this.setupBloomFolder();
     this.setupGalaxyFolder();
     this.setupMouseFolder();
@@ -59,36 +58,6 @@ export class GalaxyUI {
       label: 'Sparse Color',
       view: 'color'
     }).on('change', () => this.callbacks.onUniformChange('sparseStarColor', this.config.sparseStarColor));
-  }
-
-  setupCloudsFolder() {
-    const cloudsFolder = this.pane.addFolder({ title: 'Clouds' });
-
-    cloudsFolder.addBinding(this.config, 'cloudCount', {
-      min: 0,
-      max: 100000,
-      step: 1000,
-      label: 'Count'
-    }).on('change', () => this.callbacks.onCloudCountChange(this.config.cloudCount));
-
-    cloudsFolder.addBinding(this.config, 'cloudSize', {
-      min: 0.5,
-      max: 10.0,
-      step: 0.01,
-      label: 'Size'
-    }).on('change', () => this.callbacks.onUniformChange('cloudSize', this.config.cloudSize));
-
-    cloudsFolder.addBinding(this.config, 'cloudOpacity', {
-      min: 0.0,
-      max: 1.0,
-      step: 0.01,
-      label: 'Opacity'
-    }).on('change', () => this.callbacks.onUniformChange('cloudOpacity', this.config.cloudOpacity));
-
-    cloudsFolder.addBinding(this.config, 'cloudTintColor', {
-      label: 'Tint Color',
-      view: 'color'
-    }).on('change', () => this.callbacks.onCloudTintChange(this.config.cloudTintColor));
   }
 
   setupBloomFolder() {
