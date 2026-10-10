@@ -17,6 +17,7 @@ REQUIRED = [
     "agents/teams.json",
     "agents/team_runtime.json",
     "agents/agent_inventory.json",
+    "agents/task_routing.json",
 ]
 
 def main() -> int:
@@ -47,12 +48,26 @@ def main() -> int:
             errors.append(f"expected 9 captains, found {len(captains)}")
         if inventory.get("captain_count") != 9:
             errors.append("agent inventory captain count is not 9")
-        if inventory.get("child_agent_count") != 45:
-            errors.append("agent inventory child-agent count is not 45")
-        if inventory.get("total_roles") != 54:
-            errors.append("agent inventory total role count is not 54")
-        if len(inventory.get("child_agents", [])) != 45:
-            errors.append("agent inventory does not contain 45 child-agent definitions")
+        if inventory.get("child_agent_count") != 90:
+            errors.append("agent inventory child-agent count is not 90")
+        if inventory.get("total_roles") != 99:
+            errors.append("agent inventory total role count is not 99")
+        if len(inventory.get("child_agents", [])) != 90:
+            errors.append("agent inventory does not contain 90 child-agent definitions")
+        teams = json.loads((ROOT/"agents/teams.json").read_text(encoding="utf-8"))["templates"]
+        contracts = json.loads((ROOT/"agents/team_runtime.json").read_text(encoding="utf-8"))["teams"]
+        if any(len(roles) != 10 for roles in teams.values()):
+            errors.append("every Captain team must have exactly 10 child roles")
+        if any(len(contracts.get(team, [])) != 10 for team in teams):
+            errors.append("every runtime team contract must define 10 child roles")
+        routing = json.loads((ROOT/"agents/task_routing.json").read_text(encoding="utf-8"))
+        if routing.get("pair_policy", {}).get("minimum_small_agents_per_task") != 2:
+            errors.append("task routing does not enforce a two-agent minimum")
+        for captain_id, captain in routing.get("captains", {}).items():
+            if len(captain.get("children", [])) != 10:
+                errors.append(f"{captain_id} must route to 10 child roles")
+            if len(captain.get("role_pairs", [])) != 5:
+                errors.append(f"{captain_id} must define five worker/checker pairs")
     except Exception as exc:
         errors.append(f"agent inventory validation failed: {exc}")
 
@@ -63,7 +78,8 @@ def main() -> int:
     print("Agent runtime structure: OK")
     print(f"Authorized enabled sites: {len(enabled)}")
     print("One-site execution policy: OK")
-    print("Captain/child-agent inventory: 9 captains + 45 child roles = 54 roles")
+    print("Captain/child-agent inventory: 9 captains + 90 child roles = 99 roles")
+    print("Two-agent task policy: worker + independent checker is configured")
     return 0
 
 if __name__ == "__main__":
