@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "PLAYWRIGHT_CI_AND_BROWSER_USE_READONLY_WORKFLOW_ADDED_OTHER_AGENTS_STAGED",
+  "status": "PLAYWRIGHT_CI_AND_BROWSER_USE_READONLY_AND_MINI_SWE_PREFLIGHT_ADDED",
   "rule": "Every task uses a primary worker and an independent checker; tools can provide evidence but do not automatically count as the checker.",
   "runtime": {
     "github_pages": "Static UI only; cannot host persistent workers.",
@@ -56,7 +56,7 @@
       "url": "https://github.com/SWE-agent/mini-swe-agent",
       "license": "MIT",
       "kind": "coding_agent",
-      "status": "ADAPTER_NOT_CONNECTED_REQUIRES_SANDBOX_AND_MODEL_SECRET",
+      "status": "PREFLIGHT_WORKFLOW_COMMITTED_EXECUTION_DISABLED_PENDING_SANDBOXED_MODEL_PROXY",
       "mappings": [
         {
           "captain": "bug-solver",
@@ -87,13 +87,16 @@
           ]
         }
       ],
-      "first_use": "One isolated code repair task in disposable worktree/branch; produce patch, logs and test evidence; require independent review before merge.",
+      "first_use": "Preflight CLI check and optional patch-path gate only; model-driven shell execution remains disabled until credential-isolated sandbox proxy exists.",
       "requirements": [
         "Python runtime",
         "supported LLM provider credentials or local model",
         "sandboxed filesystem/command execution"
       ],
-      "safety": "No production secrets; no direct deployment permission."
+      "safety": "No production secrets; no direct deployment permission.",
+      "workflow": ".github/workflows/mini-swe-preflight.yml",
+      "adapter": "agents/adapters/mini_swe_preflight.py",
+      "pinned_version": "2.4.6"
     },
     {
       "id": "browser-use",
