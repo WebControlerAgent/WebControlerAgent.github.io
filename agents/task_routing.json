@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "status": "PAIR_POLICY_DEFINED_DISPATCHER_PENDING",
+  "status": "PAIR_POLICY_AND_RESULT_ACCEPTANCE_GATE_IMPLEMENTED_WORKER_EXECUTION_PENDING",
   "ownership_rule": "one_primary_owner_per_task",
   "hierarchy": [
     "manager",
@@ -540,7 +540,7 @@
     {
       "id": "G",
       "name": "Two-agent-per-task enforcement and independent review",
-      "status": "CONTRACT_DEFINED_DISPATCHER_NOT_IMPLEMENTED"
+      "status": "RESULT_PAIR_VALIDATOR_IMPLEMENTED_WORKER_ADAPTER_EXECUTION_PENDING"
     }
   ],
   "pair_policy": {
