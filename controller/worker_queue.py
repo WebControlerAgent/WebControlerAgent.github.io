@@ -12,7 +12,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from task_dispatcher import DispatchError, load_json, prepare_assignment
+try:
+    from .task_dispatcher import DispatchError, load_json, prepare_assignment
+except ImportError:  # Direct script invocation from the controller directory.
+    from task_dispatcher import DispatchError, load_json, prepare_assignment
 
 ROOT = Path(__file__).resolve().parent.parent
 SAFE_PATH_PREFIXES = ("agents/", "controller/", "tests/", "public/", "docs/")
@@ -31,8 +34,9 @@ def validate_task_scope(task: dict[str, Any]) -> None:
         if not isinstance(item, str) or not item.strip():
             raise DispatchError("Each allowed path must be a non-empty string")
         path = item.replace("\\", "/").strip()
-        parts = path.split("/")
-        if path.startswith("/") or any(part in ("", ".", "..") for part in parts):
+        canonical = path.rstrip("/")
+        parts = canonical.split("/")
+        if path.startswith("/") or not canonical or any(part in ("", ".", "..") for part in parts):
             raise DispatchError(f"Unsafe allowed path: {item!r}")
         if path.startswith(".github/") or any(
             marker in path.lower() for marker in (".env", "secret", "credential", "token", "private_key")
@@ -123,12 +127,12 @@ def main() -> int:
                               load_json(ROOT / "controller" / "sites.json"))
         output_dir.mkdir(parents=True, exist_ok=True)
         (output_dir / "queue.json").write_text(
-            json.dumps(queue, indent=2, ensure_ascii=False) + "\\n", encoding="utf-8"
+            json.dumps(queue, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
         )
         for job in queue["jobs"]:
             role = "checker" if job["role"] == "independent_checker" else "primary"
             (output_dir / f"{queue['task_id']}-{role}.json").write_text(
-                json.dumps(job, indent=2, ensure_ascii=False) + "\\n", encoding="utf-8"
+                json.dumps(job, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
             )
     except (DispatchError, OSError) as exc:
         print(json.dumps({"ok": False, "queue_state": "BLOCKED", "error": str(exc)}, indent=2))
