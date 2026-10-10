@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "MAPPING_READY_NOT_INSTALLED",
+  "status": "PLAYWRIGHT_CI_ADDED_OTHER_AGENTS_STAGED",
   "rule": "Every task uses a primary worker and an independent checker; tools can provide evidence but do not automatically count as the checker.",
   "runtime": {
     "github_pages": "Static UI only; cannot host persistent workers.",
@@ -15,7 +15,7 @@
       "url": "https://github.com/microsoft/playwright",
       "license": "Apache-2.0",
       "kind": "deterministic_browser_test_framework_not_llm_agent",
-      "status": "MAPPED_NOT_INSTALLED",
+      "status": "INTEGRATED_CI_TESTS_PENDING_FIRST_RUN",
       "mappings": [
         {
           "captain": "qa",
@@ -56,7 +56,7 @@
       "url": "https://github.com/SWE-agent/mini-swe-agent",
       "license": "MIT",
       "kind": "coding_agent",
-      "status": "MAPPED_NOT_INSTALLED",
+      "status": "ADAPTER_NOT_CONNECTED_REQUIRES_SANDBOX_AND_MODEL_SECRET",
       "mappings": [
         {
           "captain": "bug-solver",
@@ -101,7 +101,7 @@
       "url": "https://github.com/browser-use/browser-use",
       "license": "MIT",
       "kind": "browser_agent",
-      "status": "MAPPED_NOT_INSTALLED",
+      "status": "ADAPTER_NOT_CONNECTED_REQUIRES_MODEL_SECRET",
       "mappings": [
         {
           "captain": "researcher",
@@ -145,7 +145,7 @@
       "url": "https://github.com/dannwaneri/seo-agent",
       "license": "MIT",
       "kind": "specialized_seo_audit_agent",
-      "status": "MAPPED_OPTIONAL_NOT_INSTALLED",
+      "status": "OPTIONAL_NOT_CONNECTED_REQUIRES_REVIEW_AND_SECRETS",
       "mappings": [
         {
           "captain": "seo-agent",
@@ -185,7 +185,7 @@
       "url": "https://github.com/langchain-ai/langgraph",
       "license": "MIT",
       "kind": "stateful_orchestration_framework",
-      "status": "MAPPED_DEFERRED",
+      "status": "DEFERRED_NOT_INSTALLED",
       "mappings": [
         {
           "captain": "manager",
@@ -210,7 +210,7 @@
       "url": "https://github.com/crewAIInc/crewAI",
       "license": "MIT",
       "kind": "role_based_orchestration_framework",
-      "status": "MAPPED_ALTERNATIVE_NOT_INSTALLED",
+      "status": "ALTERNATIVE_DEFERRED_NOT_INSTALLED",
       "mappings": [
         {
           "captain": "manager",
