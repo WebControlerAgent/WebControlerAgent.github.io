@@ -389,8 +389,8 @@ function SatelliteGalaxies({onSelect}:{onSelect:(id:number,position:[number,numb
   const t=i/71;
   const size=5*Math.pow(.01/5,t);
   const angle=i*2.3999632297+.4;
-  const radius=(58+Math.sqrt(i+1)*5.4)*25;
-  return {id:i,name:galaxyNames[i],size,position:[Math.cos(angle)*radius,Math.sin(i*1.71)*Math.min(5.2,(58+Math.sqrt(i+1)*5.4)*.15)*25,Math.sin(angle)*radius] as [number,number,number],texture:i%textures.length,rotation:angle*.35};
+  const radius=(58+Math.sqrt(i+1)*5.4)*10;
+  return {id:i,name:galaxyNames[i],size,position:[Math.cos(angle)*radius,Math.sin(i*1.71)*Math.min(5.2,(58+Math.sqrt(i+1)*5.4)*.15)*10,Math.sin(angle)*radius] as [number,number,number],texture:i%textures.length,rotation:angle*.35};
   }),[textures.length]);
  const labelTextures=useMemo(()=>galaxies.map(g=>{const canvas=document.createElement("canvas");canvas.width=512;canvas.height=96;const ctx=canvas.getContext("2d");if(ctx){ctx.font="600 34px Arial, sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";ctx.shadowColor=["#ffb45e","#72d8ff","#ff83d0","#7bffe0"][g.texture];ctx.shadowBlur=12;ctx.fillStyle="#eaf5ff";ctx.fillText(g.name,256,48,490);}const t=new THREE.CanvasTexture(canvas);t.colorSpace=THREE.SRGBColorSpace;return t;}),[galaxies]);
  useEffect(()=>()=>{textures.forEach(t=>{t.galaxy.dispose();t.gas.dispose()});labelTextures.forEach(t=>t.dispose())},[textures,labelTextures]);
