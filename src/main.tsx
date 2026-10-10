@@ -121,26 +121,6 @@ function StarGlow({color,accent,scale=1}:{color:string;accent:string;scale?:numb
    <mesh rotation={[Math.PI/2,-.4,.8]}><torusGeometry args={[.72,.008,8,128]}/><meshBasicMaterial color={color} transparent opacity={.42} blending={THREE.AdditiveBlending} depthWrite={false}/></mesh>
  </group>;
 }
-function AstronautOrbit({color,phase,radius}:{color:string;phase:number;radius:number}){
- const suit=useRef<THREE.Group>(null!);
- useFrame(({clock})=>{
-   const t=clock.elapsedTime*.34+phase;
-   suit.current.position.set(Math.cos(t)*radius,.22+Math.sin(t*1.4)*.22,Math.sin(t)*radius);
-   suit.current.rotation.y=-t+.6;
-   suit.current.rotation.z=Math.sin(t*1.7)*.09;
- });
- return <group ref={suit} scale={.42}>
-   <mesh position={[0,.38,0]}><sphereGeometry args={[.34,24,24]}/><meshStandardMaterial color="#e9f3ff" roughness={.48} metalness={.08}/></mesh>
-   <mesh position={[0,.43,.255]} scale={[.235,.19,.105]}><sphereGeometry args={[1,24,24]}/><meshStandardMaterial color="#15314d" emissive={color} emissiveIntensity={.55} metalness={.65} roughness={.22}/></mesh>
-   <mesh position={[0,-.13,0]}><capsuleGeometry args={[.22,.43,5,10]}/><meshStandardMaterial color="#f4f7fb" roughness={.62}/></mesh>
-   <mesh position={[0,-.1,-.24]}><boxGeometry args={[.27,.38,.16]}/><meshStandardMaterial color="#8195aa" metalness={.45} roughness={.4}/></mesh>
-   <mesh position={[-.27,-.08,0]} rotation={[0,0,-.35]}><capsuleGeometry args={[.075,.32,4,8]}/><meshStandardMaterial color="#eaf2fb"/></mesh>
-   <mesh position={[.27,-.08,0]} rotation={[0,0,.35]}><capsuleGeometry args={[.075,.32,4,8]}/><meshStandardMaterial color="#eaf2fb"/></mesh>
-   <mesh position={[-.12,-.49,0]} rotation={[0,0,-.08]}><capsuleGeometry args={[.085,.29,4,8]}/><meshStandardMaterial color="#dbe7f5"/></mesh>
-   <mesh position={[.12,-.49,0]} rotation={[0,0,.08]}><capsuleGeometry args={[.085,.29,4,8]}/><meshStandardMaterial color="#dbe7f5"/></mesh>
-   <pointLight color={color} intensity={.45} distance={2.4}/>
- </group>;
-}
 function CaptainSun({item,index,onSelect,selected}:{item:any;index:number;onSelect:()=>void;selected:boolean}){
  const group=useRef<THREE.Group>(null!); const phase=index*(Math.PI*2/9); const palette=STAR_PALETTE[index]; const orbit=CAPTAIN_ORBITS[index];
  useFrame(({clock},delta)=>{
@@ -151,7 +131,6 @@ function CaptainSun({item,index,onSelect,selected}:{item:any;index:number;onSele
  return <group ref={group} onClick={(e)=>{e.stopPropagation();onSelect()}}>
    <pointLight color={palette.color} intensity={selected?7:3.2} distance={7.5} decay={2}/>
    <StarGlow color={palette.color} accent={palette.accent} scale={selected?1.3:1.05}/>
-   <AstronautOrbit color={palette.color} phase={phase} radius={1.65+index*.035}/>
    <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[.82,.018,10,128]}/><meshBasicMaterial color={palette.accent} transparent opacity={selected?.72:.34} blending={THREE.AdditiveBlending}/></mesh>
    <mesh rotation={[Math.PI/2,.2,.45]}><torusGeometry args={[.7,.035,10,96]}/><meshBasicMaterial color={palette.color} transparent opacity={.28} blending={THREE.AdditiveBlending}/></mesh>
    <mesh rotation={[Math.PI/2,0,.8]}><torusGeometry args={[1.05,.008,8,128]}/><meshBasicMaterial color={palette.color} transparent opacity={selected?.26:.1} blending={THREE.AdditiveBlending}/></mesh>
