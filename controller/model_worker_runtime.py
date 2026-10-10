@@ -1,4 +1,4 @@
-"""Two-call model worker runtime that emits proposals only (never executes code).
+"""Two-call Gemini worker runtime that emits proposals only (never executes code).
 
 The primary model proposes a bounded file change as JSON. A second model call
 independently reviews that proposal. No shell, tools, repository writes, patch
@@ -13,6 +13,7 @@ import re
 import sys
 import urllib.error
 import urllib.request
+import urllib.parse
 from pathlib import Path
 from typing import Any
 
@@ -54,15 +55,19 @@ def validate_task(task: dict[str, Any]) -> None:
 
 def api_json(api_key: str, model: str, prompt: str) -> dict[str, Any]:
     body = json.dumps({
-        "model": model,
-        "input": prompt,
-        "text": {"format": {"type": "json_object"}},
-        "store": False
+        "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+        "generationConfig": {"responseMimeType": "application/json"}
     }).encode("utf-8")
+    endpoint = (
+        "https://generativelanguage.googleapis.com/v1beta/models/"
+        + urllib.parse.quote(model, safe="")
+        + ":generateContent?"
+        + urllib.parse.urlencode({"key": api_key})
+    )
     request = urllib.request.Request(
-        "https://api.openai.com/v1/responses",
+        endpoint,
         data=body,
-        headers={"Authorization": "Bearer " + api_key, "Content-Type": "application/json"},
+        headers={"Content-Type": "application/json"},
         method="POST",
     )
     try:
@@ -71,17 +76,21 @@ def api_json(api_key: str, model: str, prompt: str) -> dict[str, Any]:
     except urllib.error.HTTPError as exc:
         # Do not include request headers or the API key in surfaced errors.
         detail = exc.read(1200).decode("utf-8", errors="replace")
-        raise RuntimeErrorSafe(f"Model API returned HTTP {exc.code}: {detail}") from None
+        raise RuntimeErrorSafe(f"Gemini API returned HTTP {exc.code}: {detail}") from None
     except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
-        raise RuntimeErrorSafe(f"Model request failed: {type(exc).__name__}") from None
+        raise RuntimeErrorSafe(f"Gemini request failed: {type(exc).__name__}") from None
 
     chunks = []
-    for item in payload.get("output", []):
-        for part in item.get("content", []):
-            if part.get("type") == "output_text" and isinstance(part.get("text"), str):
+    for candidate in payload.get("candidates", []):
+        content = candidate.get("content", {})
+        for part in content.get("parts", []):
+            if isinstance(part.get("text"), str):
                 chunks.append(part["text"])
     if not chunks:
-        raise RuntimeErrorSafe("Model response contained no output_text")
+        block_reason = payload.get("promptFeedback", {}).get("blockReason")
+        if block_reason:
+            raise RuntimeErrorSafe(f"Gemini response blocked: {block_reason}")
+        raise RuntimeErrorSafe("Gemini response contained no text parts")
     try:
         result = json.loads("\n".join(chunks))
     except json.JSONDecodeError:
@@ -178,18 +187,18 @@ def main() -> int:
     parser.add_argument("--output", default="artifacts/worker-runtime/result.json")
     args = parser.parse_args()
     output = Path(args.output)
-    model = os.environ.get("OPENAI_MODEL") or "gpt-4.1-mini"
+    model = os.environ.get("GEMINI_MODEL") or "gemini-2.5-flash"
 
     def write_report(report: dict[str, Any]) -> None:
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\\n", encoding="utf-8")
 
-    api_key = os.environ.get("OPENAI_API_KEY", "")
+    api_key = os.environ.get("GEMINI_API_KEY", "")
     if not api_key:
         report = {
             "ok": False,
             "state": "BLOCKED_CONFIGURATION",
-            "error": "OPENAI_API_KEY secret is not configured",
+            "error": "GEMINI_API_KEY secret is not configured",
             "proposal_applied": False,
         }
         try:
