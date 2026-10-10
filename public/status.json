@@ -375,7 +375,7 @@
     "automatic_merge": false,
     "automatic_deploy": false,
     "captain_approval_required": true,
-    "activation": "manual workflow_dispatch; requires OPENAI_API_KEY Actions secret",
-    "note": "No model run has been verified yet. API usage may incur charges when manually triggered."
+    "activation": "manual workflow_dispatch; requires GEMINI_API_KEY Actions secret",
+    "note": "No model run has been verified yet. Gemini API usage may incur charges when manually triggered."
   }
 }
