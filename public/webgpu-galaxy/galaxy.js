@@ -269,7 +269,9 @@ export class GalaxySimulation {
     spriteMaterial.positionNode = starPos;
     spriteMaterial.colorNode = vec4(starColorNode.x, starColorNode.y, starColorNode.z, float(1.0));
     spriteMaterial.opacityNode = circleShape;
-    spriteMaterial.scaleNode = this.uniforms.visual.particleSize;
+    // Give each star a stable, deterministic size in the 0.005–0.1 range.
+    // The per-particle hash prevents the galaxy from looking like identical dots.
+    spriteMaterial.scaleNode = hash(instanceIndex.toFloat().add(731)).mul(0.095).add(0.005);
 
     this.galaxy = new THREE.Sprite(spriteMaterial);
     this.galaxy.count = this.COUNT;
