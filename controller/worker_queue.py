@@ -93,6 +93,15 @@ def make_job_packet(task: dict[str, Any], assignment: dict[str, Any],
 def prepare_queue(task: dict[str, Any], routing: dict[str, Any],
                   sites: dict[str, Any]) -> dict[str, Any]:
     validate_task_scope(task)
+    authorized_site = next(
+        (site for site in sites.get("sites", [])
+         if site.get("id") == task.get("site") and site.get("enabled") and site.get("authorized")),
+        None,
+    )
+    if not authorized_site:
+        raise DispatchError("Task site is not enabled and authorized")
+    if task.get("repository") != authorized_site.get("repository"):
+        raise DispatchError("Task repository does not match the authorized site's repository")
     assignment = prepare_assignment(task, routing, sites)
     created_at = datetime.now(timezone.utc).isoformat()
     packets = [
