@@ -1,6 +1,6 @@
 {
-  "version": 1,
-  "status": "PLAN_DEFINED_DISPATCHER_PENDING",
+  "version": 2,
+  "status": "PAIR_POLICY_DEFINED_DISPATCHER_PENDING",
   "ownership_rule": "one_primary_owner_per_task",
   "hierarchy": [
     "manager",
@@ -24,13 +24,41 @@
         "scheduler",
         "policy-checker",
         "state-keeper",
-        "reporter"
+        "reporter",
+        "plan-auditor",
+        "dependency-auditor",
+        "authorization-auditor",
+        "state-auditor",
+        "evidence-auditor"
       ],
       "outputs": [
         "task_graph",
         "dispatch_order",
         "policy_decision",
         "verified_report"
+      ],
+      "minimum_agents_per_task": 2,
+      "role_pairs": [
+        {
+          "primary": "planner",
+          "checker": "plan-auditor"
+        },
+        {
+          "primary": "scheduler",
+          "checker": "dependency-auditor"
+        },
+        {
+          "primary": "policy-checker",
+          "checker": "authorization-auditor"
+        },
+        {
+          "primary": "state-keeper",
+          "checker": "state-auditor"
+        },
+        {
+          "primary": "reporter",
+          "checker": "evidence-auditor"
+        }
       ]
     },
     "researcher": {
@@ -40,12 +68,40 @@
         "fact-checker",
         "analyst",
         "trend-researcher",
-        "research-reviewer"
+        "research-reviewer",
+        "source-cross-checker",
+        "claim-verifier",
+        "recommendation-reviewer",
+        "trend-verifier",
+        "citation-auditor"
       ],
       "outputs": [
         "evidence_brief",
         "prioritized_findings",
         "open_questions"
+      ],
+      "minimum_agents_per_task": 2,
+      "role_pairs": [
+        {
+          "primary": "source-discovery",
+          "checker": "source-cross-checker"
+        },
+        {
+          "primary": "fact-checker",
+          "checker": "claim-verifier"
+        },
+        {
+          "primary": "analyst",
+          "checker": "recommendation-reviewer"
+        },
+        {
+          "primary": "trend-researcher",
+          "checker": "trend-verifier"
+        },
+        {
+          "primary": "research-reviewer",
+          "checker": "citation-auditor"
+        }
       ]
     },
     "image-agent": {
@@ -55,13 +111,41 @@
         "asset-preparer",
         "metadata-writer",
         "rights-checker",
-        "media-reviewer"
+        "media-reviewer",
+        "provenance-auditor",
+        "asset-quality-checker",
+        "metadata-auditor",
+        "license-verifier",
+        "accessibility-reviewer"
       ],
       "outputs": [
         "asset_manifest",
         "metadata",
         "rights_notes",
         "review_result"
+      ],
+      "minimum_agents_per_task": 2,
+      "role_pairs": [
+        {
+          "primary": "source-validator",
+          "checker": "provenance-auditor"
+        },
+        {
+          "primary": "asset-preparer",
+          "checker": "asset-quality-checker"
+        },
+        {
+          "primary": "metadata-writer",
+          "checker": "metadata-auditor"
+        },
+        {
+          "primary": "rights-checker",
+          "checker": "license-verifier"
+        },
+        {
+          "primary": "media-reviewer",
+          "checker": "accessibility-reviewer"
+        }
       ]
     },
     "publisher": {
@@ -71,7 +155,12 @@
         "frontend-worker",
         "release-worker",
         "deployment-checker",
-        "rollback-worker"
+        "rollback-worker",
+        "content-reviewer",
+        "frontend-reviewer",
+        "release-auditor",
+        "deployment-smoke-tester",
+        "recovery-verifier"
       ],
       "outputs": [
         "changed_files",
@@ -79,6 +168,29 @@
         "release_ref",
         "deployment_evidence",
         "rollback_plan"
+      ],
+      "minimum_agents_per_task": 2,
+      "role_pairs": [
+        {
+          "primary": "content-builder",
+          "checker": "content-reviewer"
+        },
+        {
+          "primary": "frontend-worker",
+          "checker": "frontend-reviewer"
+        },
+        {
+          "primary": "release-worker",
+          "checker": "release-auditor"
+        },
+        {
+          "primary": "deployment-checker",
+          "checker": "deployment-smoke-tester"
+        },
+        {
+          "primary": "rollback-worker",
+          "checker": "recovery-verifier"
+        }
       ]
     },
     "seo-agent": {
@@ -88,13 +200,41 @@
         "metadata-worker",
         "internal-link-worker",
         "sitemap-worker",
-        "indexing-diagnostics"
+        "indexing-diagnostics",
+        "intent-validator",
+        "metadata-auditor",
+        "link-verifier",
+        "sitemap-cross-checker",
+        "crawl-evidence-reviewer"
       ],
       "outputs": [
         "url_audit",
         "prioritized_fixes",
         "sitemap_report",
         "diagnosis"
+      ],
+      "minimum_agents_per_task": 2,
+      "role_pairs": [
+        {
+          "primary": "keyword-researcher",
+          "checker": "intent-validator"
+        },
+        {
+          "primary": "metadata-worker",
+          "checker": "metadata-auditor"
+        },
+        {
+          "primary": "internal-link-worker",
+          "checker": "link-verifier"
+        },
+        {
+          "primary": "sitemap-worker",
+          "checker": "sitemap-cross-checker"
+        },
+        {
+          "primary": "indexing-diagnostics",
+          "checker": "crawl-evidence-reviewer"
+        }
       ]
     },
     "qa": {
@@ -104,13 +244,41 @@
         "ui-tester",
         "seo-tester",
         "performance-tester",
-        "release-gatekeeper"
+        "release-gatekeeper",
+        "journey-reviewer",
+        "visual-regression-checker",
+        "seo-independent-checker",
+        "benchmark-reviewer",
+        "release-evidence-auditor"
       ],
       "outputs": [
         "test_matrix",
         "defects",
         "metrics",
         "release_decision"
+      ],
+      "minimum_agents_per_task": 2,
+      "role_pairs": [
+        {
+          "primary": "functional-tester",
+          "checker": "journey-reviewer"
+        },
+        {
+          "primary": "ui-tester",
+          "checker": "visual-regression-checker"
+        },
+        {
+          "primary": "seo-tester",
+          "checker": "seo-independent-checker"
+        },
+        {
+          "primary": "performance-tester",
+          "checker": "benchmark-reviewer"
+        },
+        {
+          "primary": "release-gatekeeper",
+          "checker": "release-evidence-auditor"
+        }
       ]
     },
     "bug-hunter": {
@@ -120,13 +288,41 @@
         "reproduction-agent",
         "root-cause-analyst",
         "regression-planner",
-        "diagnostic-reviewer"
+        "diagnostic-reviewer",
+        "log-cross-checker",
+        "reproduction-reviewer",
+        "hypothesis-challenger",
+        "regression-reviewer",
+        "diagnosis-auditor"
       ],
       "outputs": [
         "reproduction_report",
         "root_cause",
         "confidence",
         "regression_plan"
+      ],
+      "minimum_agents_per_task": 2,
+      "role_pairs": [
+        {
+          "primary": "log-analyzer",
+          "checker": "log-cross-checker"
+        },
+        {
+          "primary": "reproduction-agent",
+          "checker": "reproduction-reviewer"
+        },
+        {
+          "primary": "root-cause-analyst",
+          "checker": "hypothesis-challenger"
+        },
+        {
+          "primary": "regression-planner",
+          "checker": "regression-reviewer"
+        },
+        {
+          "primary": "diagnostic-reviewer",
+          "checker": "diagnosis-auditor"
+        }
       ]
     },
     "bug-solver": {
@@ -136,13 +332,41 @@
         "test-agent",
         "security-reviewer",
         "rollback-planner",
-        "repair-reviewer"
+        "repair-reviewer",
+        "patch-reviewer",
+        "test-independence-checker",
+        "threat-model-reviewer",
+        "rollback-verifier",
+        "acceptance-auditor"
       ],
       "outputs": [
         "patch",
         "test_evidence",
         "security_decision",
         "rollback_plan"
+      ],
+      "minimum_agents_per_task": 2,
+      "role_pairs": [
+        {
+          "primary": "patch-agent",
+          "checker": "patch-reviewer"
+        },
+        {
+          "primary": "test-agent",
+          "checker": "test-independence-checker"
+        },
+        {
+          "primary": "security-reviewer",
+          "checker": "threat-model-reviewer"
+        },
+        {
+          "primary": "rollback-planner",
+          "checker": "rollback-verifier"
+        },
+        {
+          "primary": "repair-reviewer",
+          "checker": "acceptance-auditor"
+        }
       ]
     },
     "idea-builder": {
@@ -152,12 +376,40 @@
         "opportunity-analyst",
         "prototype-planner",
         "experiment-agent",
-        "idea-reviewer"
+        "idea-reviewer",
+        "idea-fact-checker",
+        "scoring-reviewer",
+        "scope-reviewer",
+        "measurement-auditor",
+        "experiment-reviewer"
       ],
       "outputs": [
         "ranked_ideas",
         "experiment_proposal",
         "recommendation"
+      ],
+      "minimum_agents_per_task": 2,
+      "role_pairs": [
+        {
+          "primary": "idea-researcher",
+          "checker": "idea-fact-checker"
+        },
+        {
+          "primary": "opportunity-analyst",
+          "checker": "scoring-reviewer"
+        },
+        {
+          "primary": "prototype-planner",
+          "checker": "scope-reviewer"
+        },
+        {
+          "primary": "experiment-agent",
+          "checker": "measurement-auditor"
+        },
+        {
+          "primary": "idea-reviewer",
+          "checker": "experiment-reviewer"
+        }
       ]
     }
   },
@@ -258,7 +510,7 @@
     {
       "id": "A",
       "name": "Contracts",
-      "status": "PLAN_ONLY"
+      "status": "PAIR_POLICY_DEFINED"
     },
     {
       "id": "B",
@@ -284,6 +536,24 @@
       "id": "F",
       "name": "End-to-end acceptance",
       "status": "PENDING"
+    },
+    {
+      "id": "G",
+      "name": "Two-agent-per-task enforcement and independent review",
+      "status": "CONTRACT_DEFINED_DISPATCHER_NOT_IMPLEMENTED"
     }
-  ]
+  ],
+  "pair_policy": {
+    "minimum_small_agents_per_task": 2,
+    "required_roles": [
+      "primary_worker",
+      "independent_checker"
+    ],
+    "same_task_id_required": true,
+    "independent_evidence_required": true,
+    "captain_must_review_both": true,
+    "block_completion_if_either_missing": true,
+    "allow_more_agents_for_complex_tasks": true,
+    "avoid_duplicate_work": true
+  }
 }
