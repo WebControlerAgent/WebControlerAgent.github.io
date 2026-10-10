@@ -115,3 +115,6 @@
 /* Full-width universe mode: the old left Captain list is removed so the 3D galaxy gets the available canvas. */
 .sidebar{display:none!important}
 @media(max-width:1050px){.workspace{grid-template-columns:minmax(0,1fr)}.inspector{display:none}}
+
+.gpu-galaxy-link{position:absolute;z-index:9;right:22px;bottom:22px;padding:11px 14px;border:1px solid rgba(113,177,255,.3);border-radius:10px;background:rgba(4,12,28,.84);color:#c4e2ff;text-decoration:none;font:700 9px/1 system-ui;letter-spacing:.13em;backdrop-filter:blur(12px);box-shadow:0 0 28px rgba(40,120,255,.08);transition:background .2s,border-color .2s}.gpu-galaxy-link:hover{background:rgba(12,28,55,.96);border-color:rgba(113,177,255,.65)}
+@media(max-width:600px){.gpu-galaxy-link{right:12px;bottom:12px;padding:10px 11px;font-size:8px}}
