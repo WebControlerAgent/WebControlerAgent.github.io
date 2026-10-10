@@ -396,10 +396,10 @@ function SatelliteGalaxies({onSelect}:{onSelect:(id:number,position:[number,numb
  useEffect(()=>()=>{textures.forEach(t=>{t.galaxy.dispose();t.gas.dispose()});labelTextures.forEach(t=>t.dispose())},[textures,labelTextures]);
  return <group>
   {galaxies.map(g=><group key={g.id} position={g.position} rotation={[.12*Math.sin(g.id),g.rotation,.08*Math.cos(g.id)]} onClick={e=>{e.stopPropagation();onSelect(g.id,g.position,g.size,g.name)}}>
-   <sprite scale={[g.size*1.65,g.size*1.16,1]} renderOrder={1}>
+   <sprite scale={[g.size*1.65*4,g.size*1.16*4,1]} renderOrder={1}>
     <spriteMaterial map={textures[g.texture].gas} transparent opacity={.38} blending={THREE.AdditiveBlending} depthWrite={false} toneMapped={false}/>
    </sprite>
-   <sprite scale={[g.size,g.size*.7,1]} renderOrder={2}>
+   <sprite scale={[g.size*4,g.size*.7*4,1]} renderOrder={2}>
     <spriteMaterial map={textures[g.texture].galaxy} transparent opacity={.96} blending={THREE.AdditiveBlending} depthWrite={false} toneMapped={false}/>
    </sprite>
    <sprite position={[0,Math.max(1.5,g.size*.72+1.0),0]} scale={[4.2,.79,1]} renderOrder={8}>
