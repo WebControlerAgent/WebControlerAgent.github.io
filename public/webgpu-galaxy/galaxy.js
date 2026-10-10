@@ -284,155 +284,16 @@ export class GalaxySimulation {
    * Creates cloud particles that follow the galaxy structure
    */
   createClouds() {
-    // Clean up old clouds
+    // Dust/cloud particle rendering is intentionally disabled.
     if (this.cloudPlane) {
       this.scene.remove(this.cloudPlane);
-      if (this.cloudPlane.material) this.cloudPlane.material.dispose();
+      this.cloudPlane.material?.dispose();
+      this.cloudPlane = null;
     }
-
-    const CLOUD_COUNT = this.config.cloudCount;
-
-    // Create cloud particle buffers
-    const cloudPositionBuffer = instancedArray(CLOUD_COUNT, 'vec3');
-    const cloudOriginalPositionBuffer = instancedArray(CLOUD_COUNT, 'vec3');
-    const cloudColorBuffer = instancedArray(CLOUD_COUNT, 'vec3');
-    const cloudSizeBuffer = instancedArray(CLOUD_COUNT, 'float');
-    const cloudRotationBuffer = instancedArray(CLOUD_COUNT, 'float');
-
-    // Initialize cloud particles
-    this.cloudInit = Fn(() => {
-      const idx = instanceIndex;
-      const seed = idx.toFloat().add(10000); // Offset seed from stars
-
-      // Distance from center (power = 0.7 for more even distribution to avoid center oversaturation)
-      const radius = hash(seed.add(1)).pow(0.7).mul(this.uniforms.galaxy.radius);
-      const normalizedRadius = radius.div(this.uniforms.galaxy.radius);
-
-      // Choose spiral arm
-      const armIndex = hash(seed.add(2)).mul(this.uniforms.galaxy.armCount).floor();
-      const armAngle = armIndex.mul(6.28318).div(this.uniforms.galaxy.armCount);
-
-      // Spiral angle based on distance (logarithmic spiral)
-      const spiralAngle = normalizedRadius.mul(this.uniforms.galaxy.spiralTightness).mul(6.28318);
-
-      // Add randomness (same pattern as stars)
-      const angleOffset = hash(seed.add(3)).sub(0.5).mul(this.uniforms.galaxy.randomness);
-      const radiusOffset = hash(seed.add(4)).sub(0.5).mul(this.uniforms.galaxy.armWidth);
-
-      // Final angle and radius
-      const angle = armAngle.add(spiralAngle).add(angleOffset);
-      const offsetRadius = radius.add(radiusOffset);
-
-      // Convert to Cartesian coordinates
-      const x = cos(angle).mul(offsetRadius);
-      const z = sin(angle).mul(offsetRadius);
-
-      // Vertical position: slightly thinner than stars
-      const thicknessFactor = float(1.0).sub(normalizedRadius).add(0.15); // 1.15 at center, 0.15 at edge
-      const y = hash(seed.add(5)).sub(0.5).mul(this.uniforms.galaxy.thickness).mul(thicknessFactor);
-
-      const position = vec3(x, y, z);
-
-      // Store positions
-      cloudPositionBuffer.element(idx).assign(position);
-      cloudOriginalPositionBuffer.element(idx).assign(position);
-
-      // Cloud color: tinted and darker towards edges
-      const tintColor = vec3(this.uniforms.visual.cloudTintColor);
-      const cloudColor = tintColor.mul(float(1.0).sub(normalizedRadius.mul(0.3)));
-      cloudColorBuffer.element(idx).assign(cloudColor);
-
-      // Size variation: larger clouds in denser regions
-      const densityFactor = float(1.0).sub(normalizedRadius.mul(0.5));
-      const size = hash(seed.add(6)).mul(0.5).add(0.7).mul(densityFactor);
-      cloudSizeBuffer.element(idx).assign(size);
-
-      // Random rotation for visual variation
-      const rotation = hash(seed.add(7)).mul(6.28318); // 0 to 2π
-      cloudRotationBuffer.element(idx).assign(rotation);
-    })().compute(CLOUD_COUNT);
-
-    // Update cloud particles (same physics as stars but weaker spring)
-    this.cloudUpdate = Fn(() => {
-      const idx = instanceIndex;
-      const position = cloudPositionBuffer.element(idx).toVar();
-      const originalPos = cloudOriginalPositionBuffer.element(idx);
-
-      // Apply differential rotation
-      const rotatedPos = applyDifferentialRotation(
-        position,
-        this.uniforms.compute.rotationSpeed,
-        this.uniforms.compute.deltaTime
-      );
-      position.assign(rotatedPos);
-
-      // Rotate original position
-      const rotatedOriginal = applyDifferentialRotation(
-        originalPos,
-        this.uniforms.compute.rotationSpeed,
-        this.uniforms.compute.deltaTime
-      );
-      cloudOriginalPositionBuffer.element(idx).assign(rotatedOriginal);
-
-      // Apply mouse force
-      const mouseForce = applyMouseForce(
-        position,
-        this.uniforms.compute.mouse,
-        this.uniforms.compute.mouseActive,
-        this.uniforms.compute.mouseForce,
-        this.uniforms.compute.mouseRadius,
-        this.uniforms.compute.deltaTime
-      );
-      position.addAssign(mouseForce);
-
-      // Apply spring force (weaker than stars for more fluid movement)
-      const springForce = applySpringForce(
-        position,
-        rotatedOriginal,
-        float(1.0), // Weaker spring strength
-        this.uniforms.compute.deltaTime
-      );
-      position.addAssign(springForce);
-
-      cloudPositionBuffer.element(idx).assign(position);
-    })().compute(CLOUD_COUNT);
-
-    // Store cloud state
-    this.cloudCount = CLOUD_COUNT;
-
-    // Create cloud sprite material
-    const cloudMaterial = new THREE.SpriteNodeMaterial();
-    cloudMaterial.transparent = true;
-    cloudMaterial.depthWrite = false;
-    cloudMaterial.blending = THREE.AdditiveBlending; // Efficient for overlapping particles
-
-    const cloudPos = cloudPositionBuffer.toAttribute();
-    const cloudColor = cloudColorBuffer.toAttribute();
-    const cloudSize = cloudSizeBuffer.toAttribute();
-    const cloudRotation = cloudRotationBuffer.toAttribute();
-
-    cloudMaterial.positionNode = cloudPos;
-    cloudMaterial.colorNode = vec4(cloudColor.x, cloudColor.y, cloudColor.z, float(1.0));
-    cloudMaterial.scaleNode = cloudSize.mul(this.uniforms.visual.cloudSize);
-    cloudMaterial.rotationNode = cloudRotation;
-
-    // Use texture for soft cloud appearance
-    if (this.cloudTexture) {
-      const cloudTextureNode = texture(this.cloudTexture, uv());
-      cloudMaterial.opacityNode = cloudTextureNode.a.mul(this.uniforms.visual.cloudOpacity);
-    } else {
-      cloudMaterial.opacityNode = this.uniforms.visual.cloudOpacity;
-    }
-
-    this.cloudPlane = new THREE.Sprite(cloudMaterial);
-    this.cloudPlane.count = CLOUD_COUNT;
-    this.cloudPlane.frustumCulled = false;
-    this.cloudPlane.renderOrder = -1; // Render clouds before stars
-
-    this.scene.add(this.cloudPlane);
-
-    // Reset initialization flag so clouds get initialized on next update
-    this.cloudInitialized = false;
+    this.cloudInit = null;
+    this.cloudUpdate = null;
+    this.cloudInitialized = true;
+    this.config.cloudCount = 0;
   }
 
   /**
@@ -503,13 +364,7 @@ export class GalaxySimulation {
       this.initialized = true;
     }
 
-    // Initialize clouds on first frame
-    if (!this.cloudInitialized && this.cloudInit) {
-      await renderer.computeAsync(this.cloudInit);
-      this.cloudInitialized = true;
-    }
-
-    // Update compute uniforms
+    // Dust/cloud compute and rendering are disabled entirely.
     this.uniforms.compute.time.value += deltaTime;
     this.uniforms.compute.deltaTime.value = deltaTime;
     this.uniforms.compute.mouse.value.copy(mouse3D);
@@ -518,9 +373,6 @@ export class GalaxySimulation {
     // Run physics computations
     await renderer.computeAsync(this.computeUpdate);
 
-    if (this.cloudUpdate) {
-      await renderer.computeAsync(this.cloudUpdate);
-    }
   }
 
   /**
