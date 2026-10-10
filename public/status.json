@@ -1049,9 +1049,9 @@
   },
   "external_integrations": {
     "status": "PARTIAL_INTEGRATION",
-    "playwright": "CI_TEST_SUITE_ADDED_PENDING_FIRST_RUN",
+    "playwright": "CI_TEST_SUITE_ADDED_AND_PREVIOUS_RUN_PASSED",
     "mini_swe_agent": "NOT_CONNECTED_REQUIRES_SANDBOX_AND_MODEL_SECRET",
-    "browser_use": "NOT_CONNECTED_REQUIRES_MODEL_SECRET",
+    "browser_use": "READONLY_WORKFLOW_ADDED_NOT_YET_RUN_REQUIRES_OPENAI_API_KEY_SECRET",
     "seo_agent": "OPTIONAL_NOT_CONNECTED_REQUIRES_REVIEW_AND_SECRETS",
     "orchestration": "LANGGRAPH_OR_CREWAI_DEFERRED",
     "policy": "Worker tasks require an independent checker; code-writing agents cannot deploy directly."
