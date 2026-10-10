@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "status": "PAIR_POLICY_RESULT_GATE_AND_DETERMINISTIC_QUEUE_PACKETS_IMPLEMENTED_AI_WORKER_EXECUTION_PENDING",
+  "status": "DETERMINISTIC_QUEUE_AND_PROPOSAL_ONLY_MODEL_RUNTIME_IMPLEMENTED_EXECUTION_UNVERIFIED",
   "ownership_rule": "one_primary_owner_per_task",
   "hierarchy": [
     "manager",
