@@ -1038,10 +1038,12 @@
   },
   "agent_inventory": {
     "captains_ready": 9,
-    "child_agents_ready": 45,
-    "total_roles_ready": 54,
+    "child_agents_ready": 90,
+    "total_roles_ready": 99,
     "registry_valid": true,
     "readiness_semantics": "Registered and available; not necessarily executing",
+    "minimum_small_agents_per_task": 2,
+    "task_pairing_policy": "primary_worker_plus_independent_checker",
     "child_role_execution_adapter": "pending",
     "ai_provider_adapter_connected": false
   }
