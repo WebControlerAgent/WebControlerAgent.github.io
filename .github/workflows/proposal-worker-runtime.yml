@@ -1,0 +1,56 @@
+name: Proposal-only AI worker runtime
+
+on:
+  workflow_dispatch:
+    inputs:
+      task_file:
+        description: "Task JSON file in the repository"
+        required: true
+        default: "tasks/demo-ui-review.json"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: proposal-worker-runtime
+  cancel-in-progress: false
+
+jobs:
+  proposal-and-independent-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Checkout repository read-only
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate task and call proposal-only runtime
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+          TASK_FILE: ${{ inputs.task_file }}
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          root = Path.cwd().resolve()
+          candidate = (root / os.environ["TASK_FILE"]).resolve()
+          if root not in candidate.parents or not candidate.is_file():
+              raise SystemExit("Task file must be an existing file inside the checked-out repository")
+          if candidate.suffix.lower() != ".json":
+              raise SystemExit("Task file must be JSON")
+          print("Task path accepted:", candidate.relative_to(root))
+          PY
+          python controller/model_worker_runtime.py "$TASK_FILE" --output artifacts/worker-runtime/result.json
+      - name: Upload unapplied proposal and checker report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: proposal-only-worker-result
+          path: artifacts/worker-runtime/result.json
+          if-no-files-found: warn
+          retention-days: 7
