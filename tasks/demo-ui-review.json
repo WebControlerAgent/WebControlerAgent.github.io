@@ -1,0 +1,20 @@
+{
+  "task_id": "demo-ui-review-001",
+  "site": "kingdom-raw",
+  "repository": "kindgommangaraw/kindgommangaraw.github.io",
+  "parent_captain": "publisher",
+  "task_type": "feature_or_visual_change",
+  "objective": "Review the public-facing project status UI and propose one small, low-risk improvement. Do not claim to inspect the live site unless evidence is included in the task.",
+  "allowed_paths": ["public/"],
+  "constraints": [
+    "Proposal only: never apply files, merge, or deploy.",
+    "Do not change secrets, workflows, credentials, or deployment configuration.",
+    "Do not invent test results or claim browser checks were run.",
+    "Keep the proposal small and explain the expected benefit."
+  ],
+  "success_criteria": [
+    "Every proposed file is within public/.",
+    "Return a concise summary and evidence limitations.",
+    "Independent checker must review scope and unsupported claims."
+  ]
+}
