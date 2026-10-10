@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "PLAYWRIGHT_CI_ADDED_OTHER_AGENTS_STAGED",
+  "status": "PLAYWRIGHT_CI_AND_BROWSER_USE_READONLY_WORKFLOW_ADDED_OTHER_AGENTS_STAGED",
   "rule": "Every task uses a primary worker and an independent checker; tools can provide evidence but do not automatically count as the checker.",
   "runtime": {
     "github_pages": "Static UI only; cannot host persistent workers.",
@@ -101,7 +101,9 @@
       "url": "https://github.com/browser-use/browser-use",
       "license": "MIT",
       "kind": "browser_agent",
-      "status": "ADAPTER_NOT_CONNECTED_REQUIRES_MODEL_SECRET",
+      "status": "READONLY_ADAPTER_COMMITTED_MANUAL_RUN_REQUIRES_MODEL_SECRET",
+      "workflow": ".github/workflows/browser-use-readonly.yml",
+      "adapter": "agents/adapters/browser_use_readonly.py",
       "mappings": [
         {
           "captain": "researcher",
