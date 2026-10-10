@@ -139,18 +139,30 @@ function CaptainSun({item,index,onSelect,selected}:{item:any;index:number;onSele
 }
 function BlackHole({onSelect}:{onSelect:()=>void}){
  const ref=useRef<THREE.Group>(null!); const disk=useRef<THREE.Group>(null!);
- useFrame((_,delta)=>{ref.current.rotation.y+=delta*.045;disk.current.rotation.z-=delta*.18});
+ const inner=useRef<THREE.Mesh>(null!);const halo=useRef<THREE.Mesh>(null!);
+ useFrame(({clock},delta)=>{
+   ref.current.rotation.y+=delta*.025;
+   disk.current.rotation.z-=delta*.18;
+   if(inner.current){const p=1+Math.sin(clock.elapsedTime*2.1)*.035;inner.current.scale.setScalar(p);}
+   if(halo.current){const p=1+Math.sin(clock.elapsedTime*1.2)*.045;halo.current.scale.setScalar(p);}
+ });
  return <group ref={ref} onClick={(e)=>{e.stopPropagation();onSelect()}}>
-   <pointLight color="#7c5cff" intensity={3.2} distance={11} decay={2}/>
-   <mesh><sphereGeometry args={[1.08,64,64]}/><meshBasicMaterial color="#000000"/></mesh>
-   <mesh scale={1.35}><sphereGeometry args={[1.08,48,48]}/><meshBasicMaterial color="#05010d" transparent opacity={.7}/></mesh>
+   <pointLight color="#ff7438" intensity={5.5} distance={15} decay={1.8}/>
+   <pointLight color="#8a58ff" intensity={3.5} distance={13} decay={2}/>
+   <mesh ref={halo} scale={1.8}><sphereGeometry args={[1.08,48,48]}/><meshBasicMaterial color="#5421a0" transparent opacity={.12} blending={THREE.AdditiveBlending} depthWrite={false}/></mesh>
+   <mesh ref={inner} scale={1.35}><sphereGeometry args={[1.08,64,64]}/><meshBasicMaterial color="#000000"/></mesh>
+   <mesh scale={1.11}><sphereGeometry args={[1.08,48,48]}/><meshBasicMaterial color="#010106"/></mesh>
    <group ref={disk}>
-     <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[1.34,.16,24,160]}/><meshStandardMaterial color="#ffb45c" emissive="#ff6b24" emissiveIntensity={5} roughness={.22} metalness={.05}/></mesh>
-     <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[1.55,.07,16,160]}/><meshBasicMaterial color="#ffd8a0" transparent opacity={.5} blending={THREE.AdditiveBlending}/></mesh>
-     <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[1.82,.028,12,160]}/><meshBasicMaterial color="#9b7cff" transparent opacity={.32} blending={THREE.AdditiveBlending}/></mesh>
-     <mesh rotation={[Math.PI/2,0,.35]}><torusGeometry args={[2.16,.012,10,160]}/><meshBasicMaterial color="#6d5cff" transparent opacity={.16} blending={THREE.AdditiveBlending}/></mesh>
+     <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[1.30,.22,28,192]}/><meshStandardMaterial color="#ff7b28" emissive="#ff4b12" emissiveIntensity={7} roughness={.2} metalness={.04}/></mesh>
+     <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[1.42,.105,24,192]}/><meshBasicMaterial color="#fff0bb" transparent opacity={.92} blending={THREE.AdditiveBlending} depthWrite={false}/></mesh>
+     <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[1.63,.075,20,192]}/><meshBasicMaterial color="#ff8a38" transparent opacity={.74} blending={THREE.AdditiveBlending} depthWrite={false}/></mesh>
+     <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[1.87,.035,16,192]}/><meshBasicMaterial color="#bb6cff" transparent opacity={.43} blending={THREE.AdditiveBlending} depthWrite={false}/></mesh>
+     <mesh rotation={[Math.PI/2,0,.32]}><torusGeometry args={[2.16,.014,10,192]}/><meshBasicMaterial color="#568dff" transparent opacity={.2} blending={THREE.AdditiveBlending} depthWrite={false}/></mesh>
+     <mesh rotation={[Math.PI/2,.05,.5]}><torusGeometry args={[2.38,.009,8,192]}/><meshBasicMaterial color="#ff75c8" transparent opacity={.16} blending={THREE.AdditiveBlending} depthWrite={false}/></mesh>
    </group>
-   <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[1.1,.018,10,128]}/><meshBasicMaterial color="#fff0c2" transparent opacity={.65} blending={THREE.AdditiveBlending}/></mesh>
+   <mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[1.12,.024,12,160]}/><meshBasicMaterial color="#fff8d9" transparent opacity={.86} blending={THREE.AdditiveBlending} depthWrite={false}/></mesh>
+   <mesh rotation={[.08,0,.08]} position={[0,2.15,0]}><coneGeometry args={[.19,2.5,24,1,true]}/><meshBasicMaterial color="#ff9a55" transparent opacity={.12} side={THREE.DoubleSide} blending={THREE.AdditiveBlending} depthWrite={false}/></mesh>
+   <mesh rotation={[Math.PI-.08,0,.08]} position={[0,-2.15,0]}><coneGeometry args={[.19,2.5,24,1,true]}/><meshBasicMaterial color="#8c6aff" transparent opacity={.1} side={THREE.DoubleSide} blending={THREE.AdditiveBlending} depthWrite={false}/></mesh>
  </group>;
 }
 function Planet({index,onClick}:{index:number;onClick:()=>void}){
