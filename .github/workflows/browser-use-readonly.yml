@@ -1,0 +1,50 @@
+name: Browser Use Read-only Audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Public URL to inspect (allowlisted hosts only)
+        required: true
+        type: choice
+        options:
+          - https://webcontroleragent.github.io/
+          - https://github.com/WebControlerAgent/WebControlerAgent.github.io
+
+permissions:
+  contents: read
+
+concurrency:
+  group: browser-use-readonly
+  cancel-in-progress: true
+
+jobs:
+  readonly-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Browser Use
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "browser-use"
+          python -m playwright install --with-deps chromium
+      - name: Run bounded read-only audit
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          BROWSER_USE_MODEL: gpt-4o-mini
+        run: |
+          python agents/adapters/browser_use_readonly.py "${{ inputs.target }}"
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-use-readonly-report
+          path: artifacts/browser-use-result.json
+          if-no-files-found: ignore
+          retention-days: 7
