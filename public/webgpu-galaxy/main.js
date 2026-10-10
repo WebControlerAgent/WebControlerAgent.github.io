@@ -291,6 +291,8 @@ renderer.init().then(() => {
   postProcessing = new THREE.PostProcessing(renderer);
   setupBloom();
   ui.setBloomNode(bloomPassNode);
+  const status = document.getElementById('status');
+  if (status) status.textContent = 'GPU simulation active · drag the galaxy to interact';
 
   document.getElementById('star-count').textContent = config.starCount.toLocaleString();
   animate();
