@@ -7,7 +7,7 @@ import { GalaxyUI } from './ui.js';
 
 // Configuration
 const config = {
-  starCount: 300000,
+  starCount: 300000, // Real GPU particle count; 300 million would exceed normal browser GPU memory
   rotationSpeed: 0.1,
   spiralTightness: 2.15,
   mouseForce: 7.0,
@@ -17,16 +17,16 @@ const config = {
   armCount: 4,
   armWidth: 2.25,
   randomness: 1.35,
-  particleSize: 0.055,
+  particleSize: 0.008, // Tiny stars: become clear mainly when zooming in
   starBrightness: 0.48,
   denseStarColor: '#3998ff',
   sparseStarColor: '#ffb36b',
-  bloomStrength: 0.42,
-  bloomRadius: 0.2,
-  bloomThreshold: 0.1,
-  cloudCount: 18000,
-  cloudSize: 4.6,
-  cloudOpacity: 0.14,
+  bloomStrength: 0.24,
+  bloomRadius: 0.12,
+  bloomThreshold: 0.28,
+  cloudCount: 18000, // GPU-safe real count; millions need a different hierarchical renderer
+  cloudSize: 0.34, // Tiny cloud particles, intended to resolve on close zoom
+  cloudOpacity: 0.10,
   cloudTintColor: '#9bbdff'
 };
 
