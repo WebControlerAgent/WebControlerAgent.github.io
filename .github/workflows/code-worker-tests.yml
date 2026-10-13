@@ -1,0 +1,31 @@
+name: Bounded Code Worker Tests
+
+on:
+  push:
+    branches: [main, "feat/**"]
+    paths:
+      - "controller/code_change_worker.py"
+      - "controller/test_code_change_worker.py"
+      - ".github/workflows/code-worker-tests.yml"
+  pull_request:
+    paths:
+      - "controller/code_change_worker.py"
+      - "controller/test_code_change_worker.py"
+      - ".github/workflows/code-worker-tests.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  code-worker-contract-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run bounded worker and independent checker tests
+        run: python -m unittest controller.test_code_change_worker -v
