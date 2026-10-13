@@ -120,7 +120,15 @@ def run_coding_task(
     destination.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="bounded-mini-swe-") as tmp:
         workspace = Path(tmp) / "workspace"
-        shutil.copytree(source, workspace, ignore=shutil.ignore_patterns("__pycache__", ".pytest_cache", "node_modules", "dist", "build"))
+        shutil.copytree(
+            source, workspace,
+            ignore=shutil.ignore_patterns(".git", "__pycache__", ".pytest_cache", "node_modules", "dist", "build"),
+        )
+        _run_git(["init"], workspace)
+        _run_git(["config", "user.name", "Bounded Worker"], workspace)
+        _run_git(["config", "user.email", "bounded-worker@localhost"], workspace)
+        _run_git(["add", "-A"], workspace)
+        _run_git(["commit", "-m", "Isolated baseline"], workspace)
         baseline = _run_git(["rev-parse", "HEAD"], workspace).stdout.strip()
         # A fresh output directory avoids inheriting repository credentials or hooks.
         output_file = Path(tmp) / "trajectory.json"
