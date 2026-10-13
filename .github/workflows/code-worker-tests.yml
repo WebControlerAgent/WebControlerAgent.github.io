@@ -17,6 +17,8 @@ on:
       - ".github/workflows/code-worker-tests.yml"
       - ".github/workflows/bounded-worker.yml"
       - "tasks/demo-bounded-code-proposal.json"
+      - ".github/workflows/bounded-worker.yml"
+      - "tasks/demo-bounded-code-proposal.json"
   pull_request:
     paths:
       - "controller/code_change_worker.py"
@@ -28,6 +30,8 @@ on:
       - "controller/test_worker_execution_bridge.py"
       - "controller/test_open_source_worker_adapter.py"
       - ".github/workflows/code-worker-tests.yml"
+      - ".github/workflows/bounded-worker.yml"
+      - "tasks/demo-bounded-code-proposal.json"
   workflow_dispatch:
 
 permissions:
