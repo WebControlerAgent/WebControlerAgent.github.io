@@ -63,8 +63,8 @@ class OpenSourceAdapterPreflightTests(unittest.TestCase):
             checkout.mkdir()
             (checkout / ".git").mkdir()
             (checkout / ".git" / "config").write_text(
-                '[core]\\n repositoryformatversion = 0\\n bare = false\\n'
-                '[remote "origin"]\\n url = https://github.com/owner/site.git\\n',
+                '[core]\n repositoryformatversion = 0\n bare = false\n'
+                '[remote "origin"]\n url = https://github.com/owner/site.git\n',
                 encoding="utf-8",
             )
             result = run_coding_task(
@@ -91,8 +91,8 @@ class OpenSourceAdapterPreflightTests(unittest.TestCase):
             checkout.mkdir()
             (checkout / ".git").mkdir()
             (checkout / ".git" / "config").write_text(
-                '[core]\\n repositoryformatversion = 0\\n bare = false\\n'
-                '[remote "origin"]\\n url = https://github.com/owner/site.git\\n',
+                '[core]\n repositoryformatversion = 0\n bare = false\n'
+                '[remote "origin"]\n url = https://github.com/owner/site.git\n',
                 encoding="utf-8",
             )
             result = run_coding_task(
@@ -113,8 +113,8 @@ class OpenSourceAdapterPreflightTests(unittest.TestCase):
             checkout.mkdir()
             (checkout / ".git").mkdir()
             (checkout / ".git" / "config").write_text(
-                '[core]\\n repositoryformatversion = 0\\n bare = false\\n'
-                '[remote "origin"]\\n url = https://github.com/owner/site.git\\n',
+                '[core]\n repositoryformatversion = 0\n bare = false\n'
+                '[remote "origin"]\n url = https://github.com/owner/site.git\n',
                 encoding="utf-8",
             )
             result = run_coding_task(
@@ -137,8 +137,8 @@ class OpenSourceAdapterPreflightTests(unittest.TestCase):
             checkout.mkdir()
             (checkout / ".git").mkdir()
             (checkout / ".git" / "config").write_text(
-                '[core]\\n repositoryformatversion = 0\\n bare = false\\n'
-                '[remote "origin"]\\n url = https://github.com/owner/site.git\\n',
+                '[core]\n repositoryformatversion = 0\n bare = false\n'
+                '[remote "origin"]\n url = https://github.com/owner/site.git\n',
                 encoding="utf-8",
             )
             (checkout / "src").mkdir()
@@ -181,8 +181,8 @@ class OpenSourceAdapterPreflightTests(unittest.TestCase):
             checkout.mkdir()
             (checkout / ".git").mkdir()
             (checkout / ".git" / "config").write_text(
-                '[core]\\n repositoryformatversion = 0\\n bare = false\\n'
-                '[remote "origin"]\\n url = https://github.com/owner/site.git\\n',
+                '[core]\n repositoryformatversion = 0\n bare = false\n'
+                '[remote "origin"]\n url = https://github.com/owner/site.git\n',
                 encoding="utf-8",
             )
             (checkout / "base.py").write_text("print('base')\n", encoding="utf-8")
@@ -221,8 +221,8 @@ class OpenSourceAdapterPreflightTests(unittest.TestCase):
             checkout = root / "repo"
             (checkout / ".git").mkdir(parents=True)
             (checkout / ".git" / "config").write_text(
-                '[core]\\n repositoryformatversion = 0\\n bare = false\\n'
-                '[remote "origin"]\\n url = https://github.com/other/repo.git\\n',
+                '[core]\n repositoryformatversion = 0\n bare = false\n'
+                '[remote "origin"]\n url = https://github.com/other/repo.git\n',
                 encoding="utf-8",
             )
             env = {
@@ -251,8 +251,8 @@ class OpenSourceAdapterPreflightTests(unittest.TestCase):
             checkout.mkdir()
             (checkout / ".git").mkdir()
             (checkout / ".git" / "config").write_text(
-                '[core]\\n repositoryformatversion = 0\\n bare = false\\n'
-                '[remote "origin"]\\n url = https://github.com/owner/site.git\\n',
+                '[core]\n repositoryformatversion = 0\n bare = false\n'
+                '[remote "origin"]\n url = https://github.com/owner/site.git\n',
                 encoding="utf-8",
             )
             env = {
