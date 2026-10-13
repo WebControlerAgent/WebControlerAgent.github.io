@@ -19,16 +19,12 @@ test("console boot overlay exposes its branded shell", async ({ page }) => {
   await expect(page.locator(".boot-title")).toContainText("AIWCU");
 });
 
-test("captain sidebar selection updates the inspector", async ({ page }) => {
+test("Focus Agent control selects the Manager inspector", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  const sidebar = page.locator(".sidebar");
-  await sidebar.hover(); // Expands the sidebar on compact layouts; harmless on desktop.
-  const captain = sidebar.locator(".agent-row").filter({ hasText: "Bug Hunter" }).first();
-  await expect(captain).toBeVisible();
-  await captain.click();
-  await expect(page.locator(".inspector h2")).toHaveText("Bug Hunter");
-  await expect(page.locator(".inspector")).toContainText("Diagnostics Captain");
+  await page.getByRole("button", { name: "⌖ Focus Agent" }).click();
+  await expect(page.locator(".inspector h2")).toHaveText("Manager");
+  await expect(page.locator(".inspector")).toContainText("Universe Operations Captain");
 });
 
 test("Manager chat accepts a status query and responds", async ({ page }) => {
