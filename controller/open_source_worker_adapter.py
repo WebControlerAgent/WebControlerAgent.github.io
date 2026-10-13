@@ -201,9 +201,35 @@ def run_coding_task(
 
 def main() -> int:
     import argparse
+
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("adapter", choices=sorted(UPSTREAMS))
+    parser.add_argument("--task-json", help="Validated task JSON; required to execute the coding adapter.")
+    parser.add_argument("--checkout", help="Local disposable source checkout for the authorized site.")
+    parser.add_argument("--sites-json", default="controller/sites.json", help="Authorized site registry JSON.")
+    parser.add_argument("--output-dir", default="worker-artifacts", help="Directory for candidate patch artifacts.")
+    parser.add_argument("--timeout", type=int, default=900, help="Maximum agent runtime in seconds.")
     args = parser.parse_args()
+
+    if args.task_json:
+        if args.adapter != "coding" or not args.checkout:
+            parser.error("--task-json requires adapter=coding and --checkout")
+        try:
+            task = json.loads(Path(args.task_json).read_text(encoding="utf-8"))
+            sites = json.loads(Path(args.sites_json).read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            print(json.dumps({"state": "BLOCKED", "executed": False, "reason": f"Cannot read task/registry JSON: {exc}"}))
+            return 2
+        result = run_coding_task(
+            repository_checkout=args.checkout,
+            task=task,
+            sites=sites,
+            output_dir=args.output_dir,
+            timeout_seconds=args.timeout,
+        )
+        print(json.dumps(result, indent=2))
+        return 0 if result.get("state") == "READY_FOR_INDEPENDENT_CHECK" else 2
+
     result = inspect_adapter(args.adapter)
     print(json.dumps(result, indent=2))
     return 0 if result["state"] == "PREFLIGHT_READY_NOT_EXECUTED" else 2
