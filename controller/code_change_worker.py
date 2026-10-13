@@ -58,8 +58,8 @@ def prepare_proposal(task: dict[str, Any], sites_config: dict[str, Any],
     site = matches[0]
     if task.get("repository") != site.get("repository"):
         raise CodeChangeError("Task repository does not match the authorized site")
-    if task.get("task_type") != "code_change_proposal":
-        raise CodeChangeError("Only code_change_proposal tasks are supported")
+    if task.get("task_type") not in {"code_change_proposal", "bug_fix"}:
+        raise CodeChangeError("Only code_change_proposal and bug_fix tasks are supported")
     if not str(task.get("objective", "")).strip():
         raise CodeChangeError("Task objective is required")
 
