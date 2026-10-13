@@ -84,6 +84,12 @@ class CodeChangeWorkerTests(unittest.TestCase):
                                           changes=[{"path": path, "content": "x"}]),
                                      SITES, Path(tmp) / "out")
 
+    def test_bug_fix_task_uses_same_bounded_candidate_flow(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            report = prepare_proposal(task(task_type="bug_fix"), SITES, Path(tmp) / "out")
+            self.assertEqual(report["state"], "READY_FOR_INDEPENDENT_CHECK")
+            self.assertFalse(report["repository_modified"])
+
     def test_rejects_wrong_task_type(self):
         with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaises(CodeChangeError):
