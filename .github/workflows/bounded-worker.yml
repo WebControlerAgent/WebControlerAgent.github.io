@@ -6,7 +6,7 @@ on:
       task_file:
         description: "Repository task JSON path (must be inside tasks/)"
         required: true
-        default: "tasks/demo-ui-review.json"
+        default: "tasks/demo-bounded-code-proposal.json"
         type: string
       timeout_minutes:
         description: "Hard time limit (5–20 minutes)"
