@@ -128,6 +128,21 @@ def run_coding_task(
     if destination == source or source in destination.parents:
         return {"state": "BLOCKED", "executed": False, "reason": "Output directory must be outside the source checkout."}
 
+    # The task's authorized repository must match the checkout being copied.
+    # Otherwise a valid task could accidentally produce a patch for the wrong site.
+    try:
+        origin = _run_git(["remote", "get-url", "origin"], source).stdout.strip()
+    except (subprocess.CalledProcessError, OSError):
+        return {"state": "BLOCKED", "executed": False, "reason": "Checkout must have an origin remote matching the authorized repository."}
+    normalized_origin = origin.lower().removesuffix(".git").replace("git@github.com:", "https://github.com/")
+    expected_repo = "https://github.com/" + str(task["repository"]).lower().removesuffix(".git")
+    if normalized_origin.rstrip("/") != expected_repo:
+        return {
+            "state": "BLOCKED",
+            "executed": False,
+            "reason": "Checkout origin does not match the authorized task repository.",
+        }
+
     destination.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="bounded-mini-swe-") as tmp:
         workspace = Path(tmp) / "workspace"
