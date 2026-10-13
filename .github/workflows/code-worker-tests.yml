@@ -11,6 +11,8 @@ on:
       - "controller/task_dispatcher.py"
       - "controller/test_task_dispatcher.py"
       - "controller/open_source_worker_adapter.py"
+      - "controller/worker_execution_bridge.py"
+      - "controller/test_worker_execution_bridge.py"
       - "controller/test_open_source_worker_adapter.py"
       - ".github/workflows/code-worker-tests.yml"
   pull_request:
@@ -38,4 +40,4 @@ jobs:
         with:
           python-version: "3.12"
       - name: Run bounded worker and independent checker tests
-        run: python -m unittest controller.test_code_change_worker controller.test_seo_worker controller.test_task_dispatcher controller.test_open_source_worker_adapter -v
+        run: python -m unittest controller.test_code_change_worker controller.test_seo_worker controller.test_task_dispatcher controller.test_open_source_worker_adapter controller.test_worker_execution_bridge -v
