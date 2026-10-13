@@ -44,7 +44,7 @@ jobs:
           from pathlib import Path
 
           path = os.environ["TASK_FILE"]
-          if not re.fullmatch(r"tasks/[A-Za-z0-9._-]+\\.json", path) or ".." in Path(path).parts:
+          if not re.fullmatch(r"tasks/[A-Za-z0-9._-]+\.json", path) or ".." in Path(path).parts:
               raise SystemExit("BLOCKED: choose a JSON file directly inside tasks/.")
           task_path = Path(path)
           if not task_path.is_file():
@@ -82,9 +82,9 @@ jobs:
               raise SystemExit("BLOCKED: malformed repository identifier.")
 
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
-              output.write("repository=" + task["repository"] + "\\n")
-              output.write("task_id=" + task["task_id"] + "\\n")
-              output.write("task_file=" + path + "\\n")
+              output.write("repository=" + task["repository"] + "\n")
+              output.write("task_id=" + task["task_id"] + "\n")
+              output.write("task_file=" + path + "\n")
           print("Task contract validated; source repository remains unchanged.")
           PY
 
@@ -125,11 +125,11 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p worker-artifacts
-          python3 -m controller.worker_execution_bridge \\
-            --task-json "$TASK_FILE" \\
-            --checkout "$GITHUB_WORKSPACE/target-checkout" \\
-            --output-dir "$GITHUB_WORKSPACE/worker-artifacts" \\
-            --timeout $(( ${{ inputs.timeout_minutes }} * 60 )) \\
+          python3 -m controller.worker_execution_bridge \
+            --task-json "$TASK_FILE" \
+            --checkout "$GITHUB_WORKSPACE/target-checkout" \
+            --output-dir "$GITHUB_WORKSPACE/worker-artifacts" \
+            --timeout $(( ${{ inputs.timeout_minutes }} * 60 )) \
             | tee worker-artifacts/worker-result.json
 
       - name: Upload patch proposal and result
