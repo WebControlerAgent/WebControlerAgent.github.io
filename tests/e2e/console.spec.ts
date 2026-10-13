@@ -22,7 +22,7 @@ test("console boot overlay exposes its branded shell", async ({ page }) => {
 test("captain sidebar selection updates the inspector", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  const captain = page.locator(".agent-row").filter({ hasText: "Bug Hunter" }).first();
+  const captain = page.locator(".sidebar .agent-row").filter({ hasText: "Bug Hunter" }).first();
   await expect(captain).toBeVisible();
   await captain.click();
   await expect(page.locator(".inspector h2")).toHaveText("Bug Hunter");
