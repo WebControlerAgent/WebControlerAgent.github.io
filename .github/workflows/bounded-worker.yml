@@ -146,11 +146,11 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p worker-artifacts
-          python3 -m controller.worker_execution_bridge \\
-            --task-json "$TASK_FILE" \\
-            --checkout "$GITHUB_WORKSPACE/target-checkout" \\
-            --output-dir "$GITHUB_WORKSPACE/worker-artifacts" \\
-            --timeout $(( ${{ inputs.timeout_minutes }} * 60 )) \\
+          python3 -m controller.worker_execution_bridge \
+            --task-json "$TASK_FILE" \
+            --checkout "$GITHUB_WORKSPACE/target-checkout" \
+            --output-dir "$GITHUB_WORKSPACE/worker-artifacts" \
+            --timeout $(( ${{ inputs.timeout_minutes }} * 60 )) \
             | tee worker-artifacts/worker-result.json
 
       - name: Independent deterministic patch review
@@ -163,9 +163,9 @@ jobs:
           set -euo pipefail
           PATCH_FILE="$GITHUB_WORKSPACE/worker-artifacts/$TASK_ID.patch"
           test -s "$PATCH_FILE" || { echo "::error::Worker did not produce a non-empty patch; cannot pass review."; exit 1; }
-          python3 -m controller.patch_review \\
-            --task-json "$TASK_FILE" \\
-            --patch "$PATCH_FILE" \\
+          python3 -m controller.patch_review \
+            --task-json "$TASK_FILE" \
+            --patch "$PATCH_FILE" \
             --output "$GITHUB_WORKSPACE/worker-artifacts/patch-review.json"
 
       - name: Upload patch proposal and result
