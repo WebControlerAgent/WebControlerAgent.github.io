@@ -123,6 +123,11 @@ def run_coding_task(
     ):
         return {"state": "BLOCKED", "executed": False, "reason": "Unsafe allowed_paths."}
 
+    # Never place artifacts inside the source checkout: even a safe patch
+    # output directory there would violate the read-only source guarantee.
+    if destination == source or source in destination.parents:
+        return {"state": "BLOCKED", "executed": False, "reason": "Output directory must be outside the source checkout."}
+
     destination.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="bounded-mini-swe-") as tmp:
         workspace = Path(tmp) / "workspace"
@@ -179,15 +184,36 @@ def run_coding_task(
         except subprocess.TimeoutExpired:
             return {"state": "VERIFYING", "executed": True, "reason": "Agent timed out; candidate not accepted."}
 
+        # Include untracked files in scope validation. Plain git diff silently
+        # omits them, which could otherwise hide a worker-created file.
+        status_lines = _run_git(
+            ["status", "--porcelain", "--untracked-files=all"], workspace
+        ).stdout.splitlines()
+        untracked = [line[3:] for line in status_lines if line.startswith("?? ")]
+        changed = sorted(set(_run_git(["diff", "--name-only", baseline], workspace).stdout.splitlines() + untracked))
+        unsafe = [
+            p for p in changed
+            if not any(p == a or (a.endswith("/") and p.startswith(a)) for a in allowed)
+        ]
+        if unsafe:
+            return {
+                "state": "VERIFYING",
+                "executed": True,
+                "return_code": completed.returncode,
+                "changed_files": changed,
+                "blocked_paths": unsafe,
+                "reason": "Worker touched paths outside the explicit allowlist; no patch exported.",
+            }
+        if untracked:
+            _run_git(["add", "-N", "--", *untracked], workspace)
         changed = _run_git(["diff", "--name-only", baseline], workspace).stdout.splitlines()
-        unsafe = [p for p in changed if not any(p == a or p.startswith(a.rstrip("/") + "/") for a in allowed)]
-        if completed.returncode != 0 or unsafe or not changed:
+        if completed.returncode != 0 or not changed:
             return {
                 "state": "VERIFYING" if completed.returncode == 0 else "BLOCKED",
                 "executed": True,
                 "return_code": completed.returncode,
                 "changed_files": changed,
-                "blocked_paths": unsafe,
+                "blocked_paths": [],
                 "reason": "No scoped patch was accepted; independent checker and Captain review are required.",
             }
         patch = _run_git(["diff", "--binary", baseline], workspace).stdout
