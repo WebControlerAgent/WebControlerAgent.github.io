@@ -25,7 +25,7 @@ concurrency:
 jobs:
   proposal:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 35
     steps:
       - name: Checkout controller repository
         uses: actions/checkout@v4
@@ -44,7 +44,7 @@ jobs:
           from pathlib import Path
 
           path = os.environ["TASK_FILE"]
-          if not re.fullmatch(r"tasks/[A-Za-z0-9._-]+\.json", path) or ".." in Path(path).parts:
+          if not re.fullmatch(r"tasks/[A-Za-z0-9._-]+\\.json", path) or ".." in Path(path).parts:
               raise SystemExit("BLOCKED: choose a JSON file directly inside tasks/.")
           task_path = Path(path)
           if not task_path.is_file():
@@ -82,9 +82,9 @@ jobs:
               raise SystemExit("BLOCKED: malformed repository identifier.")
 
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
-              output.write("repository=" + task["repository"] + "\n")
-              output.write("task_id=" + task["task_id"] + "\n")
-              output.write("task_file=" + path + "\n")
+              output.write("repository=" + task["repository"] + "\\n")
+              output.write("task_id=" + task["task_id"] + "\\n")
+              output.write("task_file=" + path + "\\n")
           print("Task contract validated; source repository remains unchanged.")
           PY
 
@@ -93,14 +93,28 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Configure open-source worker runtime (Gemini)
+      - name: Install and start open-source local model (Ollama + Qwen Coder)
         shell: bash
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          MSWEA_MODEL_NAME: gemini/gemini-2.5-flash
+          MSWEA_MODEL_NAME: ollama_chat/qwen2.5-coder:1.5b
+          MSWEA_COST_TRACKING: ignore_errors
         run: |
           set -euo pipefail
-          test -n "$GEMINI_API_KEY" || { echo "::error::GEMINI_API_KEY repository secret is missing."; exit 1; }
+          curl -fsSL https://ollama.com/install.sh | sh
+          (ollama serve > "$RUNNER_TEMP/ollama.log" 2>&1 & echo $! > "$RUNNER_TEMP/ollama.pid")
+          for attempt in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:11434/api/tags >/dev/null; then
+              break
+            fi
+            sleep 2
+          done
+          curl -fsS http://127.0.0.1:11434/api/tags >/dev/null || {
+            cat "$RUNNER_TEMP/ollama.log"
+            echo "::error::Local Ollama service did not become ready."
+            exit 1
+          }
+          ollama pull qwen2.5-coder:1.5b
+          ollama list
           python3 -m pip install --user mini-swe-agent
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           cat > "$RUNNER_TEMP/Dockerfile.mini-swe" <<'DOCKERFILE'
@@ -127,16 +141,16 @@ jobs:
           MINI_SWE_AGENT_BIN: mini
           MINI_SWE_AGENT_SANDBOX: docker
           MINI_SWE_AGENT_IMAGE: bounded-mini-swe-agent:local
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          MSWEA_MODEL_NAME: gemini/gemini-2.5-flash
+          MSWEA_MODEL_NAME: ollama_chat/qwen2.5-coder:1.5b
+          MSWEA_COST_TRACKING: ignore_errors
         run: |
           set -euo pipefail
           mkdir -p worker-artifacts
-          python3 -m controller.worker_execution_bridge \
-            --task-json "$TASK_FILE" \
-            --checkout "$GITHUB_WORKSPACE/target-checkout" \
-            --output-dir "$GITHUB_WORKSPACE/worker-artifacts" \
-            --timeout $(( ${{ inputs.timeout_minutes }} * 60 )) \
+          python3 -m controller.worker_execution_bridge \\
+            --task-json "$TASK_FILE" \\
+            --checkout "$GITHUB_WORKSPACE/target-checkout" \\
+            --output-dir "$GITHUB_WORKSPACE/worker-artifacts" \\
+            --timeout $(( ${{ inputs.timeout_minutes }} * 60 )) \\
             | tee worker-artifacts/worker-result.json
 
       - name: Independent deterministic patch review
@@ -149,9 +163,9 @@ jobs:
           set -euo pipefail
           PATCH_FILE="$GITHUB_WORKSPACE/worker-artifacts/$TASK_ID.patch"
           test -s "$PATCH_FILE" || { echo "::error::Worker did not produce a non-empty patch; cannot pass review."; exit 1; }
-          python3 -m controller.patch_review \
-            --task-json "$TASK_FILE" \
-            --patch "$PATCH_FILE" \
+          python3 -m controller.patch_review \\
+            --task-json "$TASK_FILE" \\
+            --patch "$PATCH_FILE" \\
             --output "$GITHUB_WORKSPACE/worker-artifacts/patch-review.json"
 
       - name: Upload patch proposal and result
