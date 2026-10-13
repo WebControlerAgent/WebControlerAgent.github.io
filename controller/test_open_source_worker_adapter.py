@@ -215,6 +215,35 @@ class OpenSourceAdapterPreflightTests(unittest.TestCase):
             self.assertEqual(result["blocked_paths"], ["outside.py"])
             self.assertFalse((root / "artifacts" / "out-of-scope-test.patch").exists())
 
+    def test_executor_rejects_checkout_from_different_repository(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            checkout = root / "repo"
+            (checkout / ".git").mkdir(parents=True)
+            (checkout / ".git" / "config").write_text(
+                '[core]\\n repositoryformatversion = 0\\n bare = false\\n'
+                '[remote "origin"]\\n url = https://github.com/other/repo.git\\n',
+                encoding="utf-8",
+            )
+            env = {
+                "MINI_SWE_AGENT_BIN": "mini",
+                "MINI_SWE_AGENT_SANDBOX": "docker",
+                "MINI_SWE_AGENT_IMAGE": "bounded-worker:test",
+            }
+            with patch("controller.open_source_worker_adapter.shutil.which", return_value="/usr/bin/mini"):
+                result = run_coding_task(
+                    repository_checkout=checkout,
+                    task={
+                        "task_id": "wrong-checkout", "site": "demo", "repository": "owner/site",
+                        "task_type": "bug_fix", "objective": "fix", "allowed_paths": ["src/a.py"],
+                    },
+                    sites={"sites": [{"id": "demo", "repository": "owner/site", "enabled": True, "authorized": True}]},
+                    output_dir=root / "artifacts", environ=env,
+                )
+            self.assertEqual(result["state"], "BLOCKED")
+            self.assertFalse(result["executed"])
+            self.assertIn("origin does not match", result["reason"])
+
     def test_executor_rejects_output_directory_inside_checkout(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
