@@ -21,6 +21,7 @@ ROLE_BY_TASK = {
     "feature_or_visual_change": ("frontend-worker", "frontend-reviewer"),
     "bug_diagnosis": ("log-analyzer", "log-cross-checker"),
     "bug_fix": ("patch-agent", "patch-reviewer"),
+    "code_change_proposal": ("patch-agent", "patch-reviewer"),
     "seo_issue": ("metadata-worker", "metadata-auditor"),
     "asset_request": ("asset-preparer", "asset-quality-checker"),
     "release": ("release-worker", "release-auditor"),
