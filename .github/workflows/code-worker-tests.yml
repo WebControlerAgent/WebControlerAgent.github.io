@@ -28,6 +28,8 @@ on:
       - "controller/open_source_worker_adapter.py"
       - "controller/worker_execution_bridge.py"
       - "controller/test_worker_execution_bridge.py"
+      - "controller/patch_review.py"
+      - "controller/test_patch_review.py"
       - "controller/test_open_source_worker_adapter.py"
       - ".github/workflows/code-worker-tests.yml"
       - ".github/workflows/bounded-worker.yml"
