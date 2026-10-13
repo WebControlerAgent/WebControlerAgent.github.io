@@ -87,6 +87,14 @@ def execute_task(
     ]}
     gate = validate_result_pair({"task_id": task_id}, assignment, primary, checker)
     passed = primary_ok and checker_ok and consistent and gate["state"] == "READY_FOR_CAPTAIN_REVIEW"
+    if not passed:
+        gate["state"] = "VERIFYING"
+        gate.setdefault("problems", []).append(
+            "Health checks failed or primary/checker evidence was inconsistent."
+        )
+        gate["automatic_merge"] = False
+        gate["automatic_deploy"] = False
+        gate["captain_approval_required"] = True
     return {
         "schema_version": 1,
         "task_id": task_id,
