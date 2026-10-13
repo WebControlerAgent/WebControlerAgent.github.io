@@ -45,7 +45,7 @@ def inspect_adapter(name: str, environ: dict[str, str] | None = None) -> dict[st
     checks = {
         "runtime_command_configured": bool(command_value),
         "runtime_binary_found": binary_found,
-        "explicit_sandbox_enabled": sandbox in {"docker", "podman"},
+        "explicit_sandbox_enabled": sandbox == "docker",
     }
     if name == "coding":
         checks["container_image_configured"] = bool(env.get("MINI_SWE_AGENT_IMAGE", "").strip())
@@ -133,7 +133,12 @@ def run_coding_task(
         # A fresh output directory avoids inheriting repository credentials or hooks.
         output_file = Path(tmp) / "trajectory.json"
         config_file = Path(tmp) / "mini-sandbox.yaml"
-        run_args = ["--rm", "--network", "none", "-v", f"{workspace}:/workspace"]
+        run_args = [
+            "--rm", "--network", "none", "-v", f"{workspace}:/workspace",
+            "-e", "GIT_CONFIG_COUNT=1",
+            "-e", "GIT_CONFIG_KEY_0=safe.directory",
+            "-e", "GIT_CONFIG_VALUE_0=/workspace",
+        ]
         config_file.write_text(
             "environment:\n"
             "  image: " + json.dumps(env["MINI_SWE_AGENT_IMAGE"]) + "\n"
@@ -150,7 +155,7 @@ def run_coding_task(
             "\nFinish by printing COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT on its own line."
         )
         command = [
-            env["MINI_SWE_AGENT_BIN"], "-y", "--exit-immediately",
+            shutil.which(env["MINI_SWE_AGENT_BIN"].strip()) or env["MINI_SWE_AGENT_BIN"].strip(), "-y", "--exit-immediately",
             "--environment-class", "minisweagent.environments.docker.DockerEnvironment",
             "-c", "mini.yaml", "-c", str(config_file),
             "-t", objective, "-o", str(output_file),
