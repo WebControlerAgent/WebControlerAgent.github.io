@@ -61,12 +61,8 @@ class OpenSourceAdapterPreflightTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             checkout = Path(tmp) / "repo"
             checkout.mkdir()
-            (checkout / ".git").mkdir()
-            (checkout / ".git" / "config").write_text(
-                '[core]\n repositoryformatversion = 0\n bare = false\n'
-                '[remote "origin"]\n url = https://github.com/owner/site.git\n',
-                encoding="utf-8",
-            )
+            subprocess.run(["git", "init", str(checkout)], check=True, capture_output=True)
+            subprocess.run(["git", "-C", str(checkout), "remote", "add", "origin", "https://github.com/owner/site.git"], check=True, capture_output=True)
             result = run_coding_task(
                 repository_checkout=checkout,
                 task={
@@ -89,12 +85,8 @@ class OpenSourceAdapterPreflightTests(unittest.TestCase):
         ):
             checkout = Path(tmp) / "repo"
             checkout.mkdir()
-            (checkout / ".git").mkdir()
-            (checkout / ".git" / "config").write_text(
-                '[core]\n repositoryformatversion = 0\n bare = false\n'
-                '[remote "origin"]\n url = https://github.com/owner/site.git\n',
-                encoding="utf-8",
-            )
+            subprocess.run(["git", "init", str(checkout)], check=True, capture_output=True)
+            subprocess.run(["git", "-C", str(checkout), "remote", "add", "origin", "https://github.com/owner/site.git"], check=True, capture_output=True)
             result = run_coding_task(
                 repository_checkout=checkout,
                 task={
@@ -111,12 +103,8 @@ class OpenSourceAdapterPreflightTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             checkout = Path(tmp) / "repo"
             checkout.mkdir()
-            (checkout / ".git").mkdir()
-            (checkout / ".git" / "config").write_text(
-                '[core]\n repositoryformatversion = 0\n bare = false\n'
-                '[remote "origin"]\n url = https://github.com/owner/site.git\n',
-                encoding="utf-8",
-            )
+            subprocess.run(["git", "init", str(checkout)], check=True, capture_output=True)
+            subprocess.run(["git", "-C", str(checkout), "remote", "add", "origin", "https://github.com/owner/site.git"], check=True, capture_output=True)
             result = run_coding_task(
                 repository_checkout=checkout,
                 task={
@@ -135,12 +123,8 @@ class OpenSourceAdapterPreflightTests(unittest.TestCase):
             root = Path(tmp)
             checkout = root / "repo"
             checkout.mkdir()
-            (checkout / ".git").mkdir()
-            (checkout / ".git" / "config").write_text(
-                '[core]\n repositoryformatversion = 0\n bare = false\n'
-                '[remote "origin"]\n url = https://github.com/owner/site.git\n',
-                encoding="utf-8",
-            )
+            subprocess.run(["git", "init", str(checkout)], check=True, capture_output=True)
+            subprocess.run(["git", "-C", str(checkout), "remote", "add", "origin", "https://github.com/owner/site.git"], check=True, capture_output=True)
             (checkout / "src").mkdir()
             (checkout / "src" / "main.py").write_text("print('base')\n", encoding="utf-8")
             env = {
@@ -179,12 +163,8 @@ class OpenSourceAdapterPreflightTests(unittest.TestCase):
             root = Path(tmp)
             checkout = root / "repo"
             checkout.mkdir()
-            (checkout / ".git").mkdir()
-            (checkout / ".git" / "config").write_text(
-                '[core]\n repositoryformatversion = 0\n bare = false\n'
-                '[remote "origin"]\n url = https://github.com/owner/site.git\n',
-                encoding="utf-8",
-            )
+            subprocess.run(["git", "init", str(checkout)], check=True, capture_output=True)
+            subprocess.run(["git", "-C", str(checkout), "remote", "add", "origin", "https://github.com/owner/site.git"], check=True, capture_output=True)
             (checkout / "base.py").write_text("print('base')\n", encoding="utf-8")
             env = {
                 "MINI_SWE_AGENT_BIN": "mini",
@@ -219,12 +199,8 @@ class OpenSourceAdapterPreflightTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             checkout = root / "repo"
-            (checkout / ".git").mkdir(parents=True)
-            (checkout / ".git" / "config").write_text(
-                '[core]\n repositoryformatversion = 0\n bare = false\n'
-                '[remote "origin"]\n url = https://github.com/other/repo.git\n',
-                encoding="utf-8",
-            )
+            subprocess.run(["git", "init", str(checkout)], check=True, capture_output=True)
+            subprocess.run(["git", "-C", str(checkout), "remote", "add", "origin", "https://github.com/other/repo.git"], check=True, capture_output=True)
             env = {
                 "MINI_SWE_AGENT_BIN": "mini",
                 "MINI_SWE_AGENT_SANDBOX": "docker",
@@ -249,12 +225,8 @@ class OpenSourceAdapterPreflightTests(unittest.TestCase):
             root = Path(tmp)
             checkout = root / "repo"
             checkout.mkdir()
-            (checkout / ".git").mkdir()
-            (checkout / ".git" / "config").write_text(
-                '[core]\n repositoryformatversion = 0\n bare = false\n'
-                '[remote "origin"]\n url = https://github.com/owner/site.git\n',
-                encoding="utf-8",
-            )
+            subprocess.run(["git", "init", str(checkout)], check=True, capture_output=True)
+            subprocess.run(["git", "-C", str(checkout), "remote", "add", "origin", "https://github.com/owner/site.git"], check=True, capture_output=True)
             env = {
                 "MINI_SWE_AGENT_BIN": "mini",
                 "MINI_SWE_AGENT_SANDBOX": "docker",
