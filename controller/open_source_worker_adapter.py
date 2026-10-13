@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import subprocess
 import tempfile
@@ -98,6 +99,11 @@ def run_coding_task(
     required = ("task_id", "site", "repository", "objective", "allowed_paths")
     if any(not task.get(key) for key in required) or not isinstance(task.get("allowed_paths"), list):
         return {"state": "BLOCKED", "executed": False, "reason": "Task contract incomplete."}
+    task_id = str(task["task_id"])
+    if not re.fullmatch(r"[A-Za-z0-9_-]{1,80}", task_id):
+        return {"state": "BLOCKED", "executed": False, "reason": "Unsafe task_id."}
+    if len(str(task["objective"])) > 4000 or len(task["allowed_paths"]) > 40:
+        return {"state": "BLOCKED", "executed": False, "reason": "Task exceeds runtime limits."}
     matches = [s for s in sites.get("sites", []) if s.get("id") == task["site"] and s.get("enabled") and s.get("authorized")]
     if len(matches) != 1 or matches[0].get("repository") != task["repository"]:
         return {"state": "BLOCKED", "executed": False, "reason": "Site authorization or repository mismatch."}
@@ -122,7 +128,11 @@ def run_coding_task(
         workspace = Path(tmp) / "workspace"
         shutil.copytree(
             source, workspace,
-            ignore=shutil.ignore_patterns(".git", "__pycache__", ".pytest_cache", "node_modules", "dist", "build"),
+            ignore=shutil.ignore_patterns(
+                ".git", ".github", ".env", ".env.*", "secrets", "secrets.*",
+                "*.pem", "*.key", "id_rsa", "credentials*", "__pycache__",
+                ".pytest_cache", "node_modules", "dist", "build",
+            ),
         )
         _run_git(["init"], workspace)
         _run_git(["config", "user.name", "Bounded Worker"], workspace)
@@ -181,12 +191,12 @@ def run_coding_task(
                 "reason": "No scoped patch was accepted; independent checker and Captain review are required.",
             }
         patch = _run_git(["diff", "--binary", baseline], workspace).stdout
-        patch_path = destination / f"{task['task_id']}.patch"
+        patch_path = destination / f"{task_id}.patch"
         patch_path.write_text(patch, encoding="utf-8")
         return {
             "state": "READY_FOR_INDEPENDENT_CHECK",
             "executed": True,
-            "task_id": str(task["task_id"]),
+            "task_id": task_id,
             "changed_files": changed,
             "patch_artifact": str(patch_path),
             "repository_modified": False,
