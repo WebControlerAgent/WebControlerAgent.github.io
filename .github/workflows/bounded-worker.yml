@@ -93,13 +93,14 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Configure open-source worker runtime
+      - name: Configure open-source worker runtime (Gemini)
         shell: bash
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          MSWEA_MODEL_NAME: gemini/gemini-2.5-flash
         run: |
           set -euo pipefail
-          test -n "$OPENAI_API_KEY" || { echo "::error::OPENAI_API_KEY repository secret is missing."; exit 1; }
+          test -n "$GEMINI_API_KEY" || { echo "::error::GEMINI_API_KEY repository secret is missing."; exit 1; }
           python3 -m pip install --user mini-swe-agent
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           cat > "$RUNNER_TEMP/Dockerfile.mini-swe" <<'DOCKERFILE'
@@ -126,7 +127,8 @@ jobs:
           MINI_SWE_AGENT_BIN: mini
           MINI_SWE_AGENT_SANDBOX: docker
           MINI_SWE_AGENT_IMAGE: bounded-mini-swe-agent:local
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          MSWEA_MODEL_NAME: gemini/gemini-2.5-flash
         run: |
           set -euo pipefail
           mkdir -p worker-artifacts
