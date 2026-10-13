@@ -16,6 +16,7 @@ on:
       - "controller/worker_contract.py"
       - "controller/task_dispatcher.py"
       - "controller/worker_queue.py"
+      - "controller/agent_checks.py"
       - "controller/model_worker_runtime.py"
       - "tests/worker_contract/**"
       - ".github/workflows/worker-contract-ci.yml"
