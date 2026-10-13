@@ -257,7 +257,6 @@ def run_coding_task(
                 "changed_files": changed,
                 "blocked_paths": [],
                 "diagnostic_artifact": diagnostic_path,
-                "diagnostic_tail": completed.stdout[-3000:],
                 "reason": "No scoped patch was accepted; inspect the redacted diagnostic artifact before retrying.",
             }
         patch = _run_git(["diff", "--binary", baseline], workspace).stdout
