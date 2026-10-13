@@ -8,6 +8,7 @@ on:
       - "controller/task_dispatcher.py"
       - "controller/worker_queue.py"
       - "controller/agent_checks.py"
+      - "controller/health_worker.py"
       - "controller/model_worker_runtime.py"
       - "tests/worker_contract/**"
       - ".github/workflows/worker-contract-ci.yml"
