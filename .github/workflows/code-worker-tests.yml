@@ -5,6 +5,8 @@ on:
     branches: [main, "feat/**"]
     paths:
       - "controller/code_change_worker.py"
+      - "controller/seo_worker.py"
+      - "controller/test_seo_worker.py"
       - "controller/test_code_change_worker.py"
       - "controller/task_dispatcher.py"
       - "controller/test_task_dispatcher.py"
@@ -32,4 +34,4 @@ jobs:
         with:
           python-version: "3.12"
       - name: Run bounded worker and independent checker tests
-        run: python -m unittest controller.test_code_change_worker controller.test_task_dispatcher -v
+        run: python -m unittest controller.test_code_change_worker controller.test_seo_worker controller.test_task_dispatcher -v
