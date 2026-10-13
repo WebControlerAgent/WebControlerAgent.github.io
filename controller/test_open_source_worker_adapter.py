@@ -72,6 +72,30 @@ class OpenSourceAdapterPreflightTests(unittest.TestCase):
         self.assertEqual(result["state"], "BLOCKED")
         self.assertFalse(result["executed"])
 
+    def test_executor_rejects_path_like_task_id(self):
+        env = {
+            "MINI_SWE_AGENT_BIN": "mini",
+            "MINI_SWE_AGENT_SANDBOX": "docker",
+            "MINI_SWE_AGENT_IMAGE": "bounded-worker:latest",
+        }
+        with tempfile.TemporaryDirectory() as tmp, patch(
+            "controller.open_source_worker_adapter.shutil.which", return_value="/usr/bin/mini"
+        ):
+            checkout = Path(tmp) / "repo"
+            checkout.mkdir()
+            (checkout / ".git").mkdir()
+            result = run_coding_task(
+                repository_checkout=checkout,
+                task={
+                    "task_id": "../escape", "site": "demo", "repository": "owner/site",
+                    "task_type": "bug_fix", "objective": "fix", "allowed_paths": ["src/a.py"],
+                },
+                sites={"sites": [{"id": "demo", "repository": "owner/site", "enabled": True, "authorized": True}]},
+                output_dir=Path(tmp) / "out", environ=env,
+            )
+        self.assertEqual(result["state"], "BLOCKED")
+        self.assertFalse(result["executed"])
+
     def test_executor_blocks_unsafe_path_before_launch(self):
         with tempfile.TemporaryDirectory() as tmp:
             checkout = Path(tmp) / "repo"
