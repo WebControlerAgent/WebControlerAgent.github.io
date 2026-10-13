@@ -75,6 +75,21 @@ def _run_git(args: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
     )
 
 
+def _write_diagnostic_log(destination: Path, task_id: str, output: str, env: dict[str, str]) -> str:
+    """Persist a bounded, best-effort redacted tail of agent output for debugging."""
+    safe = output or "(mini-SWE-agent produced no stdout/stderr output)"
+    # Remove common credential patterns and values explicitly supplied as secrets.
+    safe = re.sub(r"(?i)(bearer\\s+)[A-Za-z0-9._~+/-]+=*", r"\\1[REDACTED]", safe)
+    safe = re.sub(r"(?i)\\b(gh[pousr]_[A-Za-z0-9_]{12,}|github_pat_[A-Za-z0-9_]{12,}|sk-[A-Za-z0-9_-]{12,})\\b", "[REDACTED_TOKEN]", safe)
+    for key, value in env.items():
+        if value and any(part in key.upper() for part in ("TOKEN", "SECRET", "PASSWORD", "API_KEY", "PRIVATE_KEY")) and len(value) >= 6:
+            safe = safe.replace(value, "[REDACTED_SECRET]")
+    safe = safe[-16000:]
+    path = destination / f"{task_id}-agent-output.log"
+    path.write_text(safe + "\\n", encoding="utf-8")
+    return str(path)
+
+
 def run_coding_task(
     *,
     repository_checkout: str | Path,
@@ -196,8 +211,19 @@ def run_coding_task(
                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                 timeout=timeout_seconds, check=False,
             )
-        except subprocess.TimeoutExpired:
-            return {"state": "VERIFYING", "executed": True, "reason": "Agent timed out; candidate not accepted."}
+        except subprocess.TimeoutExpired as exc:
+            partial = exc.stdout or b""
+            if isinstance(partial, bytes):
+                partial = partial.decode("utf-8", errors="replace")
+            diagnostic_path = _write_diagnostic_log(destination, task_id, str(partial), dict(env))
+            return {
+                "state": "VERIFYING",
+                "executed": True,
+                "reason": "Agent timed out; candidate not accepted.",
+                "diagnostic_artifact": diagnostic_path,
+            }
+
+        diagnostic_path = _write_diagnostic_log(destination, task_id, completed.stdout, dict(env))
 
         # Include untracked files in scope validation. Plain git diff silently
         # omits them, which could otherwise hide a worker-created file.
@@ -217,6 +243,7 @@ def run_coding_task(
                 "return_code": completed.returncode,
                 "changed_files": changed,
                 "blocked_paths": unsafe,
+                "diagnostic_artifact": diagnostic_path,
                 "reason": "Worker touched paths outside the explicit allowlist; no patch exported.",
             }
         if untracked:
@@ -229,7 +256,9 @@ def run_coding_task(
                 "return_code": completed.returncode,
                 "changed_files": changed,
                 "blocked_paths": [],
-                "reason": "No scoped patch was accepted; independent checker and Captain review are required.",
+                "diagnostic_artifact": diagnostic_path,
+                "diagnostic_tail": completed.stdout[-3000:],
+                "reason": "No scoped patch was accepted; inspect the redacted diagnostic artifact before retrying.",
             }
         patch = _run_git(["diff", "--binary", baseline], workspace).stdout
         patch_path = destination / f"{task_id}.patch"
@@ -240,6 +269,7 @@ def run_coding_task(
             "task_id": task_id,
             "changed_files": changed,
             "patch_artifact": str(patch_path),
+            "diagnostic_artifact": diagnostic_path,
             "repository_modified": False,
             "write_access": False,
             "automatic_merge": False,
