@@ -114,5 +114,87 @@ class OpenSourceAdapterPreflightTests(unittest.TestCase):
         self.assertFalse(result["executed"])
 
 
+    def test_executor_exports_allowed_untracked_file(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            checkout = root / "repo"
+            checkout.mkdir()
+            (checkout / ".git").mkdir()
+            (checkout / "src").mkdir()
+            (checkout / "src" / "main.py").write_text("print('base')\\n", encoding="utf-8")
+            fake_agent = root / "fake-mini-agent"
+            fake_agent.write_text("#!/bin/sh\\nmkdir -p src\\nprintf \"print('new')\\\\n\" > src/new.py\\n", encoding="utf-8")
+            fake_agent.chmod(0o755)
+            env = {
+                "MINI_SWE_AGENT_BIN": str(fake_agent),
+                "MINI_SWE_AGENT_SANDBOX": "docker",
+                "MINI_SWE_AGENT_IMAGE": "bounded-worker:test",
+            }
+            result = run_coding_task(
+                repository_checkout=checkout,
+                task={
+                    "task_id": "untracked-test", "site": "demo", "repository": "owner/site",
+                    "task_type": "bug_fix", "objective": "add a file", "allowed_paths": ["src/new.py"],
+                },
+                sites={"sites": [{"id": "demo", "repository": "owner/site", "enabled": True, "authorized": True}]},
+                output_dir=root / "artifacts", environ=env,
+            )
+            self.assertEqual(result["state"], "READY_FOR_INDEPENDENT_CHECK")
+            self.assertIn("src/new.py", result["changed_files"])
+            self.assertIn("src/new.py", (root / "artifacts" / "untracked-test.patch").read_text(encoding="utf-8"))
+            self.assertFalse((checkout / "src" / "new.py").exists())
+
+    def test_executor_rejects_disallowed_untracked_file(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            checkout = root / "repo"
+            checkout.mkdir()
+            (checkout / ".git").mkdir()
+            fake_agent = root / "fake-mini-agent"
+            fake_agent.write_text("#!/bin/sh\\nprintf \"bad\\\\n\" > outside.py\\n", encoding="utf-8")
+            fake_agent.chmod(0o755)
+            env = {
+                "MINI_SWE_AGENT_BIN": str(fake_agent),
+                "MINI_SWE_AGENT_SANDBOX": "docker",
+                "MINI_SWE_AGENT_IMAGE": "bounded-worker:test",
+            }
+            result = run_coding_task(
+                repository_checkout=checkout,
+                task={
+                    "task_id": "out-of-scope-test", "site": "demo", "repository": "owner/site",
+                    "task_type": "bug_fix", "objective": "add a file", "allowed_paths": ["src/allowed.py"],
+                },
+                sites={"sites": [{"id": "demo", "repository": "owner/site", "enabled": True, "authorized": True}]},
+                output_dir=root / "artifacts", environ=env,
+            )
+            self.assertEqual(result["state"], "VERIFYING")
+            self.assertEqual(result["blocked_paths"], ["outside.py"])
+            self.assertFalse((root / "artifacts" / "out-of-scope-test.patch").exists())
+
+    def test_executor_rejects_output_directory_inside_checkout(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            checkout = root / "repo"
+            checkout.mkdir()
+            (checkout / ".git").mkdir()
+            env = {
+                "MINI_SWE_AGENT_BIN": "mini",
+                "MINI_SWE_AGENT_SANDBOX": "docker",
+                "MINI_SWE_AGENT_IMAGE": "bounded-worker:test",
+            }
+            with patch("controller.open_source_worker_adapter.shutil.which", return_value="/usr/bin/mini"):
+                result = run_coding_task(
+                    repository_checkout=checkout,
+                    task={
+                        "task_id": "inside-output", "site": "demo", "repository": "owner/site",
+                        "task_type": "bug_fix", "objective": "fix", "allowed_paths": ["src/a.py"],
+                    },
+                    sites={"sites": [{"id": "demo", "repository": "owner/site", "enabled": True, "authorized": True}]},
+                    output_dir=checkout / "artifacts", environ=env,
+                )
+            self.assertEqual(result["state"], "BLOCKED")
+            self.assertFalse(result["executed"])
+            self.assertFalse((checkout / "artifacts").exists())
+
 if __name__ == "__main__":
     unittest.main()
