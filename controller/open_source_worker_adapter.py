@@ -79,14 +79,14 @@ def _write_diagnostic_log(destination: Path, task_id: str, output: str, env: dic
     """Persist a bounded, best-effort redacted tail of agent output for debugging."""
     safe = output or "(mini-SWE-agent produced no stdout/stderr output)"
     # Remove common credential patterns and values explicitly supplied as secrets.
-    safe = re.sub(r"(?i)(bearer\\s+)[A-Za-z0-9._~+/-]+=*", r"\\1[REDACTED]", safe)
-    safe = re.sub(r"(?i)\\b(gh[pousr]_[A-Za-z0-9_]{12,}|github_pat_[A-Za-z0-9_]{12,}|sk-[A-Za-z0-9_-]{12,})\\b", "[REDACTED_TOKEN]", safe)
+    safe = re.sub(r"(?i)(bearer\s+)[A-Za-z0-9._~+/-]+=*", r"\1[REDACTED]", safe)
+    safe = re.sub(r"(?i)\b(gh[pousr]_[A-Za-z0-9_]{12,}|github_pat_[A-Za-z0-9_]{12,}|sk-[A-Za-z0-9_-]{12,})\b", "[REDACTED_TOKEN]", safe)
     for key, value in env.items():
         if value and any(part in key.upper() for part in ("TOKEN", "SECRET", "PASSWORD", "API_KEY", "PRIVATE_KEY")) and len(value) >= 6:
             safe = safe.replace(value, "[REDACTED_SECRET]")
     safe = safe[-16000:]
     path = destination / f"{task_id}-agent-output.log"
-    path.write_text(safe + "\\n", encoding="utf-8")
+    path.write_text(safe + "\n", encoding="utf-8")
     return str(path)
 
 
