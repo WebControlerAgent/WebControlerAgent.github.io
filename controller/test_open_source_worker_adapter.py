@@ -62,6 +62,11 @@ class OpenSourceAdapterPreflightTests(unittest.TestCase):
             checkout = Path(tmp) / "repo"
             checkout.mkdir()
             (checkout / ".git").mkdir()
+            (checkout / ".git" / "config").write_text(
+                '[core]\\n repositoryformatversion = 0\\n bare = false\\n'
+                '[remote "origin"]\\n url = https://github.com/owner/site.git\\n',
+                encoding="utf-8",
+            )
             result = run_coding_task(
                 repository_checkout=checkout,
                 task={
@@ -85,6 +90,11 @@ class OpenSourceAdapterPreflightTests(unittest.TestCase):
             checkout = Path(tmp) / "repo"
             checkout.mkdir()
             (checkout / ".git").mkdir()
+            (checkout / ".git" / "config").write_text(
+                '[core]\\n repositoryformatversion = 0\\n bare = false\\n'
+                '[remote "origin"]\\n url = https://github.com/owner/site.git\\n',
+                encoding="utf-8",
+            )
             result = run_coding_task(
                 repository_checkout=checkout,
                 task={
@@ -102,6 +112,11 @@ class OpenSourceAdapterPreflightTests(unittest.TestCase):
             checkout = Path(tmp) / "repo"
             checkout.mkdir()
             (checkout / ".git").mkdir()
+            (checkout / ".git" / "config").write_text(
+                '[core]\\n repositoryformatversion = 0\\n bare = false\\n'
+                '[remote "origin"]\\n url = https://github.com/owner/site.git\\n',
+                encoding="utf-8",
+            )
             result = run_coding_task(
                 repository_checkout=checkout,
                 task={
@@ -121,6 +136,11 @@ class OpenSourceAdapterPreflightTests(unittest.TestCase):
             checkout = root / "repo"
             checkout.mkdir()
             (checkout / ".git").mkdir()
+            (checkout / ".git" / "config").write_text(
+                '[core]\\n repositoryformatversion = 0\\n bare = false\\n'
+                '[remote "origin"]\\n url = https://github.com/owner/site.git\\n',
+                encoding="utf-8",
+            )
             (checkout / "src").mkdir()
             (checkout / "src" / "main.py").write_text("print('base')\n", encoding="utf-8")
             env = {
@@ -160,6 +180,11 @@ class OpenSourceAdapterPreflightTests(unittest.TestCase):
             checkout = root / "repo"
             checkout.mkdir()
             (checkout / ".git").mkdir()
+            (checkout / ".git" / "config").write_text(
+                '[core]\\n repositoryformatversion = 0\\n bare = false\\n'
+                '[remote "origin"]\\n url = https://github.com/owner/site.git\\n',
+                encoding="utf-8",
+            )
             (checkout / "base.py").write_text("print('base')\n", encoding="utf-8")
             env = {
                 "MINI_SWE_AGENT_BIN": "mini",
@@ -196,6 +221,11 @@ class OpenSourceAdapterPreflightTests(unittest.TestCase):
             checkout = root / "repo"
             checkout.mkdir()
             (checkout / ".git").mkdir()
+            (checkout / ".git" / "config").write_text(
+                '[core]\\n repositoryformatversion = 0\\n bare = false\\n'
+                '[remote "origin"]\\n url = https://github.com/owner/site.git\\n',
+                encoding="utf-8",
+            )
             env = {
                 "MINI_SWE_AGENT_BIN": "mini",
                 "MINI_SWE_AGENT_SANDBOX": "docker",
