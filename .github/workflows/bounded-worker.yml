@@ -25,7 +25,7 @@ concurrency:
 jobs:
   proposal:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 35
     steps:
       - name: Checkout controller repository
         uses: actions/checkout@v4
@@ -93,14 +93,28 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Configure open-source worker runtime (Gemini)
+      - name: Install and start open-source local model (Ollama + Qwen Coder)
         shell: bash
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          MSWEA_MODEL_NAME: gemini/gemini-2.5-flash
+          MSWEA_MODEL_NAME: ollama_chat/qwen2.5-coder:1.5b
+          MSWEA_COST_TRACKING: ignore_errors
         run: |
           set -euo pipefail
-          test -n "$GEMINI_API_KEY" || { echo "::error::GEMINI_API_KEY repository secret is missing."; exit 1; }
+          curl -fsSL https://ollama.com/install.sh | sh
+          (ollama serve > "$RUNNER_TEMP/ollama.log" 2>&1 & echo $! > "$RUNNER_TEMP/ollama.pid")
+          for attempt in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:11434/api/tags >/dev/null; then
+              break
+            fi
+            sleep 2
+          done
+          curl -fsS http://127.0.0.1:11434/api/tags >/dev/null || {
+            cat "$RUNNER_TEMP/ollama.log"
+            echo "::error::Local Ollama service did not become ready."
+            exit 1
+          }
+          ollama pull qwen2.5-coder:1.5b
+          ollama list
           python3 -m pip install --user mini-swe-agent
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           cat > "$RUNNER_TEMP/Dockerfile.mini-swe" <<'DOCKERFILE'
@@ -127,8 +141,8 @@ jobs:
           MINI_SWE_AGENT_BIN: mini
           MINI_SWE_AGENT_SANDBOX: docker
           MINI_SWE_AGENT_IMAGE: bounded-mini-swe-agent:local
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          MSWEA_MODEL_NAME: gemini/gemini-2.5-flash
+          MSWEA_MODEL_NAME: ollama_chat/qwen2.5-coder:1.5b
+          MSWEA_COST_TRACKING: ignore_errors
         run: |
           set -euo pipefail
           mkdir -p worker-artifacts
