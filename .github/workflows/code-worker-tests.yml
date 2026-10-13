@@ -1,0 +1,53 @@
+name: Bounded Code Worker Tests
+
+on:
+  push:
+    branches: [main, "feat/**"]
+    paths:
+      - "controller/code_change_worker.py"
+      - "controller/seo_worker.py"
+      - "controller/test_seo_worker.py"
+      - "controller/test_code_change_worker.py"
+      - "controller/task_dispatcher.py"
+      - "controller/test_task_dispatcher.py"
+      - "controller/open_source_worker_adapter.py"
+      - "controller/worker_execution_bridge.py"
+      - "controller/test_worker_execution_bridge.py"
+      - "controller/patch_review.py"
+      - "controller/test_patch_review.py"
+      - "controller/test_open_source_worker_adapter.py"
+      - ".github/workflows/code-worker-tests.yml"
+      - ".github/workflows/bounded-worker.yml"
+      - "tasks/demo-bounded-code-proposal.json"
+  pull_request:
+    paths:
+      - "controller/code_change_worker.py"
+      - "controller/test_code_change_worker.py"
+      - "controller/task_dispatcher.py"
+      - "controller/test_task_dispatcher.py"
+      - "controller/open_source_worker_adapter.py"
+      - "controller/worker_execution_bridge.py"
+      - "controller/test_worker_execution_bridge.py"
+      - "controller/patch_review.py"
+      - "controller/test_patch_review.py"
+      - "controller/test_open_source_worker_adapter.py"
+      - ".github/workflows/code-worker-tests.yml"
+      - ".github/workflows/bounded-worker.yml"
+      - "tasks/demo-bounded-code-proposal.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  code-worker-contract-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run bounded worker and independent checker tests
+        run: python -m unittest controller.test_code_change_worker controller.test_seo_worker controller.test_task_dispatcher controller.test_open_source_worker_adapter controller.test_worker_execution_bridge controller.test_patch_review -v

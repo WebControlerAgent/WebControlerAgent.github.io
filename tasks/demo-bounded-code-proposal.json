@@ -1,0 +1,24 @@
+{
+  "task_id": "demo-bounded-proposal-001",
+  "site": "kingdom-raw",
+  "repository": "kindgommangaraw/kindgommangaraw.github.io",
+  "parent_captain": "bug-solver",
+  "task_type": "code_change_proposal",
+  "objective": "Review the repository homepage HTML for one small, evidence-based SEO or accessibility improvement. Produce a minimal patch proposal only. Do not change files outside index.html, do not claim Google indexing or live-browser testing, and explain the evidence and limitations.",
+  "allowed_paths": [
+    "index.html"
+  ],
+  "constraints": [
+    "Proposal only: never apply changes to the source checkout, commit, merge, or deploy.",
+    "Do not modify workflows, credentials, secrets, admin authentication, or deployment configuration.",
+    "Only propose edits to index.html.",
+    "Do not invent test results, traffic data, search ranking, or indexing status.",
+    "The output must be a patch artifact for independent review; Captain approval is required before any future acceptance."
+  ],
+  "success_criteria": [
+    "Every changed path is within the allowed path list.",
+    "Return a concise summary and explain why the improvement is justified by source evidence.",
+    "Do not claim browser testing or Google indexing was performed.",
+    "Keep the output as a patch proposal only and require independent checker review."
+  ]
+}

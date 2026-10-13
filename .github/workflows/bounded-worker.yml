@@ -1,0 +1,162 @@
+name: Bounded AI Worker (Patch Only)
+
+on:
+  workflow_dispatch:
+    inputs:
+      task_file:
+        description: "Task JSON path inside tasks/"
+        required: true
+        default: "tasks/demo-bounded-code-proposal.json"
+        type: string
+      timeout_minutes:
+        description: "Hard time limit"
+        required: true
+        default: "15"
+        type: choice
+        options: ["5", "10", "15", "20"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bounded-ai-worker
+  cancel-in-progress: false
+
+jobs:
+  proposal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout controller repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Validate task and authorized target
+        id: task
+        shell: bash
+        env:
+          TASK_FILE: ${{ inputs.task_file }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, re
+          from pathlib import Path
+
+          path = os.environ["TASK_FILE"]
+          if not re.fullmatch(r"tasks/[A-Za-z0-9._-]+\.json", path) or ".." in Path(path).parts:
+              raise SystemExit("BLOCKED: choose a JSON file directly inside tasks/.")
+          task_path = Path(path)
+          if not task_path.is_file():
+              raise SystemExit("BLOCKED: task file does not exist.")
+          task = json.loads(task_path.read_text(encoding="utf-8"))
+          sites = json.loads(Path("controller/sites.json").read_text(encoding="utf-8"))
+          routing = json.loads(Path("agents/task_routing.json").read_text(encoding="utf-8"))
+
+          required = ("task_id", "site", "repository", "parent_captain", "task_type",
+                      "objective", "allowed_paths", "constraints", "success_criteria")
+          missing = [key for key in required if task.get(key) in (None, "", [])]
+          if missing:
+              raise SystemExit("BLOCKED: missing required fields: " + ", ".join(missing))
+          if not re.fullmatch(r"[A-Za-z0-9_-]{1,80}", str(task["task_id"])):
+              raise SystemExit("BLOCKED: unsafe task_id.")
+          if not isinstance(task["objective"], str) or len(task["objective"]) > 4000:
+              raise SystemExit("BLOCKED: objective must be text of at most 4000 characters.")
+          if not isinstance(task["allowed_paths"], list) or not 1 <= len(task["allowed_paths"]) <= 40:
+              raise SystemExit("BLOCKED: allowed_paths must contain 1–40 entries.")
+          if not all(isinstance(p, str) and p and not p.startswith("/") and ".." not in Path(p).parts for p in task["allowed_paths"]):
+              raise SystemExit("BLOCKED: invalid allowed path.")
+          if not isinstance(task["success_criteria"], list) or not task["success_criteria"]:
+              raise SystemExit("BLOCKED: success_criteria must be a non-empty list.")
+          if not isinstance(task["constraints"], list):
+              raise SystemExit("BLOCKED: constraints must be a list.")
+          if task["task_type"] not in ("bug_fix", "code_change_proposal"):
+              raise SystemExit("BLOCKED: this workflow accepts coding proposal tasks only.")
+          if task["parent_captain"] not in routing.get("captains", {}):
+              raise SystemExit("BLOCKED: unknown Captain.")
+          matches = [site for site in sites.get("sites", [])
+                     if site.get("id") == task["site"] and site.get("enabled") is True and site.get("authorized") is True]
+          if len(matches) != 1 or task["repository"] != matches[0].get("repository"):
+              raise SystemExit("BLOCKED: task does not match exactly one authorized site.")
+          if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", task["repository"]):
+              raise SystemExit("BLOCKED: malformed repository identifier.")
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write("repository=" + task["repository"] + "\n")
+              output.write("task_id=" + task["task_id"] + "\n")
+              output.write("task_file=" + path + "\n")
+          print("Task contract validated; source repository remains unchanged.")
+          PY
+
+      - name: Set up Python for worker runtime
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Configure open-source worker runtime
+        shell: bash
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          set -euo pipefail
+          test -n "$OPENAI_API_KEY" || { echo "::error::OPENAI_API_KEY repository secret is missing."; exit 1; }
+          python3 -m pip install --user mini-swe-agent
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          cat > "$RUNNER_TEMP/Dockerfile.mini-swe" <<'DOCKERFILE'
+          FROM python:3.12-slim
+          RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates && rm -rf /var/lib/apt/lists/*
+          RUN pip install --no-cache-dir mini-swe-agent
+          WORKDIR /workspace
+          DOCKERFILE
+          docker build -f "$RUNNER_TEMP/Dockerfile.mini-swe" -t bounded-mini-swe-agent:local "$RUNNER_TEMP"
+          docker image inspect bounded-mini-swe-agent:local >/dev/null
+
+      - name: Checkout authorized target repository (read-only credentials)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.task.outputs.repository }}
+          token: ${{ secrets.CROSS_REPO_TOKEN || github.token }}
+          path: target-checkout
+          persist-credentials: false
+
+      - name: Execute bounded worker and export proposal
+        shell: bash
+        env:
+          TASK_FILE: ${{ steps.task.outputs.task_file }}
+          MINI_SWE_AGENT_BIN: mini
+          MINI_SWE_AGENT_SANDBOX: docker
+          MINI_SWE_AGENT_IMAGE: bounded-mini-swe-agent:local
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p worker-artifacts
+          python3 -m controller.worker_execution_bridge \
+            --task-json "$TASK_FILE" \
+            --checkout "$GITHUB_WORKSPACE/target-checkout" \
+            --output-dir "$GITHUB_WORKSPACE/worker-artifacts" \
+            --timeout $(( ${{ inputs.timeout_minutes }} * 60 )) \
+            | tee worker-artifacts/worker-result.json
+
+      - name: Independent deterministic patch review
+        if: success()
+        shell: bash
+        env:
+          TASK_FILE: ${{ steps.task.outputs.task_file }}
+          TASK_ID: ${{ steps.task.outputs.task_id }}
+        run: |
+          set -euo pipefail
+          PATCH_FILE="$GITHUB_WORKSPACE/worker-artifacts/$TASK_ID.patch"
+          test -s "$PATCH_FILE" || { echo "::error::Worker did not produce a non-empty patch; cannot pass review."; exit 1; }
+          python3 -m controller.patch_review \
+            --task-json "$TASK_FILE" \
+            --patch "$PATCH_FILE" \
+            --output "$GITHUB_WORKSPACE/worker-artifacts/patch-review.json"
+
+      - name: Upload patch proposal and result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bounded-worker-${{ steps.task.outputs.task_id || 'blocked' }}-${{ github.run_id }}
+          path: worker-artifacts/
+          if-no-files-found: warn
+          retention-days: 7

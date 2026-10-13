@@ -40,6 +40,19 @@ class DispatchPairTests(unittest.TestCase):
         self.assertEqual(assignments[0]["role"], "primary_worker")
         self.assertEqual(assignments[1]["role"], "independent_checker")
 
+    def test_code_change_proposal_routes_to_repair_worker_checker_pair(self):
+        task = sample_task(
+            parent_captain="bug-solver",
+            task_type="code_change_proposal",
+            repository=AUTHORIZED["repository"],
+            allowed_paths=["src/example.py"],
+        )
+        result = prepare_assignment(task, ROUTING, SITES)
+        self.assertEqual(result["status"], "READY_FOR_WORKER_ADAPTER")
+        self.assertEqual(result["assignments"][0]["agent_id"], "bug-solver/patch-agent")
+        self.assertEqual(result["assignments"][1]["agent_id"], "bug-solver/patch-reviewer")
+        self.assertTrue(result["acceptance_gate"]["captain_must_approve"])
+
     def test_rejects_unknown_captain_pair(self):
         with self.assertRaises(DispatchError):
             prepare_assignment(sample_task(parent_captain="qa"), ROUTING, SITES)
