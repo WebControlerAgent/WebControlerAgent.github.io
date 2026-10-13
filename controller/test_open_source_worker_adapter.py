@@ -121,24 +121,33 @@ class OpenSourceAdapterPreflightTests(unittest.TestCase):
             checkout.mkdir()
             (checkout / ".git").mkdir()
             (checkout / "src").mkdir()
-            (checkout / "src" / "main.py").write_text("print('base')\\n", encoding="utf-8")
-            fake_agent = root / "fake-mini-agent"
-            fake_agent.write_text("#!/bin/sh\\nmkdir -p src\\nprintf \"print('new')\\\\n\" > src/new.py\\n", encoding="utf-8")
-            fake_agent.chmod(0o755)
+            (checkout / "src" / "main.py").write_text("print('base')\n", encoding="utf-8")
             env = {
-                "MINI_SWE_AGENT_BIN": str(fake_agent),
+                "MINI_SWE_AGENT_BIN": "mini",
                 "MINI_SWE_AGENT_SANDBOX": "docker",
                 "MINI_SWE_AGENT_IMAGE": "bounded-worker:test",
             }
-            result = run_coding_task(
-                repository_checkout=checkout,
-                task={
-                    "task_id": "untracked-test", "site": "demo", "repository": "owner/site",
-                    "task_type": "bug_fix", "objective": "add a file", "allowed_paths": ["src/new.py"],
-                },
-                sites={"sites": [{"id": "demo", "repository": "owner/site", "enabled": True, "authorized": True}]},
-                output_dir=root / "artifacts", environ=env,
-            )
+            real_run = subprocess.run
+
+            def fake_run(command, **kwargs):
+                if command[0] == "/usr/bin/mini":
+                    workspace = Path(kwargs["cwd"])
+                    (workspace / "src" / "new.py").write_text("print('new')\n", encoding="utf-8")
+                    return subprocess.CompletedProcess(command, 0, stdout="ok", stderr="")
+                return real_run(command, **kwargs)
+
+            with patch("controller.open_source_worker_adapter.shutil.which", return_value="/usr/bin/mini"), patch(
+                "controller.open_source_worker_adapter.subprocess.run", side_effect=fake_run
+            ):
+                result = run_coding_task(
+                    repository_checkout=checkout,
+                    task={
+                        "task_id": "untracked-test", "site": "demo", "repository": "owner/site",
+                        "task_type": "bug_fix", "objective": "add a file", "allowed_paths": ["src/new.py"],
+                    },
+                    sites={"sites": [{"id": "demo", "repository": "owner/site", "enabled": True, "authorized": True}]},
+                    output_dir=root / "artifacts", environ=env,
+                )
             self.assertEqual(result["state"], "READY_FOR_INDEPENDENT_CHECK")
             self.assertIn("src/new.py", result["changed_files"])
             self.assertIn("src/new.py", (root / "artifacts" / "untracked-test.patch").read_text(encoding="utf-8"))
@@ -150,23 +159,32 @@ class OpenSourceAdapterPreflightTests(unittest.TestCase):
             checkout = root / "repo"
             checkout.mkdir()
             (checkout / ".git").mkdir()
-            fake_agent = root / "fake-mini-agent"
-            fake_agent.write_text("#!/bin/sh\\nprintf \"bad\\\\n\" > outside.py\\n", encoding="utf-8")
-            fake_agent.chmod(0o755)
+            (checkout / "base.py").write_text("print('base')\n", encoding="utf-8")
             env = {
-                "MINI_SWE_AGENT_BIN": str(fake_agent),
+                "MINI_SWE_AGENT_BIN": "mini",
                 "MINI_SWE_AGENT_SANDBOX": "docker",
                 "MINI_SWE_AGENT_IMAGE": "bounded-worker:test",
             }
-            result = run_coding_task(
-                repository_checkout=checkout,
-                task={
-                    "task_id": "out-of-scope-test", "site": "demo", "repository": "owner/site",
-                    "task_type": "bug_fix", "objective": "add a file", "allowed_paths": ["src/allowed.py"],
-                },
-                sites={"sites": [{"id": "demo", "repository": "owner/site", "enabled": True, "authorized": True}]},
-                output_dir=root / "artifacts", environ=env,
-            )
+            real_run = subprocess.run
+
+            def fake_run(command, **kwargs):
+                if command[0] == "/usr/bin/mini":
+                    (Path(kwargs["cwd"]) / "outside.py").write_text("bad\n", encoding="utf-8")
+                    return subprocess.CompletedProcess(command, 0, stdout="ok", stderr="")
+                return real_run(command, **kwargs)
+
+            with patch("controller.open_source_worker_adapter.shutil.which", return_value="/usr/bin/mini"), patch(
+                "controller.open_source_worker_adapter.subprocess.run", side_effect=fake_run
+            ):
+                result = run_coding_task(
+                    repository_checkout=checkout,
+                    task={
+                        "task_id": "out-of-scope-test", "site": "demo", "repository": "owner/site",
+                        "task_type": "bug_fix", "objective": "add a file", "allowed_paths": ["src/allowed.py"],
+                    },
+                    sites={"sites": [{"id": "demo", "repository": "owner/site", "enabled": True, "authorized": True}]},
+                    output_dir=root / "artifacts", environ=env,
+                )
             self.assertEqual(result["state"], "VERIFYING")
             self.assertEqual(result["blocked_paths"], ["outside.py"])
             self.assertFalse((root / "artifacts" / "out-of-scope-test.patch").exists())
