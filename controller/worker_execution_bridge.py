@@ -48,3 +48,36 @@ def execute_validated_task(
         "captain_approval_required": assignment["acceptance_gate"]["captain_must_approve"],
     }
     return result
+
+
+def main() -> int:
+    import argparse
+    import json
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--task-json", required=True)
+    parser.add_argument("--checkout", required=True)
+    parser.add_argument("--output-dir", default="worker-artifacts")
+    parser.add_argument("--routing-json", default="agents/task_routing.json")
+    parser.add_argument("--sites-json", default="controller/sites.json")
+    parser.add_argument("--timeout", type=int, default=900)
+    args = parser.parse_args()
+
+    try:
+        task = json.loads(Path(args.task_json).read_text(encoding="utf-8"))
+        routing = json.loads(Path(args.routing_json).read_text(encoding="utf-8"))
+        sites = json.loads(Path(args.sites_json).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        print(json.dumps({"state": "BLOCKED", "executed": False, "reason": str(exc)}))
+        return 2
+
+    result = execute_validated_task(
+        task, routing, sites, args.checkout, args.output_dir,
+        timeout_seconds=args.timeout,
+    )
+    print(json.dumps(result, indent=2, ensure_ascii=False))
+    return 0 if result.get("state") == "READY_FOR_INDEPENDENT_CHECK" else 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
