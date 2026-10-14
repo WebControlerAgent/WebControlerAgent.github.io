@@ -137,6 +137,7 @@ class OpenSourceAdapterPreflightTests(unittest.TestCase):
 
             def fake_run(command, **kwargs):
                 if command[0] == "/usr/bin/mini":
+                    self.assertEqual(kwargs["env"].get("MSWEA_CONFIGURED"), "true")
                     workspace = Path(kwargs["cwd"])
                     (workspace / "src" / "new.py").write_text("print('new')\n", encoding="utf-8")
                     return subprocess.CompletedProcess(command, 0, stdout="ok", stderr="")
@@ -177,6 +178,7 @@ class OpenSourceAdapterPreflightTests(unittest.TestCase):
 
             def fake_run(command, **kwargs):
                 if command[0] == "/usr/bin/mini":
+                    self.assertEqual(kwargs["env"].get("MSWEA_CONFIGURED"), "true")
                     (Path(kwargs["cwd"]) / "outside.py").write_text("bad\n", encoding="utf-8")
                     return subprocess.CompletedProcess(command, 0, stdout="ok", stderr="")
                 return real_run(command, **kwargs)
