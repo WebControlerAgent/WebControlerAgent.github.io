@@ -213,9 +213,15 @@ def run_coding_task(
             "-c", "mini.yaml", "-c", str(config_file),
             "-t", objective, "-o", str(output_file),
         ]
+        # mini-SWE-agent v2 calls an interactive first-run wizard unless this
+        # flag is set, even when -m and MSWEA_MODEL_NAME are already configured.
+        # CI must be explicitly non-interactive so a missing model config fails
+        # fast instead of hanging/aborting at a prompt.
+        worker_env = dict(env)
+        worker_env["MSWEA_CONFIGURED"] = "true"
         try:
             completed = subprocess.run(
-                command, cwd=workspace, env=dict(env), text=True,
+                command, cwd=workspace, env=worker_env, text=True,
                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                 timeout=timeout_seconds, check=False,
             )
