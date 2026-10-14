@@ -131,7 +131,7 @@ class OpenSourceAdapterPreflightTests(unittest.TestCase):
                 "MINI_SWE_AGENT_BIN": "mini",
                 "MINI_SWE_AGENT_SANDBOX": "docker",
                 "MINI_SWE_AGENT_IMAGE": "bounded-worker:test",
-                "MSWEA_MODEL_NAME": "ollama_chat/qwen2.5-coder:1.5b",
+                "MSWEA_MODEL_NAME": "ollama_chat/qwen2.5-coder:3b",
             }
             real_run = subprocess.run
 
@@ -172,7 +172,7 @@ class OpenSourceAdapterPreflightTests(unittest.TestCase):
                 "MINI_SWE_AGENT_BIN": "mini",
                 "MINI_SWE_AGENT_SANDBOX": "docker",
                 "MINI_SWE_AGENT_IMAGE": "bounded-worker:test",
-                "MSWEA_MODEL_NAME": "ollama_chat/qwen2.5-coder:1.5b",
+                "MSWEA_MODEL_NAME": "ollama_chat/qwen2.5-coder:3b",
             }
             real_run = subprocess.run
 
@@ -209,7 +209,7 @@ class OpenSourceAdapterPreflightTests(unittest.TestCase):
                 "MINI_SWE_AGENT_BIN": "mini",
                 "MINI_SWE_AGENT_SANDBOX": "docker",
                 "MINI_SWE_AGENT_IMAGE": "bounded-worker:test",
-                "MSWEA_MODEL_NAME": "ollama_chat/qwen2.5-coder:1.5b",
+                "MSWEA_MODEL_NAME": "ollama_chat/qwen2.5-coder:3b",
             }
             with patch("controller.open_source_worker_adapter.shutil.which", return_value="/usr/bin/mini"):
                 result = run_coding_task(
@@ -236,7 +236,7 @@ class OpenSourceAdapterPreflightTests(unittest.TestCase):
                 "MINI_SWE_AGENT_BIN": "mini",
                 "MINI_SWE_AGENT_SANDBOX": "docker",
                 "MINI_SWE_AGENT_IMAGE": "bounded-worker:test",
-                "MSWEA_MODEL_NAME": "ollama_chat/qwen2.5-coder:1.5b",
+                "MSWEA_MODEL_NAME": "ollama_chat/qwen2.5-coder:3b",
             }
             with patch("controller.open_source_worker_adapter.shutil.which", return_value="/usr/bin/mini"):
                 result = run_coding_task(
