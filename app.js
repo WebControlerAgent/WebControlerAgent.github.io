@@ -20,10 +20,10 @@ $("modalChat").onclick=()=>{$("agentModal").classList.add("hidden");$("chatInput
 async function loadStatus(){
  try{
   const r=await fetch("public/status.json?ts="+Date.now(),{cache:"no-store"});if(!r.ok)throw new Error();
-  const s=await r.json();const sites=Array.isArray(s.targets)?s.targets:[];
-  $("controller").textContent=s.ok?"Online":"Needs attention";$("lastRun").textContent=s.finished_at?new Date(s.finished_at).toLocaleString():"Not run";
+  const s=await r.json();const sites=Array.isArray(s.targets)?s.targets:[];const ready=s.ok&&Number(s.targets_configured??sites.length??0)>0&&Number(s.sources_checked??0)>0;
+  $("controller").textContent=ready?"Online":(s.ok?"Needs setup":"Needs attention");$("lastRun").textContent=s.finished_at?new Date(s.finished_at).toLocaleString():"Not run";
   $("repos").textContent=String(s.targets_configured??sites.length??0);$("sources").textContent=String(s.sources_checked??0);$("discovered").textContent=String((s.discovered||[]).length);
-  $("status").textContent=s.ok?"● SYSTEM READY":"● ATTENTION";$("managerStatus").textContent=s.ok?"READY":"CHECK";
+  $("status").textContent=ready?"● SYSTEM READY":(s.ok?"● SETUP REQUIRED":"● ATTENTION");$("managerStatus").textContent=ready?"READY":(s.ok?"SETUP":"CHECK");
   $("queueCount").textContent=sites.length+" sites";$("nextSite").textContent=sites[0]?.name||"Waiting for queue";
   $("queue").innerHTML=sites.length?sites.slice(0,8).map((x,i)=>'<div class="queue-item"><span>'+(i===0?"🟢 ":"⚪ ")+(x.name||x.repo||"Site")+'</span><small>'+((x.status||"WAITING").toUpperCase())+'</small></div>').join(""):'<div class="empty">No sites configured yet.</div>';
  }catch(e){$("controller").textContent="Waiting";$("managerStatus").textContent="WAIT";$("status").textContent="● WAITING"}
