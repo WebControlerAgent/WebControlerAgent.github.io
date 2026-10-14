@@ -199,8 +199,16 @@ def run_coding_task(
             "\nAllowed paths (do not modify anything else): " + ", ".join(allowed) +
             "\nFinish by printing COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT on its own line."
         )
+        model_name = str(env.get("MSWEA_MODEL_NAME", "")).strip()
+        if not model_name:
+            return {
+                "state": "BLOCKED",
+                "executed": False,
+                "reason": "MSWEA_MODEL_NAME must be set explicitly; no interactive model setup is allowed.",
+            }
         command = [
-            shutil.which(env["MINI_SWE_AGENT_BIN"].strip()) or env["MINI_SWE_AGENT_BIN"].strip(), "-y", "--exit-immediately",
+            shutil.which(env["MINI_SWE_AGENT_BIN"].strip()) or env["MINI_SWE_AGENT_BIN"].strip(),
+            "-y", "--exit-immediately", "-m", model_name,
             "--environment-class", "minisweagent.environments.docker.DockerEnvironment",
             "-c", "mini.yaml", "-c", str(config_file),
             "-t", objective, "-o", str(output_file),
