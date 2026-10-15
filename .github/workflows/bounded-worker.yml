@@ -130,6 +130,7 @@ jobs:
           endpoint = "http://127.0.0.1:11434/api/chat"
           payload = {
               "model": "qwen3:8b",
+              "think": False,
               "stream": False,
               "messages": [{
                   "role": "user",
