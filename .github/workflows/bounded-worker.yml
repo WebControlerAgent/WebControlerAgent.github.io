@@ -119,6 +119,61 @@ jobs:
           }
           ollama pull qwen3:8b
           ollama list
+          # Fail fast if this exact local model cannot return native tool calls.
+          # This catches model/backend incompatibility before the 15-minute agent run.
+          python3 - <<'PY'
+          import json
+          import time
+          import urllib.error
+          import urllib.request
+
+          endpoint = "http://127.0.0.1:11434/api/chat"
+          payload = {
+              "model": "qwen3:8b",
+              "stream": False,
+              "messages": [{
+                  "role": "user",
+                  "content": "Call the inspect_workspace tool now. Do not answer in plain text."
+              }],
+              "tools": [{
+                  "type": "function",
+                  "function": {
+                      "name": "inspect_workspace",
+                      "description": "A harmless preflight tool used only to verify native tool calling.",
+                      "parameters": {
+                          "type": "object",
+                          "properties": {"ready": {"type": "boolean"}},
+                          "required": ["ready"]
+                      }
+                  }
+              }],
+              "options": {"temperature": 0, "num_predict": 96}
+          }
+          request = urllib.request.Request(
+              endpoint,
+              data=json.dumps(payload).encode("utf-8"),
+              headers={"Content-Type": "application/json"},
+              method="POST",
+          )
+          try:
+              with urllib.request.urlopen(request, timeout=90) as response:
+                  result = json.load(response)
+          except Exception as exc:
+              raise SystemExit(f"BLOCKED: Qwen3 tool-call preflight request failed: {exc}")
+          message = result.get("message") or {}
+          calls = message.get("tool_calls") or []
+          valid = any(
+              (call.get("function") or {}).get("name") == "inspect_workspace"
+              for call in calls
+          )
+          if not valid:
+              preview = (message.get("content") or "").replace("\\n", " ")[:240]
+              raise SystemExit(
+                  "BLOCKED: qwen3:8b did not emit a native tool call; "
+                  f"plain-text preview={preview!r}. Skipping the long agent run."
+              )
+          print("PASS: qwen3:8b returned a native tool call through Ollama /api/chat.")
+          PY
           python3 -m pip install --user mini-swe-agent
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           cat > "$RUNNER_TEMP/Dockerfile.mini-swe" <<'DOCKERFILE'
