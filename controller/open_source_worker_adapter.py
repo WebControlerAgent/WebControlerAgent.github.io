@@ -185,6 +185,9 @@ def run_coding_task(
             "-e", "GIT_CONFIG_VALUE_0=/workspace",
         ]
         config_file.write_text(
+            "model:\n"
+            "  model_kwargs:\n"
+            "    think: false\n"
             "environment:\n"
             "  image: " + json.dumps(env["MINI_SWE_AGENT_IMAGE"]) + "\n"
             "  cwd: /workspace\n"
