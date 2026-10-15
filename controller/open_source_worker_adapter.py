@@ -185,6 +185,8 @@ def run_coding_task(
             "-e", "GIT_CONFIG_VALUE_0=/workspace",
         ]
         config_file.write_text(
+            "agent:\n"
+            "  step_limit: 8\n"
             "model:\n"
             "  model_kwargs:\n"
             "    think: false\n"
