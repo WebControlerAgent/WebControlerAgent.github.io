@@ -4,7 +4,7 @@
   "repository": "kindgommangaraw/kindgommangaraw.github.io",
   "parent_captain": "bug-solver",
   "task_type": "code_change_proposal",
-  "objective": "Review the repository homepage HTML for one small, evidence-based SEO or accessibility improvement. Produce a minimal patch proposal only. Do not change files outside index.html, do not claim Google indexing or live-browser testing, and explain the evidence and limitations.",
+  "objective": "Review the repository homepage HTML for one small, evidence-based SEO or accessibility improvement. Produce a minimal patch proposal only. Do not change files outside index.html, do not claim Google indexing or live-browser testing, and explain the evidence and limitations. Use a safe Python script or another command that avoids delimiter conflicts when editing HTML. Do not use sed substitutions containing HTML tags or slash characters. If a command fails, read its exact error and choose a materially different command; never repeat the same failing command. Keep shell commands short and on one line where practical. Finish promptly with the required completion command once the minimal change is verified.",
   "allowed_paths": [
     "index.html"
   ],
