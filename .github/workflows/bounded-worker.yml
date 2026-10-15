@@ -100,7 +100,7 @@ jobs:
       - name: Install and start open-source local model (Ollama + Qwen Coder)
         shell: bash
         env:
-          MSWEA_MODEL_NAME: ollama_chat/qwen2.5-coder:3b
+          MSWEA_MODEL_NAME: ollama_chat/qwen2.5-coder:7b
           MSWEA_COST_TRACKING: ignore_errors
         run: |
           set -euo pipefail
@@ -117,7 +117,7 @@ jobs:
             echo "::error::Local Ollama service did not become ready."
             exit 1
           }
-          ollama pull qwen2.5-coder:3b
+          ollama pull qwen2.5-coder:7b
           ollama list
           python3 -m pip install --user mini-swe-agent
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
@@ -145,7 +145,7 @@ jobs:
           MINI_SWE_AGENT_BIN: mini
           MINI_SWE_AGENT_SANDBOX: docker
           MINI_SWE_AGENT_IMAGE: bounded-mini-swe-agent:local
-          MSWEA_MODEL_NAME: ollama_chat/qwen2.5-coder:3b
+          MSWEA_MODEL_NAME: ollama_chat/qwen2.5-coder:7b
           MSWEA_COST_TRACKING: ignore_errors
         run: |
           set -euo pipefail
