@@ -1,6 +1,10 @@
 name: Bounded AI Worker (Patch Only)
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/bounded-worker.yml"
   workflow_dispatch:
     inputs:
       task_file:
@@ -36,7 +40,7 @@ jobs:
         id: task
         shell: bash
         env:
-          TASK_FILE: ${{ inputs.task_file }}
+          TASK_FILE: ${{ inputs.task_file || 'tasks/demo-bounded-code-proposal.json' }}
         run: |
           set -euo pipefail
           python3 - <<'PY'
@@ -150,7 +154,7 @@ jobs:
             --task-json "$TASK_FILE" \
             --checkout "$GITHUB_WORKSPACE/target-checkout" \
             --output-dir "$GITHUB_WORKSPACE/worker-artifacts" \
-            --timeout $(( ${{ inputs.timeout_minutes }} * 60 )) \
+            --timeout $(( ${{ inputs.timeout_minutes || '15' }} * 60 )) \
             | tee worker-artifacts/worker-result.json
 
       - name: Independent deterministic patch review
