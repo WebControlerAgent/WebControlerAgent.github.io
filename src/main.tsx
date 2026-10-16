@@ -481,15 +481,30 @@ function App(){
      try{
        const result=await readResult(config,issue);
        const comments=result.comments.filter(c=>c.body.trim());
-       const final=comments.find(c=>isRuntime?/completed successfully|command failed|runtime command completed|runtime command failed/i.test(c.body):/Manager AI:/i.test(c.body));
-       if(final){
-         setMessages(m=>[...m,{from:isRuntime?"Runtime":"Manager AI",text:final.body.replace(/\*\*/g,"").replace(/\*/g,"")}]);
+       const runtimeResult=comments.find(c=>/Agent Runtime command completed successfully|Agent Runtime command failed|runtime command completed|runtime command failed/i.test(c.body));
+       if(runtimeResult){
+         setMessages(m=>[...m,{from:"Runtime",text:runtimeResult.body.replace(/\*\*/g,"").replace(/\*/g,"")}]);
          refreshStatus();
          return;
        }
-       if(!isRuntime&&comments.length){
-         setMessages(m=>[...m,{from:"Manager AI",text:comments[comments.length-1].body}]);
-         return;
+       const managerResult=[...comments].reverse().find(c=>/Manager AI:/i.test(c.body));
+       if(managerResult){
+         if(!isRuntime&&/\[RUNTIME_PENDING\]/i.test(managerResult.body)){
+           if(attempt===0)setMessages(m=>[...m,{from:"Manager AI",text:managerResult.body.replace(/\*\*/g,"").replace(/\*/g,"")+" Waiting for runtime verification…"}]);
+           continue;
+         }
+         if(!isRuntime){
+           setMessages(m=>[...m,{from:"Manager AI",text:managerResult.body.replace(/\*\*/g,"").replace(/\*/g,"")}]);
+           refreshStatus();
+           return;
+         }
+       }
+       if(isRuntime&&comments.length){
+         const last=comments[comments.length-1];
+         if(/failed|blocked|error/i.test(last.body)){
+           setMessages(m=>[...m,{from:"Runtime",text:last.body}]);
+           return;
+         }
        }
      }catch(e){setMessages(m=>[...m,{from:"Bridge",text:"Result check: "+String((e as Error).message||e)}]);return;}
    }
