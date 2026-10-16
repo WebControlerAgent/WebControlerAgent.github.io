@@ -18,7 +18,9 @@ on:
       - "controller/test_open_source_worker_adapter.py"
       - ".github/workflows/code-worker-tests.yml"
       - ".github/workflows/bounded-worker.yml"
+      - ".github/workflows/seo-audit-worker.yml"
       - "tasks/demo-bounded-code-proposal.json"
+      - "tasks/seo-audit.json"
   pull_request:
     paths:
       - "controller/code_change_worker.py"
