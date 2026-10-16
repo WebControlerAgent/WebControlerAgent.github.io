@@ -1,0 +1,21 @@
+{
+  "task_id": "kingdom-raw-seo-audit-001",
+  "site": "kingdom-raw",
+  "repository": "kindgommangaraw/kindgommangaraw.github.io",
+  "parent_captain": "seo-agent",
+  "task_type": "seo_issue",
+  "objective": "Run a read-only audit of the authorized live site's robots.txt and sitemap.xml endpoints. Repeat the checks independently, report exact HTTP/evidence results, and do not modify, commit, or deploy any website files.",
+  "constraints": [
+    "Read-only network requests to the configured authorized live_url only.",
+    "Do not access credentials or secrets.",
+    "Do not infer Google indexing from endpoint availability.",
+    "Do not modify files in the target repository.",
+    "Captain review is required; automatic merge and deployment are forbidden."
+  ],
+  "success_criteria": [
+    "Both primary and independent checker results are present.",
+    "Evidence from both passes matches exactly before approval.",
+    "Any failed or inconsistent check remains VERIFYING.",
+    "Report is uploaded as a workflow artifact."
+  ]
+}
