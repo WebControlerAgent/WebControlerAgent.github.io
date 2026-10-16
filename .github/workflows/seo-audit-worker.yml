@@ -1,0 +1,51 @@
+name: Paired Read-only SEO Audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/seo-audit-worker.yml"
+      - "controller/seo_worker.py"
+      - "controller/agent_checks.py"
+      - "controller/worker_contract.py"
+      - "controller/sites.json"
+      - "tasks/seo-audit.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: paired-readonly-seo-audit
+  cancel-in-progress: false
+
+jobs:
+  seo-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout controller
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run primary and independent SEO checks
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          python3 -m controller.seo_worker tasks/seo-audit.json --output artifacts/seo-audit-result.json
+          cat artifacts/seo-audit-result.json
+
+      - name: Upload SEO evidence report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: paired-seo-audit-${{ github.run_id }}
+          path: artifacts/seo-audit-result.json
+          if-no-files-found: warn
+          retention-days: 7
