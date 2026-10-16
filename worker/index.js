@@ -84,7 +84,7 @@ export default {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             title: "[Agent Runtime] " + command.action,
-            body: "Submitted from the authenticated AIWCU Manager Chat.\\n\\n<!-- agent-runtime-command\\n" + JSON.stringify(command, null, 2) + "\\n-->"
+            body: "Submitted from the authenticated AIWCU Manager Chat.\n\n<!-- agent-runtime-command\n" + JSON.stringify(command, null, 2) + "\n-->"
           })
         });
         return json({ issue: issue.number, issueUrl: issue.html_url, state: "submitted" }, 202, headers);
