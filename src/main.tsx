@@ -5,6 +5,7 @@ import * as THREE from "three";
 import {createRoot} from "react-dom/client";
 import "./styles.css";
 import {managerReply} from "./chat/managerChat";
+import {readResult,submitManager,submitRuntime,type BridgeConfig} from "./chat/secureBridge";
 
 type Status="IDLE"|"WALKING"|"WORKING"|"THINKING"|"MEETING"|"SUCCESS"|"ERROR";
 type Agent={id:string;name:string;role:string;type:"captain";color:string;accent:string;desk:[number,number,number];waypoints:[number,number,number][];task:string;status:Status;icon:string};
@@ -472,10 +473,54 @@ function App(){
  const liveEvents=runtimeEvents.filter((e:any)=>e.site===selectedSite || !e.site).slice(0,8);
  const refreshStatus=()=>fetch("./status.json?ts="+Date.now()).then(r=>r.ok?r.json():null).then(setStatus).catch(()=>{});
  const [chatInput,setChatInput]=useState("");
- const [messages,setMessages]=useState<{from:string;text:string;runtimeAction?:any;aiRequest?:string}[]>([{from:"Manager",text:"Studio online hai. Main actual Agent Runtime state read kar raha hoon. Status, queue, bug, ya kisi employee ka naam bolo."}]);
- const sendChat=()=>{const text=chatInput.trim();if(!text)return;const siteName=sites.find(s=>s.id===selectedSite)?.name??selectedSite;const enriched=text+`\\nActive site: ${siteName} (${selectedSite})`;const reply=managerReply(enriched,agents,status);if(reply.runtimeAction&&!reply.runtimeAction.site)reply.runtimeAction.site=selectedSite;setMessages(m=>[...m,{from:"You",text},{from:agents.find(a=>a.id===reply.agentId)?.name??"Manager",text:reply.text,runtimeAction:reply.runtimeAction,aiRequest:reply.aiRequest}]);setChatInput("");setSelected(reply.agentId);};
- useEffect(()=>{const t=setInterval(()=>setNow(new Date()),1000);return()=>clearInterval(t)},[]);
- useEffect(()=>{refreshStatus();fetch("./sites.json?ts="+Date.now()).then(r=>r.ok?r.json():null).then(d=>setSites(d?.sites??[])).catch(()=>{});const t=setInterval(refreshStatus,15000);return()=>clearInterval(t)},[]);
+ const [bridgeConfig,setBridgeConfig]=useState<BridgeConfig|null>(null);
+ const [messages,setMessages]=useState<{from:string;text:string;runtimeAction?:any;aiRequest?:string}[]>([{from:"Manager",text:"Studio online hai. Status/queue local runtime se milta hai. Real AI command ke liye secure bridge URL aur private key ek martaba enter karo."}]);
+ const pollIssue=async(config:BridgeConfig,issue:number,isRuntime:boolean)=>{
+   for(let attempt=0;attempt<120;attempt++){
+     await new Promise(resolve=>window.setTimeout(resolve,5000));
+     try{
+       const result=await readResult(config,issue);
+       const comments=result.comments.filter(c=>c.body.trim());
+       const final=comments.find(c=>isRuntime?/completed successfully|command failed|runtime command completed|runtime command failed/i.test(c.body):/Manager AI:/i.test(c.body));
+       if(final){
+         setMessages(m=>[...m,{from:isRuntime?"Runtime":"Manager AI",text:final.body.replace(/\*\*/g,"").replace(/\*/g,"")}]);
+         refreshStatus();
+         return;
+       }
+       if(!isRuntime&&comments.length){
+         setMessages(m=>[...m,{from:"Manager AI",text:comments[comments.length-1].body}]);
+         return;
+       }
+     }catch(e){setMessages(m=>[...m,{from:"Bridge",text:"Result check: "+String((e as Error).message||e)}]);return;}
+   }
+   setMessages(m=>[...m,{from:"Bridge",text:"Workflow abhi chal raha hai. GitHub Actions result: https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions"}]);
+ };
+ const sendChat=async()=>{
+   const text=chatInput.trim();if(!text)return;
+   const siteName=sites.find(s=>s.id===selectedSite)?.name??selectedSite;
+   const enriched=text+"\nActive site: "+siteName+" ("+selectedSite+")";
+   const reply=managerReply(enriched,agents,status);
+   if(reply.runtimeAction&&!reply.runtimeAction.site)reply.runtimeAction.site=selectedSite;
+   setMessages(m=>[...m,{from:"You",text},{from:agents.find(a=>a.id===reply.agentId)?.name??"Manager",text:reply.text}]);
+   setChatInput("");setSelected(reply.agentId);
+   if(!reply.runtimeAction&&!reply.aiRequest)return;
+   let config=bridgeConfig;
+   if(!config){
+     const url=window.prompt("Cloudflare Worker bridge URL (https://...)");
+     if(!url)return;
+     const key=window.prompt("Private AIWCU chat key (not your Gemini API key)");
+     if(!key)return;
+     config={url,key};setBridgeConfig(config);
+   }
+   try{
+     setMessages(m=>[...m,{from:"Bridge",text:"Secure bridge par command bhej raha hoon…"}]);
+     const submitted=reply.runtimeAction?await submitRuntime(config,reply.runtimeAction):await submitManager(config,reply.aiRequest!);
+     setMessages(m=>[...m,{from:"Bridge",text:"Command submitted (#"+submitted.issue+"). Result isi chat mein check hoga."}]);
+     void pollIssue(config,submitted.issue,Boolean(reply.runtimeAction));
+   }catch(e){
+     setMessages(m=>[...m,{from:"Bridge",text:"Bridge error: "+String((e as Error).message||e)+". Worker deploy/configure hone ke baad dobara bhejo."}]);
+   }
+ };
  const selectedAgent=agents.find(a=>a.id===selected)??agents[0];
  const runtimeSelected=runtimeAgents.find(a=>a.id===selectedAgent.id);
  const liveState=runtimeSelected?.runtimeState??null;
