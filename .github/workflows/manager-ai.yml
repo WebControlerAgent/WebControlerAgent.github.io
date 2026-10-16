@@ -62,6 +62,7 @@ jobs:
       - name: Dispatch deterministic runtime
         env:
           GH_TOKEN: ${{ github.token }}
+          ORIGIN_ISSUE: ${{ github.event.issue.number }}
         run: |
           action=$(python3 -c 'import json; print(json.load(open("/tmp/manager-plan.json"))["action"])')
           command=$(cat /tmp/manager-plan.json)
@@ -69,7 +70,11 @@ jobs:
             echo "Manager chose no runtime action."
             exit 0
           fi
-          gh workflow run agent-command.yml --ref main -f command="$command"
+          if [ -n "$ORIGIN_ISSUE" ]; then
+            gh workflow run agent-command.yml --ref main -f command="$command" -f reply_issue="$ORIGIN_ISSUE"
+          else
+            gh workflow run agent-command.yml --ref main -f command="$command"
+          fi
           echo "Runtime workflow dispatched."
 
       - name: Report to issue
@@ -78,5 +83,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           reply=$(python3 -c 'import json; print(json.load(open("/tmp/manager-plan.json")).get("reply","Manager plan created."))')
-          gh issue comment '${{ github.event.issue.number }}' --body "🤖 **Manager AI:** $reply"
+          action=$(python3 -c 'import json; print(json.load(open("/tmp/manager-plan.json"))["action"])')
+          if [ "$action" = "none" ]; then
+            gh issue comment '${{ github.event.issue.number }}' --body "🤖 **Manager AI:** $reply"
+          else
+            gh issue comment '${{ github.event.issue.number }}' --body "🤖 **Manager AI:** [RUNTIME_PENDING] $reply Runtime ka verified result isi chat thread mein aayega."
+          fi
           gh issue close '${{ github.event.issue.number }}'
