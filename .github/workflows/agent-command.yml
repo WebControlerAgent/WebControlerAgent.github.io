@@ -9,6 +9,10 @@ on:
         description: JSON runtime command
         required: true
         type: string
+      reply_issue:
+        description: Optional Manager AI issue to report the runtime result to
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -163,13 +167,19 @@ jobs:
           git push
 
       - name: Report result
-        if: always() && github.event_name == 'issues'
+        if: always()
         env:
           GH_TOKEN: ${{ github.token }}
+          REPLY_ISSUE: ${{ inputs.reply_issue }}
         run: |
           if [ "${{ job.status }}" = "success" ]; then
-            gh issue comment '${{ github.event.issue.number }}' --body '✅ **Agent Runtime command completed successfully.** The autonomous pipeline finished in GitHub Actions.'
+            result='✅ **Agent Runtime command completed successfully.** The autonomous pipeline finished in GitHub Actions.'
           else
-            gh issue comment '${{ github.event.issue.number }}' --body '❌ **Agent Runtime command failed.** Runtime state and diagnostics were persisted in the repository.'
+            result='❌ **Agent Runtime command failed.** Runtime state and diagnostics were persisted in the repository.'
           fi
-          gh issue close '${{ github.event.issue.number }}'
+          if [ "${{ github.event_name }}" = "issues" ]; then
+            gh issue comment '${{ github.event.issue.number }}' --body "$result"
+            gh issue close '${{ github.event.issue.number }}'
+          elif [ -n "$REPLY_ISSUE" ]; then
+            gh issue comment "$REPLY_ISSUE" --body "$result"
+          fi
