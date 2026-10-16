@@ -6,6 +6,20 @@
  */
 const REPO = "WebControlerAgent/WebControlerAgent.github.io";
 const API = "https://api.github.com";
+function bodyCommand(value) {
+  const allowed = new Set(["claim", "assign", "verify", "complete", "fail"]);
+  if (!value || !allowed.has(value.action)) throw new Error("Unsupported runtime action");
+  const out = { action: value.action };
+  for (const key of ["site", "agent", "task", "error"]) {
+    if (value[key] != null) {
+      const v = String(value[key]).trim();
+      if (v.length > 500) throw new Error(key + " is too long");
+      out[key] = v;
+    }
+  }
+  if (value.passed != null) out.passed = Boolean(value.passed);
+  return out;
+}
 
 function cors(origin, env) {
   const allowed = (env.ALLOWED_ORIGIN || "").split(",").map(x => x.trim()).filter(Boolean);
@@ -59,6 +73,18 @@ export default {
           body: JSON.stringify({
             title: "[Manager AI] " + instruction.replace(/\s+/g, " ").slice(0, 70),
             body: "Submitted from the authenticated AIWCU Manager Chat.\n\n" + instruction
+          })
+        });
+        return json({ issue: issue.number, issueUrl: issue.html_url, state: "submitted" }, 202, headers);
+      }
+      if (request.method === "POST" && url.pathname === "/runtime") {
+        const command = bodyCommand(await request.json());
+        const issue = await gh("/repos/" + REPO + "/issues", env, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: "[Agent Runtime] " + command.action,
+            body: "Submitted from the authenticated AIWCU Manager Chat.\\n\\n<!-- agent-runtime-command\\n" + JSON.stringify(command, null, 2) + "\\n-->"
           })
         });
         return json({ issue: issue.number, issueUrl: issue.html_url, state: "submitted" }, 202, headers);
