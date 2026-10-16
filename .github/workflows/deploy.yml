@@ -37,6 +37,9 @@ jobs:
           python3 controller/verify_runtime.py
           python3 controller/test_task_dispatcher.py
 
+      - name: Run worker safety and independent-checker tests
+        run: python3 -m unittest discover -s controller -p 'test_*.py' -v
+
       - name: Install dependencies
         run: npm install
 
