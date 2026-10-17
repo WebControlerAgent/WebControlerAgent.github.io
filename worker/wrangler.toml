@@ -1,0 +1,9 @@
+name = "aiwcu-chat-bridge"
+main = "index.js"
+compatibility_date = "2026-10-17"
+workers_dev = true
+
+# Set this to the exact live website origin before deploying.
+# Example only: https://webcontroleragent.github.io
+[vars]
+ALLOWED_ORIGIN = ""
