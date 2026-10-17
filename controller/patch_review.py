@@ -17,10 +17,28 @@ def validate_patch(task: dict[str, Any], patch_text: str) -> dict[str, Any]:
     allowed = task.get("allowed_paths")
     if not isinstance(allowed, list) or not allowed:
         return {"state": "BLOCKED", "passed": False, "reason": "Task allowlist is missing."}
-    paths = re.findall(r"^diff --git a/(.*?) b/(.*?)$", patch_text, flags=re.MULTILINE)
-    if not paths:
+    blocks = re.split(r"(?=^diff --git )", patch_text, flags=re.MULTILINE)
+    blocks = [block for block in blocks if block.strip()]
+    if not blocks:
         return {"state": "BLOCKED", "passed": False, "reason": "Patch has no parseable diff headers."}
-    changed = sorted({b for _, b in paths})
+
+    paths: list[tuple[str, str]] = []
+    for block in blocks:
+        header = re.search(r"^diff --git a/(.*?) b/(.*?)$", block, flags=re.MULTILINE)
+        if not header:
+            return {"state": "BLOCKED", "passed": False, "reason": "Patch contains a malformed diff block."}
+        old, new = header.groups()
+        old_marker = re.search(r"^--- (?:a/)?(.+)$", block, flags=re.MULTILINE)
+        new_marker = re.search(r"^\+\+\+ (?:b/)?(.+)$", block, flags=re.MULTILINE)
+        if not old_marker or not new_marker:
+            return {"state": "BLOCKED", "passed": False, "changed_files": [new],
+                    "reason": f"Patch is missing file markers for {new}."}
+        if old_marker.group(1) != old or new_marker.group(1) != new:
+            return {"state": "BLOCKED", "passed": False, "changed_files": [new],
+                    "reason": f"Diff header and file markers disagree for {new}."}
+        paths.append((old, new))
+
+    changed = sorted({new for _, new in paths})
     unsafe = []
     for old, new in paths:
         if old != new or new.startswith("/") or ".." in Path(new).parts:
