@@ -193,11 +193,11 @@ Start here before asking the user to repeat context:
 Use this section after future work and keep it current:
 
 - **Last updated:** 2026-10-17
-- **Latest code-worker fix:** commit `9293251c70d2995e68c0c96d6fa193162a238da4` makes the mini-SWE-agent completion sentinel an explicit final shell command.
-- **Bounded Code Worker Tests:** [39055110903 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39055110903), on the fix commit.
-- **Deployment:** [39055110912](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39055110912) was in progress at last check.
-- **Fresh bounded worker:** [39055110977](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39055110977) was in progress at last check; wait for its patch artifact and independent review before deciding whether the prompt fix resolves the timeout.
-- **Previous bounded-worker timeout:** [39053495254](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39053495254) reached the requested edit and showed a diff, but timed out before acceptance; its candidate was not accepted.
-- **Latest prior successful bounded worker:** [39007689304 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39007689304); patch passed deterministic scope/risk review but still requires Captain review.
-- **Manager Chat E2E:** pending Cloudflare Worker deployment/configuration by the owner and a verified live command/result round trip.
-- **Next immediate action:** confirm the fresh bounded-worker result and deployment; then complete the Manager Chat bridge setup/E2E. Keep the Kingdom Raw canonical/live-domain mismatch as a separate Captain-reviewed SEO task; do not apply the meta-description proposal as a substitute for fixing canonical configuration.
+- **Secure bridge deployment prep:** added `worker/wrangler.toml` (commit `7d12a9725d6773c273de601ada64ca3ff9678868`) and CLI deployment/secrets instructions in `worker/README.md` (commit `2541f668a1a37b7ae2107bc3c3af88971d910098`).
+- **Bridge safety tests:** added `worker/index.test.js` and wired it into the existing CI workflow (commit `9c3a3d501448b74d21cf1cf2bb0adbe9a2035701`); [run 39056193187 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39056193187), including Python worker tests and Node bridge tests.
+- **Pages deployment for latest CI commit:** [run 39056193225](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39056193225) was queued at last check.
+- **Bounded AI Worker:** [run 39055110977 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39055110977); patch artifact and deterministic scope/risk review succeeded. The proposal changes only the homepage meta description and is `READY_FOR_CAPTAIN_REVIEW`; no source site was modified, and no automatic merge/deploy occurred.
+- **Coding worker completion fix:** commit `9293251c70d2995e68c0c96d6fa193162a238da4`; bounded worker and Pages deployment both succeeded after this fix.
+- **Manager Chat E2E:** still pending Cloudflare account authorization, Worker deployment, secrets configuration, and one verified live command/result round trip.
+- **Next immediate action:** owner deploys `worker/index.js` using `worker/wrangler.toml`, sets `GITHUB_TOKEN`, `AIWCU_CHAT_KEY`, and the exact `ALLOWED_ORIGIN`, then runs the harmless live Manager Chat E2E test. Never put secrets in GitHub source files or chat.
+- **SEO note:** keep the Kingdom Raw canonical/live-domain mismatch as a separate Captain-reviewed task; do not apply the demo meta-description patch as a substitute for fixing canonical configuration.
