@@ -30,6 +30,20 @@ class PatchReviewTests(unittest.TestCase):
         self.assertFalse(result["passed"])
         self.assertEqual(result["state"], "BLOCKED")
 
+    def test_file_marker_mismatch_is_blocked_even_when_header_is_allowed(self):
+        patch = (
+            "diff --git a/index.html b/index.html\n"
+            "--- a/index.html\n"
+            "+++ b/admin.js\n"
+            "@@ -1 +1 @@\n"
+            "-safe\n"
+            "+unsafe\n"
+        )
+        result = validate_patch(self.task, patch)
+        self.assertFalse(result["passed"])
+        self.assertEqual(result["state"], "BLOCKED")
+        self.assertIn("markers disagree", result["reason"])
+
     def test_secret_pattern_requires_human_review(self):
         patch = (
             "diff --git a/index.html b/index.html\n"
