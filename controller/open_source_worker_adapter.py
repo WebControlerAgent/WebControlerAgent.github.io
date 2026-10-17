@@ -202,7 +202,8 @@ def run_coding_task(
             "Do not commit or push. Task ID: " + str(task["task_id"]) +
             "\nObjective: " + str(task["objective"]) +
             "\nAllowed paths (do not modify anything else): " + ", ".join(allowed) +
-            "\nFinish by printing COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT on its own line."
+            "\nAfter all requested verification, run exactly this final shell command: "
+            "`echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT`. Do not continue after it."
         )
         model_name = str(env.get("MSWEA_MODEL_NAME", "")).strip()
         if not model_name:
