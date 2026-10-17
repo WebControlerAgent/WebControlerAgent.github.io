@@ -172,10 +172,15 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPLY_ISSUE: ${{ inputs.reply_issue }}
         run: |
-          if [ "${{ job.status }}" = "success" ]; then
-            result='✅ **Agent Runtime command completed successfully.** The autonomous pipeline finished in GitHub Actions.'
+          action=$(python3 -c 'import json; print(json.load(open("/tmp/runtime-command.json")).get("action", "unknown"))' 2>/dev/null || echo unknown)
+          if [ "${{ job.status }}" != "success" ]; then
+            result='❌ **Agent Runtime command failed.** Runtime state and diagnostics were persisted where possible.'
+          elif [ "$action" = "claim" ]; then
+            result='✅ **Agent pipeline completed successfully.** GitHub Actions finished the claim pipeline and its configured verification steps.'
+          elif [ "$action" = "assign" ]; then
+            result='ℹ️ **Assignment recorded; execution not started.** The runtime state was updated, but this command did not launch an autonomous worker pipeline. Do not treat the assigned task as completed.'
           else
-            result='❌ **Agent Runtime command failed.** Runtime state and diagnostics were persisted in the repository.'
+            result="ℹ️ **Runtime state transition applied: $action.** This confirms the command/state update only; it does not by itself prove that an agent performed or completed work."
           fi
           if [ "${{ github.event_name }}" = "issues" ]; then
             gh issue comment '${{ github.event.issue.number }}' --body "$result"
