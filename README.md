@@ -58,6 +58,7 @@ These are deliberate project rules, not missing features to bypass:
 - `controller/patch_review.py` performs a separate deterministic review for patch structure, changed paths, high-risk patterns, and diff-header/file-marker agreement.
 - A regression test was added to block patches whose actual `---` / `+++` file markers disagree with their `diff --git` header.
 - The secure chat bridge client is in `src/chat/secureBridge.ts`; the Cloudflare Worker implementation is in `worker/index.js`. The bridge design keeps GitHub token and chat key outside the public site.
+- Runtime completion comments were corrected in commit `d11fdeeef4fdcd48330b52d0bcd9d2c0c294be85`: `assign` now reports “assignment recorded; execution not started”, and other non-claim actions report only a state transition instead of falsely claiming the autonomous pipeline completed.
 - Existing browser QA workflow uses Playwright; its real end-to-end coverage still needs to be checked against the latest site behavior.
 
 ### Latest known successful runs
@@ -192,12 +193,10 @@ Start here before asking the user to repeat context:
 Use this section after future work and keep it current:
 
 - **Last updated:** 2026-10-17
-- **README handoff commit:** `6429bcaa56dc61fd1e8aacf91efb2d726ca30005`
-- **Latest deployed app commit before documentation/task updates:** `65d9e8fa2f8645004e7813165ded7fb12af008c4`
-- **Latest confirmed deployment before documentation/task updates:** [39007689273 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39007689273)
-- **Latest code-worker tests:** [39007689272 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39007689272)
-- **Bounded worker:** [39007689304 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39007689304); artifact passed deterministic scope/risk review and still requires Captain review.
-- **New task clarification commit:** `76a632b8dd9218370e2f549a01bf9fc15d847847`; this change triggers a fresh bounded-worker run because `tasks/**` is watched. Check the newest Actions run before continuing.
-- **README deployment:** documentation commit `6429bcaa56dc61fd1e8aacf91efb2d726ca30005` had deployment run [39053447507](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39053447507) queued at last check.
+- **README handoff commit:** `6429bcaa56dc61fd1e8aacf91efb2d726ca30005`; documentation deployment [39053447507 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39053447507).
+- **Latest confirmed code-worker tests:** [39053495287 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39053495287), after the demo task was clarified.
+- **Latest completed bounded worker:** [39007689304 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39007689304); artifact passed deterministic scope/risk review and still requires Captain review.
+- **Fresh bounded worker run:** [39053495254](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39053495254) was still installing/preflighting Ollama + Qwen3 at last check; target checkout, task execution, patch review and artifact upload were pending.
+- **Latest workflow accuracy fix:** `d11fdeeef4fdcd48330b52d0bcd9d2c0c294be85`; a new Pages workflow [39053543109](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39053543109) was pending at last check.
 - **Manager chat E2E:** pending external Cloudflare Worker setup and a verified live command/result round trip.
-- **Next immediate action:** check the fresh bounded-worker run and README deployment; then validate the canonical/live-domain mismatch and test Manager chat E2E.
+- **Next immediate action:** close the fresh bounded-worker run; verify the workflow accuracy fix deploys; then validate the canonical/live-domain mismatch and test Manager chat E2E.
