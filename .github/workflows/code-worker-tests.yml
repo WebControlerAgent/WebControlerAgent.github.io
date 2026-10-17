@@ -20,7 +20,15 @@ on:
       - ".github/workflows/bounded-worker.yml"
       - ".github/workflows/seo-audit-worker.yml"
       - "tasks/demo-bounded-code-proposal.json"
+      - "worker/index.js"
+      - "worker/index.test.js"
+      - "worker/wrangler.toml"
+      - "worker/README.md"
       - "tasks/seo-audit.json"
+      - "worker/index.js"
+      - "worker/index.test.js"
+      - "worker/wrangler.toml"
+      - "worker/README.md"
   pull_request:
     paths:
       - "controller/code_change_worker.py"
@@ -53,3 +61,9 @@ jobs:
           python-version: "3.12"
       - name: Run bounded worker and independent checker tests
         run: python -m unittest controller.test_code_change_worker controller.test_seo_worker controller.test_task_dispatcher controller.test_open_source_worker_adapter controller.test_worker_execution_bridge controller.test_patch_review -v
+      - name: Set up Node.js for secure bridge tests
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Test Cloudflare chat bridge guards and issue submission
+        run: node --test worker/index.test.js
