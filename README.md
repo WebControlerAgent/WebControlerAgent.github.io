@@ -193,10 +193,11 @@ Start here before asking the user to repeat context:
 Use this section after future work and keep it current:
 
 - **Last updated:** 2026-10-17
-- **README handoff commit:** `6429bcaa56dc61fd1e8aacf91efb2d726ca30005`; documentation deployment [39053447507 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39053447507).
-- **Latest confirmed code-worker tests:** [39053495287 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39053495287), after the demo task was clarified.
-- **Latest completed bounded worker:** [39007689304 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39007689304); artifact passed deterministic scope/risk review and still requires Captain review.
-- **Fresh bounded worker run:** [39053495254](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39053495254) was still installing/preflighting Ollama + Qwen3 at last check; target checkout, task execution, patch review and artifact upload were pending.
-- **Latest workflow accuracy fix:** `d11fdeeef4fdcd48330b52d0bcd9d2c0c294be85`; a new Pages workflow [39053543109](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39053543109) was pending at last check.
-- **Manager chat E2E:** pending external Cloudflare Worker setup and a verified live command/result round trip.
-- **Next immediate action:** close the fresh bounded-worker run; verify the workflow accuracy fix deploys; then validate the canonical/live-domain mismatch and test Manager chat E2E.
+- **Latest code-worker fix:** commit `9293251c70d2995e68c0c96d6fa193162a238da4` makes the mini-SWE-agent completion sentinel an explicit final shell command.
+- **Bounded Code Worker Tests:** [39055110903 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39055110903), on the fix commit.
+- **Deployment:** [39055110912](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39055110912) was in progress at last check.
+- **Fresh bounded worker:** [39055110977](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39055110977) was in progress at last check; wait for its patch artifact and independent review before deciding whether the prompt fix resolves the timeout.
+- **Previous bounded-worker timeout:** [39053495254](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39053495254) reached the requested edit and showed a diff, but timed out before acceptance; its candidate was not accepted.
+- **Latest prior successful bounded worker:** [39007689304 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39007689304); patch passed deterministic scope/risk review but still requires Captain review.
+- **Manager Chat E2E:** pending Cloudflare Worker deployment/configuration by the owner and a verified live command/result round trip.
+- **Next immediate action:** confirm the fresh bounded-worker result and deployment; then complete the Manager Chat bridge setup/E2E. Keep the Kingdom Raw canonical/live-domain mismatch as a separate Captain-reviewed SEO task; do not apply the meta-description proposal as a substitute for fixing canonical configuration.
