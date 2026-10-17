@@ -4,13 +4,13 @@
   "repository": "kindgommangaraw/kindgommangaraw.github.io",
   "parent_captain": "bug-solver",
   "task_type": "code_change_proposal",
-  "objective": "Review the repository homepage HTML for one small, evidence-based SEO or accessibility improvement and produce a minimal patch proposal. Only index.html may change. Do not claim Google indexing or live-browser testing. The existing meta description is exactly \"MangaReader — latest manga chapters.\" You may improve it to \"MangaReader — Explore the latest manga chapters and discover series updates.\" Make the edit directly in index.html using one single-line command: python3 -c 'from pathlib import Path; p=Path(\"index.html\"); s=p.read_text(); old=\"MangaReader — latest manga chapters.\"; new=\"MangaReader — Explore the latest manga chapters and discover series updates.\"; assert old in s; p.write_text(s.replace(old,new,1))'. Do not use sed. Do not create, edit, or leave any helper/script/temp files in the workspace. If the exact string is absent, inspect index.html and stop with an explanation rather than creating a script. After the edit, run git diff -- index.html and verify only index.html changed. Then immediately finish by issuing the required completion command as a separate command.",
+  "objective": "Inspect the authorized repository's index.html and propose one small, evidence-based homepage meta-description improvement. The expected source description is exactly \"MangaReader — latest manga chapters.\" If and only if that exact text is present, replace its first occurrence with \"MangaReader — Explore the latest manga chapters and discover series updates.\" Use one single-line Python command to make the edit once. If that edit succeeds, DO NOT run the edit command again; verify using git diff -- index.html and confirm only index.html changed. If the exact source text is absent, do not edit anything: report the observed description and stop. Do not change the canonical URL, title, other metadata, or any other content. Do not claim Google indexing or live-browser testing. Do not use sed, create helper/script/temp files, or modify any file other than index.html. Finish with the required completion command as a separate command.",
   "allowed_paths": [
     "index.html"
   ],
   "constraints": [
     "Proposal only: never apply changes to the source checkout, commit, merge, or deploy.",
-    "Do not modify workflows, credentials, secrets, admin authentication, or deployment configuration.",
+    "Do not modify workflows, credentials, secrets, admin authentication, deployment configuration, or canonical URL.",
     "Only propose edits to index.html.",
     "Do not invent test results, traffic data, search ranking, or indexing status.",
     "The output must be a patch artifact for independent review; Captain approval is required before any future acceptance."
@@ -18,6 +18,7 @@
   "success_criteria": [
     "Every changed path is within the allowed path list.",
     "Return a concise summary and explain why the improvement is justified by source evidence.",
+    "If the target text is absent, produce no patch and clearly explain why.",
     "Do not claim browser testing or Google indexing was performed.",
     "Keep the output as a patch proposal only and require independent checker review."
   ]
