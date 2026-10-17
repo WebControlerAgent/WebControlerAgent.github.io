@@ -67,12 +67,14 @@ These are deliberate project rules, not missing features to bypass:
 - **Paired Read-only SEO Audit:** [run 39004193612](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39004193612) — SUCCESS; artifact had no SEO findings and was marked ready for Captain review.
 
 ### Still running / last observed
-- **Bounded AI Worker (Patch Only), run 39007689304:** was pending/queued when last checked, likely waiting because the earlier worker run holds the concurrency group.
-- **Earlier Bounded AI Worker run 39007682449:** its last visible job status was `Execute bounded worker and export proposal` in progress; independent review and artifact upload were still pending. Re-check GitHub Actions before assuming it finished.
-- Deployment success above does not imply the bounded worker has completed.
+- **Bounded AI Worker (Patch Only), run 39007689304:** [SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39007689304). The worker executed, exported a patch, passed deterministic patch review, and uploaded an artifact.
+- **Earlier Bounded AI Worker run 39007682449:** [SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39007682449) with an artifact as well.
+- Latest artifact from run 39007689304: `worker-result.json` reports `READY_FOR_INDEPENDENT_CHECK`, changed file `index.html`, `repository_modified: false`, `write_access: false`, `automatic_merge: false`, and `automatic_deploy: false`. `patch-review.json` reports `READY_FOR_CAPTAIN_REVIEW`, but explicitly says human/AI code review is still required.
+- The model attempted the edit twice: the first edit succeeded, the repeated command then failed its old-text assertion. The final patch still contains one scoped meta-description change and passed the deterministic path/risk review. The demo task has now been clarified to make the edit once and not change the canonical URL.
+- Deployment success does not imply that the proposal was applied to the target website.
 
 ### Important known mismatch to resolve
-The demo task `tasks/demo-bounded-code-proposal.json` targets the authorized Kingdom Raw repository, but its objective expects the literal homepage description `MangaReader — latest manga chapters.` and the earlier proposal artifact appeared to reference a MangaReader-style page/canonical rather than the live `jpmangaatlis.online` identity. **Do not apply that generated proposal.** Inspect the actual target homepage and update the demo task objective to match verified source content before using it as a meaningful production-like test. A proposal is not a deployed fix.
+The demo task `tasks/demo-bounded-code-proposal.json` targets the authorized Kingdom Raw repository, whose current homepage source includes MangaReader-style content and a canonical URL pointing at `https://kindgommangaraw.github.io/`, while the registry's live URL is `https://jpmangaatlis.online/`. This canonical/live-domain mismatch is a separate SEO issue and was deliberately kept outside the demo patch's allowed scope. The generated proposal changes only the meta description. **Do not apply that generated proposal until a Captain reviews the target content and decides whether the canonical/domain configuration is correct.** The task objective was clarified so the edit runs only once and the canonical URL is not touched. A proposal is not a deployed fix.
 
 ## 4. Important files and their roles
 
@@ -190,9 +192,12 @@ Start here before asking the user to repeat context:
 Use this section after future work and keep it current:
 
 - **Last updated:** 2026-10-17
-- **Latest deployed commit:** `65d9e8fa2f8645004e7813165ded7fb12af008c4`
-- **Latest deployment:** [39007689273 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39007689273)
+- **README handoff commit:** `6429bcaa56dc61fd1e8aacf91efb2d726ca30005`
+- **Latest deployed app commit before documentation/task updates:** `65d9e8fa2f8645004e7813165ded7fb12af008c4`
+- **Latest confirmed deployment before documentation/task updates:** [39007689273 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39007689273)
 - **Latest code-worker tests:** [39007689272 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39007689272)
-- **Bounded worker:** run 39007689304 was queued at last check; prior run 39007682449 was executing at its export step.
+- **Bounded worker:** [39007689304 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39007689304); artifact passed deterministic scope/risk review and still requires Captain review.
+- **New task clarification commit:** `76a632b8dd9218370e2f549a01bf9fc15d847847`; this change triggers a fresh bounded-worker run because `tasks/**` is watched. Check the newest Actions run before continuing.
+- **README deployment:** documentation commit `6429bcaa56dc61fd1e8aacf91efb2d726ca30005` had deployment run [39053447507](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39053447507) queued at last check.
 - **Manager chat E2E:** pending external Cloudflare Worker setup and a verified live command/result round trip.
-- **Next immediate action:** close/inspect bounded worker runs, fix demo task mismatch, then test Manager chat E2E.
+- **Next immediate action:** check the fresh bounded-worker run and README deployment; then validate the canonical/live-domain mismatch and test Manager chat E2E.
