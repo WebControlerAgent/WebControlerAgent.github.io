@@ -3,7 +3,7 @@
 > **Handoff document:** this README is the project memory for future ChatGPT sessions, contributors, and maintainers. Update the **Current Status**, **Latest Runs**, and **Next Steps** sections whenever work changes so the project can resume without relying on chat history.
 
 Repository: `WebControlerAgent/WebControlerAgent.github.io`  
-Product: GitHub Pages dashboard + GitHub Actions agent controller + optional secure Manager Chat bridge.  
+Product: GitHub Pages dashboard + GitHub Actions agent controller + GitHub-Issue-based Manager Chat handoff. GitHub-only: no Cloudflare, Supabase, or separate bridge required.  
 Primary authorized test site: `kingdom-raw` → `kindgommangaraw/kindgommangaraw.github.io` → `https://jpmangaatlis.online/`.
 
 ## 1. Project goal
@@ -57,7 +57,7 @@ These are deliberate project rules, not missing features to bypass:
 - The bounded worker validates task schema, authorized site/repository match, allowed paths, and output location before execution.
 - `controller/patch_review.py` performs a separate deterministic review for patch structure, changed paths, high-risk patterns, and diff-header/file-marker agreement.
 - A regression test was added to block patches whose actual `---` / `+++` file markers disagree with their `diff --git` header.
-- The secure chat bridge client is in `src/chat/secureBridge.ts`; the Cloudflare Worker implementation is in `worker/index.js`. The bridge design keeps GitHub token and chat key outside the public site.
+- Manager Chat uses a GitHub-only Issue composer handoff. The public site opens a prefilled GitHub Issue; the user must explicitly submit it on GitHub. The site does not store or send a GitHub token, Gemini key, or bridge key. `src/chat/secureBridge.ts` and `worker/index.js` are legacy bridge code and are not used by the current Manager Chat UI.
 - Runtime completion comments were corrected in commit `d11fdeeef4fdcd48330b52d0bcd9d2c0c294be85`: `assign` now reports “assignment recorded; execution not started”, and other non-claim actions report only a state transition instead of falsely claiming the autonomous pipeline completed.
 - Existing browser QA workflow uses Playwright; its real end-to-end coverage still needs to be checked against the latest site behavior.
 
@@ -114,25 +114,23 @@ The demo task `tasks/demo-bounded-code-proposal.json` targets the authorized Kin
 - `.github/workflows/deploy.yml` — GitHub Pages build/deploy workflow.
 - Other workflow files exist for dispatch, monitoring, proposal runtime, and site manager. Inspect their current YAML before changing trigger/permission behavior.
 
-## 5. Manager Chat: intended flow and external setup
+## 5. Manager Chat: GitHub-only handoff
 
-The intended real flow is:
+The current GitHub-only flow is:
 
-1. User enters a plain-language instruction in the website's Manager Chat.
-2. Frontend sends it over HTTPS to the separately deployed Cloudflare Worker bridge.
-3. The bridge authenticates the private chat key and origin, then creates a GitHub issue/request.
-4. `manager-ai.yml` calls the protected Manager AI workflow with `GEMINI_API_KEY`, creates a structured plan, and dispatches the runtime when action is not `none`.
-5. `agent-command.yml` runs the deterministic pipeline and posts a result/failure comment to the originating issue.
-6. Bridge polling returns issue comments to the chat UI.
+1. User enters a plain-language instruction in Manager Chat.
+2. The page builds a prefilled GitHub Issue link (`[Manager AI]` for natural-language tasks, `[Agent Runtime]` for explicit runtime commands). No credential is requested or stored by the website.
+3. User opens the link and explicitly clicks **Submit new issue** on GitHub. This manual confirmation is required because GitHub Pages is static and has no privileged credential.
+4. `manager-ai.yml` accepts authorized `[Manager AI]` issues, calls the protected Manager AI workflow with the repository's `GEMINI_API_KEY` Actions secret, creates a structured plan, and dispatches runtime when appropriate.
+5. `agent-command.yml` handles authorized runtime issues and comments on the originating issue with the state/result.
+6. The user reads the response in the GitHub Issue thread and can return to Manager Chat.
 
-### User-side setup still required for real browser chat E2E
-GitHub Pages cannot host secrets. Deploy `worker/index.js` as a Cloudflare Worker and configure the exact values described in `worker/README.md`:
-- secret `GITHUB_TOKEN`: fine-grained token limited to this controller repository and Issues read/write;
-- secret `AIWCU_CHAT_KEY`: a long private random key;
-- variable `ALLOWED_ORIGIN`: exact live website origin, no trailing slash.
-Also ensure the GitHub Actions secret `GEMINI_API_KEY` is valid and available to this repository. Do not paste secrets into chat, commits, README, or frontend settings that get saved publicly.
-
-Until the Worker is deployed/configured and a real browser command is verified end-to-end, describe Manager Chat runtime as **implemented but E2E unverified**, not complete. Longer runtime tasks can finish after the browser stops polling; check the linked GitHub issue/Actions run if needed.
+### Required GitHub setup / limitations
+- Ensure the repository Actions secret `GEMINI_API_KEY` is configured; never share its value.
+- The GitHub account submitting the issue must satisfy the workflow authorization condition (repository owner association or the explicitly permitted bot account), otherwise the workflow will skip it.
+- The user must submit the issue on GitHub; a static public page cannot silently create issues or poll private issue comments without an authenticated bridge.
+- This flow is GitHub-only: no Cloudflare, Supabase, separate server, frontend token, or chat key is required.
+- Issue submission alone does not prove manager planning or runtime completion. Check the issue comments and corresponding Actions run. Real browser-to-GitHub E2E remains to be tested after deployment.
 
 ## 6. Recent changes / implementation history
 
