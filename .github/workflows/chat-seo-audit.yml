@@ -60,8 +60,10 @@ jobs:
         id: seo
         continue-on-error: true
         run: |
+          set +e
           python3 controller/seo_worker.py /tmp/seo-task.json --output /tmp/seo-report.json
           rc=$?
+          set -e
           echo "worker_exit=$rc" >> "$GITHUB_OUTPUT"
           if [ ! -f /tmp/seo-report.json ]; then
             printf '{"state":"BLOCKED","error":"SEO worker did not produce a report."}' > /tmp/seo-report.json
