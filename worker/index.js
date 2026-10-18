@@ -64,7 +64,9 @@ export default {
     const url = new URL(request.url);
     try {
       if (request.method === "POST" && url.pathname === "/command") {
-        const body = await request.json();
+        let body;
+        try { body = await request.json(); }
+        catch { return json({ error: "Invalid JSON body." }, 400, headers); }
         const instruction = String(body.instruction || "").trim();
         if (!instruction || instruction.length > 4000) return json({ error: "Instruction must be 1–4000 characters." }, 400, headers);
         const issue = await gh("/repos/" + REPO + "/issues", env, {
@@ -78,7 +80,9 @@ export default {
         return json({ issue: issue.number, issueUrl: issue.html_url, state: "submitted" }, 202, headers);
       }
       if (request.method === "POST" && url.pathname === "/runtime") {
-        const command = bodyCommand(await request.json());
+        let command;
+        try { command = bodyCommand(await request.json()); }
+        catch (error) { return json({ error: String(error?.message || error) }, 400, headers); }
         const issue = await gh("/repos/" + REPO + "/issues", env, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
