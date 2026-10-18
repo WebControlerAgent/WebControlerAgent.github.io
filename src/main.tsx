@@ -5,7 +5,7 @@ import * as THREE from "three";
 import {createRoot} from "react-dom/client";
 import "./styles.css";
 import {managerReply} from "./chat/managerChat";
-import {authorizeGitHubApp,createManagerRequest,readManagerComments,type DevicePrompt} from "./chat/githubDeviceFlow";
+import {verifyGitHubToken,createManagerRequest,readManagerComments} from "./chat/githubDeviceFlow";
 // GitHub-only command handoff: the public Pages app never stores or sends credentials.
 
 type Status="IDLE"|"WALKING"|"WORKING"|"THINKING"|"MEETING"|"SUCCESS"|"ERROR";
@@ -474,19 +474,18 @@ function App(){
  const liveEvents=runtimeEvents.filter((e:any)=>e.site===selectedSite || !e.site).slice(0,8);
  const refreshStatus=()=>fetch("./status.json?ts="+Date.now()).then(r=>r.ok?r.json():null).then(setStatus).catch(()=>{});
  const [chatInput,setChatInput]=useState("");
- const [githubClientId,setGithubClientId]=useState("");
+ const [githubTokenInput,setGithubTokenInput]=useState("");
  const [githubToken,setGithubToken]=useState<string|null>(null);
  const [githubAuthStatus,setGithubAuthStatus]=useState("GitHub account connect nahi hai");
- const [devicePrompt,setDevicePrompt]=useState<DevicePrompt|null>(null);
  const [chatBusy,setChatBusy]=useState(false);
- const [messages,setMessages]=useState<{from:string;text:string;runtimeAction?:any;aiRequest?:string}[]>([{from:"Manager",text:"GitHub-only Manager Chat. Connect GitHub App to send commands directly from this chat; approval token memory mein rahega, browser storage mein save nahi hoga."}]);
+ const [messages,setMessages]=useState<{from:string;text:string;runtimeAction?:any;aiRequest?:string}[]>([{from:"Manager",text:"GitHub-only Manager Chat. Fine-grained token se connect karo; token sirf is browser session ki memory mein rahega, reload par clear ho jayega."}]);
  const connectGitHub=async()=>{
-   setDevicePrompt(null);setGithubAuthStatus("GitHub device authorization shuru ho rahi hai…");
+   setGithubAuthStatus("Token aur repository access verify ho raha hai…");
    try{
-     const token=await authorizeGitHubApp(githubClientId,(prompt)=>setDevicePrompt(prompt),(message)=>setGithubAuthStatus(message));
-     setGithubToken(token);setGithubAuthStatus("Connected and account verified — "+ "WebControlerAgent");
-     setMessages(m=>[...m,{from:"GitHub",text:"Account verify ho gaya. Ab commands isi chat se GitHub Actions Manager AI ko bheji ja sakti hain."}]);
-   }catch(error){setGithubToken(null);setGithubAuthStatus(error instanceof Error?error.message:"GitHub authorization fail hui.");}
+     const token=await verifyGitHubToken(githubTokenInput);
+     setGithubToken(token);setGithubTokenInput("");setGithubAuthStatus("Connected and account verified — WebControlerAgent");
+     setMessages(m=>[...m,{from:"GitHub",text:"GitHub account aur target repository verify ho gayi. Ab commands isi chat se Manager AI ko bheji ja sakti hain."}]);
+   }catch(error){setGithubToken(null);setGithubAuthStatus(error instanceof Error?error.message:"GitHub token verify nahi ho saka.");}
  };
  const sendChat=async()=>{
    const text=chatInput.trim();if(!text||chatBusy)return;
@@ -542,10 +541,9 @@ function App(){
     {sitesOpen&&<SitePanel sites={sites} selectedSite={selectedSite} setSelectedSite={setSelectedSite} onClose={()=>setSitesOpen(false)}/>} {chatOpen&&<div className="chat-panel">
       <div className="chat-head"><div><b>MANAGER CHAT</b><small>Talk to the selected Captain • GitHub Runtime</small></div><button onClick={()=>setChatOpen(false)}>×</button></div>
       <div className="github-connect">
-        {!githubToken&&<><input value={githubClientId} onChange={e=>setGithubClientId(e.target.value)} placeholder="GitHub App Client ID" aria-label="GitHub App Client ID"/><button onClick={connectGitHub} disabled={!githubClientId.trim()||chatBusy}>Connect GitHub</button></>}
-        {githubToken&&<button onClick={()=>{setGithubToken(null);setDevicePrompt(null);setGithubAuthStatus("Disconnected — session token cleared.");}} disabled={chatBusy}>Disconnect</button>}
+        {!githubToken&&<><input type="password" autoComplete="off" value={githubTokenInput} onChange={e=>setGithubTokenInput(e.target.value)} placeholder="Fine-grained GitHub token" aria-label="Fine-grained GitHub token"/><button onClick={connectGitHub} disabled={!githubTokenInput.trim()||chatBusy}>Connect GitHub</button><small>Token yahan paste karo; browser storage mein save nahi hota.</small></>}
+        {githubToken&&<button onClick={()=>{setGithubToken(null);setGithubTokenInput("");setGithubAuthStatus("Disconnected — session token cleared.");}} disabled={chatBusy}>Disconnect</button>}
         <small>{githubAuthStatus}</small>
-        {devicePrompt&&<div className="device-prompt"><b>Code: {devicePrompt.userCode}</b><a href={devicePrompt.verificationUri} target="_blank" rel="noreferrer">Open GitHub and enter code</a><small>Approval ke baad website automatically connect ho jayegi.</small></div>}
       </div>
       <div className="chat-messages">{messages.map((m,i)=><div key={i} className={"chat-msg "+(m.from==="You"?"you":"")}><span>{m.from}</span><p>{m.text}</p>{m.runtimeAction&&<a className="runtime-action" href={`https://github.com/WebControlerAgent/WebControlerAgent.github.io/issues/new?title=${encodeURIComponent("[Agent Runtime] "+m.runtimeAction.action)}&body=${encodeURIComponent("<!-- agent-runtime-command\n"+JSON.stringify(m.runtimeAction,null,2)+"\n-->")}`} target="_blank" rel="noreferrer">⚡ Send to GitHub Runtime</a>}{m.aiRequest&&<a className="runtime-action" href={`https://github.com/WebControlerAgent/WebControlerAgent.github.io/issues/new?title=${encodeURIComponent("[Manager AI] "+m.aiRequest.slice(0,60))}&body=${encodeURIComponent(m.aiRequest)}`} target="_blank" rel="noreferrer">🧠 Send to Manager AI</a>}</div>)}</div>
       <form className="chat-input" onSubmit={e=>{e.preventDefault();void sendChat()}}>
