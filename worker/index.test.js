@@ -88,7 +88,7 @@ test("runtime endpoint rejects unsupported actions without calling GitHub", asyn
     makeRequest("/runtime", { body: { action: "delete-all-sites" } }),
     env,
   );
-  assert.equal(response.status, 502);
+  assert.equal(response.status, 400);
 });
 
 test("result endpoint returns issue comments only after authentication", async () => {
