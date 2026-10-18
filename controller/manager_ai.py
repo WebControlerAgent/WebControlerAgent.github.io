@@ -12,8 +12,10 @@ MODEL = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
 FALLBACK_MODELS = [
     MODEL,
     "gemini-3.7-flash",
+    "gemini-3.6-flash",
+    "gemini-3.5-flash",
     "gemini-3.5-flash-lite",
-    "gemini-2.5-flash",
+    "gemini-3.1-flash-lite",
 ]
 SYSTEM = """You are the Manager of a GitHub-native autonomous software company. Return ONLY valid JSON: {"reply":"short manager response","action":"claim|assign|complete|fail|none","site":"","agent":"","task":"","error":""}. Never invent sites; use only authorized sites in context; only use approved agent IDs; respect one-site-at-a-time and authorized-only policies; never claim completion unless runtime state says so."""
 
@@ -87,6 +89,55 @@ def call_gemini(prompt):
     raise RuntimeError(f"All Gemini model requests failed: {last_error}")
 
 
+def validate_plan(result, sites_data, runtime_state):
+    """Fail closed if model output requests an unknown site or invalid state transition."""
+    from agent_runtime import AGENTS
+
+    if not isinstance(result, dict):
+        return {"reply": "Manager response was not a valid plan; no action was dispatched.", "action": "none"}
+    action = result.get("action")
+    if action not in {"claim", "assign", "complete", "fail", "none"}:
+        return {"reply": "Manager returned an unsupported action; no action was dispatched.", "action": "none"}
+    if action == "none":
+        return {
+            "reply": str(result.get("reply", "No runtime action needed."))[:1000],
+            "action": "none",
+        }
+
+    active = runtime_state.get("active_site") if isinstance(runtime_state, dict) else None
+    authorized = {
+        str(site.get("id"))
+        for site in sites_data.get("sites", [])
+        if isinstance(site, dict) and site.get("enabled") is True and site.get("authorized") is True and site.get("id")
+    }
+    site = str(result.get("site") or "").strip()
+    agent = str(result.get("agent") or "").strip()
+    task = str(result.get("task") or "").strip()
+
+    if action == "claim":
+        if active:
+            return {"reply": "A site is already active; I will not start a second site.", "action": "none"}
+        if site not in authorized:
+            if not site and len(authorized) == 1:
+                site = next(iter(authorized))
+            else:
+                return {"reply": "The requested site is not in the enabled, authorized site list; no action was dispatched.", "action": "none"}
+        return {**result, "site": site, "reply": str(result.get("reply", "Starting the authorized site pipeline."))[:1000]}
+
+    if not active:
+        return {"reply": "No active site exists for that runtime action; no action was dispatched.", "action": "none"}
+    active_id = str(active.get("id") or "")
+    if site and site != active_id:
+        return {"reply": "The requested site does not match the active site; no action was dispatched.", "action": "none"}
+    if action == "assign":
+        if agent not in AGENTS or not task or len(task) > 500:
+            return {"reply": "The agent or task was invalid; no action was dispatched.", "action": "none"}
+        return {**result, "site": active_id, "agent": agent, "task": task, "reply": str(result.get("reply", "Task assignment prepared."))[:1000]}
+    if action in {"complete", "fail"}:
+        return {**result, "site": active_id, "reply": str(result.get("reply", "Runtime state transition prepared."))[:1000]}
+    return {"reply": "Manager plan was rejected; no action was dispatched.", "action": "none"}
+
+
 def main():
     instruction = " ".join(sys.argv[1:]).strip()
     if not instruction or len(instruction) > 4000:
@@ -102,7 +153,9 @@ def main():
         },
         ensure_ascii=False,
     )
-    print(json.dumps(call_gemini(prompt), ensure_ascii=False, separators=(",", ":")))
+    result = call_gemini(prompt)
+    result = validate_plan(result, sites, state)
+    print(json.dumps(result, ensure_ascii=False, separators=(",", ":")))
 
 
 if __name__ == "__main__":
