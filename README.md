@@ -57,7 +57,7 @@ These are deliberate project rules, not missing features to bypass:
 - The bounded worker validates task schema, authorized site/repository match, allowed paths, and output location before execution.
 - `controller/patch_review.py` performs a separate deterministic review for patch structure, changed paths, high-risk patterns, and diff-header/file-marker agreement.
 - A regression test was added to block patches whose actual `---` / `+++` file markers disagree with their `diff --git` header.
-- Manager Chat now has a GitHub App device-authorization path: the user authorizes via GitHub, the app verifies the account is `WebControlerAgent`, creates a `[Manager AI]` issue directly, and polls issue comments for the workflow response. The access token exists only in React memory and is cleared on disconnect/reload; it is not stored in localStorage or committed. The GitHub App must be configured with only repository Issues read/write permission and installed only on this repo. This implementation is committed but its live browser-to-GitHub flow and deployment still require end-to-end verification.
+- Manager Chat uses a fine-grained personal access token to connect directly to GitHub Issues, verifies the account is `WebControlerAgent` and access to this repository, creates a `[Manager AI]` issue, and polls comments for the workflow response. The token exists only in React memory and clears on disconnect/reload; it is not stored in localStorage or committed. The token must be limited to this one repository with Issues read/write only. Because browser JavaScript can access it, this is less secure than a server-side token; never use a broad-scope token. Live deployment and end-to-end verification are still required.
 - Runtime completion comments were corrected in commit `d11fdeeef4fdcd48330b52d0bcd9d2c0c294be85`: `assign` now reports “assignment recorded; execution not started”, and other non-claim actions report only a state transition instead of falsely claiming the autonomous pipeline completed.
 - Existing browser QA workflow uses Playwright; its real end-to-end coverage still needs to be checked against the latest site behavior.
 
@@ -82,7 +82,7 @@ The demo task `tasks/demo-bounded-code-proposal.json` targets the authorized Kin
 ### Frontend / Manager chat
 - `src/main.tsx` — main UI wiring and runtime/status connection.
 - `src/chat/managerChat.ts` — local/fallback chat behavior.
-- `src/chat/githubDeviceFlow.ts` — GitHub App Device Flow authorization, account verification, issue creation, and comment polling.
+- `src/chat/githubDeviceFlow.ts` — scoped-token verification, account/repository verification, issue creation, and comment polling.
 - `src/chat/secureBridge.ts` — legacy optional HTTPS bridge, unused by current chat.
 - `src/chat/README.md` — chat adapter notes.
 - `public/status.json` — published dashboard/runtime status artifact.
@@ -115,23 +115,16 @@ The demo task `tasks/demo-bounded-code-proposal.json` targets the authorized Kin
 - `.github/workflows/deploy.yml` — GitHub Pages build/deploy workflow.
 - Other workflow files exist for dispatch, monitoring, proposal runtime, and site manager. Inspect their current YAML before changing trigger/permission behavior.
 
-## 5. Manager Chat: GitHub-only device authorization
+## 5. Manager Chat: GitHub-only scoped-token connection
 
-The chat UI now supports this intended direct flow without Cloudflare, Supabase, or a separate server:
+1. Create a **fine-grained personal access token** under the `WebControlerAgent` account.
+2. Set **Resource owner** to `WebControlerAgent`; choose **Only select repositories** and select only `WebControlerAgent.github.io`.
+3. Grant **Issues: Read and write** only. Do not grant Contents, Actions, Administration, or any other repository access.
+4. In the deployed Manager Chat, paste the token into the password field and click **Connect GitHub**. The app verifies the account and target repository before enabling command submission.
+5. The token stays in React component memory only; disconnecting or reloading clears it. It is not stored in localStorage, sessionStorage, or committed to source.
+6. **Security limitation:** any token used by a public browser page is available to that page's JavaScript and may be exposed by malicious extensions or an XSS vulnerability. This is less secure than server-side token handling. Use only a repository-scoped token with the minimum permission, and revoke it in GitHub settings if you suspect exposure.
 
-1. Create a **GitHub App** owned by the repository owner and enable **Device Flow** in the app settings.
-2. Install that app on **only** `WebControlerAgent/WebControlerAgent.github.io`. Grant only **Issues: read and write**. Do not grant Contents, Administration, Actions, or other permissions; the issue event starts the protected workflow, and Actions uses its own repository `GITHUB_TOKEN`.
-3. In the website's Manager Chat, paste the app's **Client ID** (public identifier, not a secret) and click **Connect GitHub**. Enter the displayed one-time code at GitHub. The frontend checks that the authorized account is exactly `WebControlerAgent`.
-4. Enter a command. The browser creates a `[Manager AI]` issue via GitHub's API, then reads its comments and displays the result in the same chat. The protected workflow uses the Actions secret `GEMINI_API_KEY` and dispatches runtime as appropriate.
-5. Disconnect or reload to clear the in-memory token. It is not saved in browser storage or committed to source.
-
-### Security and verification notes
-- Keep `GEMINI_API_KEY` only in GitHub Actions secrets; never paste it into the website.
-- Do not use a broad OAuth App with account-wide `repo` scope for this flow. Use a GitHub App with the minimum Issues permission and install it only on this repository.
-- The App Client ID is not a credential, but the resulting access token is sensitive. It stays in component memory and must not be logged or persisted. As with any browser session, a malicious browser extension or XSS could access a live token, so keep the site dependencies and content trusted.
-- If the GitHub App is not installed on this repo, Device Flow is not enabled, or the permission is missing, connection or issue creation will fail.
-- Issue creation only confirms the request was submitted. The real Manager AI result and any runtime completion must be verified in issue comments and the Actions run.
-- The source changes are committed, but the live device authorization, CORS behavior, workflow response polling, and deployed build still need an end-to-end check.
+The issue-opened workflow uses the repository's Actions-side `GEMINI_API_KEY` and its own `GITHUB_TOKEN`; never paste either secret into the website.
 
 ## 6. Recent changes / implementation history
 
@@ -192,13 +185,13 @@ Start here before asking the user to repeat context:
 Use this section after future work and keep it current:
 
 - **Last updated:** 2026-10-18
-- **Manager Chat GitHub-only device flow:** added `src/chat/githubDeviceFlow.ts`, direct issue creation, account verification, in-chat comment polling, connection/disconnect controls, and setup documentation. Latest result-polling fix is commit `8fadd3eb259dd0919ae5e3ed26b5bc3153aba359`, which recognizes final runtime comments as well as Manager AI comments. Key commits: `3df1d922d77e6fe14936a51a40778e41e73605a1` (chat flow), `7bd17f3921996d23c595ce8d9d179e481d3d6843` (UI styles), `120b07b225092fcf0c09ee36a1cdc3b5002668f6` (setup docs), `c4eae2ab8c456bcf0b2658db477292e78ba7f3d6` and `d1a57a0cfaddcb4e81ef2b41ad8dd27ca40a6f7a` (polling type fixes), `71c5b74e9ac187602637097e89b737d3a5e7033` (chat docs). Combined commit statuses returned no checks; build/deploy and real device-flow E2E are not yet verified. One-time setup still requires a GitHub App Client ID with Device Flow enabled and only Issues read/write installed on this repository.
+- **Manager Chat scoped-token connection:** replaced the browser Device Flow approach after GitHub's device-code endpoint blocked cross-origin requests. The chat now accepts a fine-grained token limited to this repository with Issues read/write, verifies account/repository access, and keeps the token in memory only. Deployment and a real command/result round trip still need verification.
 - **Worker API validation:** commits `0aceeedfd8069751ba615b39b857769b9bc8c73d` and `daee3b6c8057b9b2c40efcc1db70a9a2a1608476` return HTTP 400 for invalid JSON/runtime payloads and add tests for runtime validation, result polling, and invalid issue IDs. [Prior bridge test run 39098188620 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39098188620); latest run [39098198794](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39098198794) was running at the time of this update.
 - **Secure bridge deployment prep:** added `worker/wrangler.toml` (commit `7d12a9725d6773c273de601ada64ca3ff9678868`) and CLI deployment/secrets instructions in `worker/README.md` (commit `2541f668a1a37b7ae2107bc3c3af88971d910098`).
 - **Bridge safety tests:** added `worker/index.test.js` and wired it into the existing CI workflow (commit `9c3a3d501448b74d21cf1cf2bb0adbe9a2035701`); [run 39056193187 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39056193187), including Python worker tests and Node bridge tests.
 - **Pages deployment for latest CI commit:** [run 39056193225](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39056193225) was queued at last check.
 - **Bounded AI Worker:** [run 39055110977 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39055110977); patch artifact and deterministic scope/risk review succeeded. The proposal changes only the homepage meta description and is `READY_FOR_CAPTAIN_REVIEW`; no source site was modified, and no automatic merge/deploy occurred.
 - **Coding worker completion fix:** commit `9293251c70d2995e68c0c96d6fa193162a238da4`; bounded worker and Pages deployment both succeeded after this fix.
-- **Manager Chat E2E:** direct GitHub App device authorization is implemented in source; create/install the App, verify Pages deployment, and test one harmless command/result round trip. No Cloudflare Worker is required for this path.
-- **Next immediate action:** configure the GitHub App Client ID and verify the latest Pages build plus a real device-auth → issue → Manager comment → chat result round trip. Never put secrets in GitHub source files or chat.
+- **Manager Chat E2E:** scoped-token connection is implemented in source. After Pages deploys, create the minimum-permission fine-grained token and test one harmless command/result round trip. No Cloudflare Worker is required.
+- **Next immediate action:** verify the Pages build, then connect using a token scoped only to this repo and test the issue → Manager comment → in-chat result flow. Never commit tokens or Gemini keys.
 - **SEO note:** keep the Kingdom Raw canonical/live-domain mismatch as a separate Captain-reviewed task; do not apply the demo meta-description patch as a substitute for fixing canonical configuration.
