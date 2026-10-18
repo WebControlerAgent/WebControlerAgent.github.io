@@ -91,7 +91,10 @@ def call_gemini(prompt):
 
 def validate_plan(result, sites_data, runtime_state):
     """Fail closed if model output requests an unknown site or invalid state transition."""
-    from agent_runtime import AGENTS
+    try:
+        from .agent_runtime import AGENTS
+    except ImportError:
+        from agent_runtime import AGENTS
 
     if not isinstance(result, dict):
         return {"reply": "Manager response was not a valid plan; no action was dispatched.", "action": "none"}
