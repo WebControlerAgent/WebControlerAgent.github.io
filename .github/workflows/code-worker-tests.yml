@@ -65,5 +65,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Check website JavaScript syntax
+        run: node --check app.js
       - name: Test Cloudflare chat bridge guards and issue submission
         run: node --test worker/index.test.js
