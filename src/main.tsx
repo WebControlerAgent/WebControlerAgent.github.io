@@ -510,7 +510,7 @@ function App(){
        await new Promise<void>(resolve=>window.setTimeout(()=>resolve(),5000));
        const comments=await readManagerComments(githubToken,issueNumber);
        if(!Array.isArray(comments))continue;
-       const relevant=comments.filter((c:any)=>typeof c.body==="string"&&(c.body.includes("**Manager AI:**")||c.body.includes("**Agent Runtime")||c.body.includes("**Agent pipeline completed successfully.**")||c.body.includes("**Assignment recorded; execution not started.**")||c.body.includes("**Runtime state transition applied:")||c.body.includes("**Agent Runtime command failed.**")));
+       const relevant=comments.filter((c:any)=>typeof c.body==="string"&&(c.body.includes("**Manager AI:**")||c.body.includes("**SEO Audit Result**")||c.body.includes("**Agent Runtime")||c.body.includes("**Agent pipeline completed successfully.**")||c.body.includes("**Assignment recorded; execution not started.**")||c.body.includes("**Runtime state transition applied:")||c.body.includes("**Agent Runtime command failed.**")));
        const finalComment=[...relevant].reverse().find((c:any)=>!c.body.includes("[RUNTIME_PENDING]"));
        if(finalComment){
          setMessages(m=>[...m,{from:"Manager AI",text:String(finalComment.body).replace(/<[^>]*>/g,"").slice(0,5000)}]);
