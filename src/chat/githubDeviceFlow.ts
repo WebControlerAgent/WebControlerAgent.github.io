@@ -48,7 +48,7 @@ export async function createManagerRequest(token: string, instruction: string, s
   return githubRequest("/repos/" + REPO + "/issues", token, {
     method: "POST",
     body: JSON.stringify({
-      title: "[Manager AI] " + instruction.trim().replace(/\s+/g, " ").slice(0, 70),
+      title: (/\bseo\b|search engine optimization|sitemap|robots\.txt|meta description|canonical|indexing issue/i.test(instruction) ? "[SEO Audit] " : "[Manager AI] ") + instruction.trim().replace(/\s+/g, " ").slice(0, 70),
       body
     })
   });
