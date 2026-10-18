@@ -82,3 +82,47 @@ test("creates a Manager issue only after origin and key checks", async () => {
     globalThis.fetch = originalFetch;
   }
 });
+
+test("runtime endpoint rejects unsupported actions without calling GitHub", async () => {
+  const response = await worker.fetch(
+    makeRequest("/runtime", { body: { action: "delete-all-sites" } }),
+    env,
+  );
+  assert.equal(response.status, 502);
+});
+
+test("result endpoint returns issue comments only after authentication", async () => {
+  const originalFetch = globalThis.fetch;
+  const urls = [];
+  globalThis.fetch = async (input) => {
+    const url = String(input);
+    urls.push(url);
+    if (url.endsWith("/issues/321/comments?per_page=30")) {
+      return new Response(JSON.stringify([{ user: { login: "github-actions[bot]" }, body: "Manager completed.", created_at: "2026-10-18T00:00:00Z" }]), { status: 200 });
+    }
+    if (url.endsWith("/issues/321")) {
+      return new Response(JSON.stringify({ number: 321, state: "closed" }), { status: 200 });
+    }
+    throw new Error("Unexpected GitHub URL: " + url);
+  };
+  try {
+    const response = await worker.fetch(
+      makeRequest("/result?issue=321", { method: "GET" }),
+      env,
+    );
+    assert.equal(response.status, 200);
+    const result = await response.json();
+    assert.equal(result.issue, 321);
+    assert.equal(result.state, "closed");
+    assert.equal(result.comments[0].body, "Manager completed.");
+    assert.equal(urls.length, 2);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("result endpoint rejects invalid issue numbers", async () => {
+  const response = await worker.fetch(makeRequest("/result?issue=abc", { method: "GET" }), env);
+  assert.equal(response.status, 400);
+});
+
