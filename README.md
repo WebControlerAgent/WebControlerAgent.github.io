@@ -42,7 +42,7 @@ These are deliberate project rules, not missing features to bypass:
 - A successful build/deployment means the dashboard build shipped; it does not prove Google indexing, live chat E2E, or successful autonomous work on a target website.
 - Never claim indexing, traffic, browser testing, task completion, or successful agent execution without direct evidence.
 
-## 3. Current status (last reviewed: 2026-10-17)
+## 3. Current status (last reviewed: 2026-10-18)
 
 ### Verified completed
 - GitHub Pages build and deployment pipeline is operational.
@@ -192,7 +192,9 @@ Start here before asking the user to repeat context:
 
 Use this section after future work and keep it current:
 
-- **Last updated:** 2026-10-17
+- **Last updated:** 2026-10-18
+- **Manager Chat frontend bridge:** commit `747c1cfc7479bf6fa4bcd95f1c9da88ba8edb520` added authenticated bridge submission and result polling; follow-up commits `f2a6f14085585544f6304b466dc8256a1e26c58e`, `1972eb38cbe4db8e03cffe64f8e79dd77dd04586`, and `7604b0a071415e9aaed1341323b545aae4a20bfa` corrected URL validation, avoided duplicate result messages, and added `node --check app.js` to CI. [Run 39097177877 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39097177877); [Pages deploy 39097177860 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39097177860).
+- **Worker API validation:** commits `0aceeedfd8069751ba615b39b857769b9bc8c73d` and `daee3b6c8057b9b2c40efcc1db70a9a2a1608476` return HTTP 400 for invalid JSON/runtime payloads and add tests for runtime validation, result polling, and invalid issue IDs. [Prior bridge test run 39098188620 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39098188620); latest run [39098198794](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39098198794) was running at the time of this update.
 - **Secure bridge deployment prep:** added `worker/wrangler.toml` (commit `7d12a9725d6773c273de601ada64ca3ff9678868`) and CLI deployment/secrets instructions in `worker/README.md` (commit `2541f668a1a37b7ae2107bc3c3af88971d910098`).
 - **Bridge safety tests:** added `worker/index.test.js` and wired it into the existing CI workflow (commit `9c3a3d501448b74d21cf1cf2bb0adbe9a2035701`); [run 39056193187 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39056193187), including Python worker tests and Node bridge tests.
 - **Pages deployment for latest CI commit:** [run 39056193225](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39056193225) was queued at last check.
