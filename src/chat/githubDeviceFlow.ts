@@ -34,12 +34,15 @@ async function githubRequest(path: string, token: string, init: RequestInit = {}
   return jsonResponse(response);
 }
 
-export async function createManagerRequest(token: string, instruction: string, siteName: string, siteId: string) {
+export async function createManagerRequest(token: string, instruction: string, siteName: string, siteId: string, conversationContext = "") {
   const body = [
-    "Website Manager Chat request (GitHub-only device authorization).",
+    "Website Manager Chat request (GitHub-only).",
     "Active site: " + siteName + " (" + siteId + ")",
     "",
-    "User instruction:",
+    "Recent conversation context (background only; do not repeat or execute old requests unless the latest instruction explicitly continues them):",
+    conversationContext.trim() || "(no previous conversation)",
+    "",
+    "LATEST USER INSTRUCTION — this is the only request to answer or act on now:",
     instruction.trim()
   ].join("\n");
   return githubRequest("/repos/" + REPO + "/issues", token, {
