@@ -32,8 +32,8 @@ $("refresh").onclick=loadStatus;$("run").onclick=()=>window.open(ACTIONS_URL,"_b
 function getBridgeConfig(){
  let url=sessionStorage.getItem("aiwcu_bridge_url")||"";
  let key=sessionStorage.getItem("aiwcu_chat_key")||"";
- if(!url){url=prompt("Paste your deployed AIWCU Cloudflare Worker URL (https://...workers.dev):")||"";url=url.trim().replace(/\\/+$/,"");}
- if(!/^https:\\/\\//i.test(url)){addChat("Manager","Secure bridge URL required. Deploy the Worker using worker/README.md, then enter its HTTPS URL.");return null;}
+ if(!url){url=prompt("Paste your deployed AIWCU Cloudflare Worker URL (https://...workers.dev):")||"";url=url.trim().replace(/\/+$/,"");}
+ if(!/^https:\/\//i.test(url)){addChat("Manager","Secure bridge URL required. Deploy the Worker using worker/README.md, then enter its HTTPS URL.");return null;}
  if(!key){key=prompt("Enter your private AIWCU chat key (AIWCU_CHAT_KEY):")||"";key=key.trim();}
  if(!key){addChat("Manager","No private chat key entered. Command was not sent.");return null;}
  sessionStorage.setItem("aiwcu_bridge_url",url);sessionStorage.setItem("aiwcu_chat_key",key);
@@ -59,10 +59,10 @@ async function sendManagerInstruction(instruction){
     const body=String(comment.body||"").trim();
     const signature=String(comment.author||"")+":"+body;
     if(!body||signature===lastSignature||body.includes("[RUNTIME_PENDING]"))continue;
-    if(body.startsWith("🤖 **Manager AI:**")){addChat("Manager",body.replace(/^🤖 \\*\\*Manager AI:\\*\\*\\s*/,""));lastSignature=signature;}
+    if(body.startsWith("🤖 **Manager AI:**")){addChat("Manager",body.replace(/^🤖 \*\*Manager AI:\*\*\s*/,""));lastSignature=signature;}
     else if(body.includes("Agent Runtime")||body.includes("Agent pipeline")||body.includes("Runtime state transition")||body.includes("Assignment recorded")){addChat("Manager",body);lastSignature=signature;}
    }
-   const latest=comments.map(c=>String(c.body||"")).join("\\n");
+   const latest=comments.map(c=>String(c.body||"")).join("\n");
    if(latest.includes("Agent pipeline completed successfully")||latest.includes("Agent Runtime command failed")||latest.includes("Runtime state transition applied")||latest.includes("Assignment recorded; execution not started"))return;
   }
   addChat("Manager","GitHub accepted the command, but the final result has not arrived in the chat's 80-second check window. Open the linked issue to follow its Actions run: "+data.issueUrl);
