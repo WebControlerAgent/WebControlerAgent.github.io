@@ -48,7 +48,7 @@ async function sendManagerInstruction(instruction){
   if(!response.ok)throw new Error(data.error||("Bridge request failed ("+response.status+")."));
   if(!data.issue)throw new Error("Bridge response did not include a GitHub issue number.");
   addChat("Manager","Command submitted to GitHub Actions (issue #"+data.issue+"). I’m checking for the workflow response now.");
-  let lastSignature="";
+  const seenComments=new Set();
   for(let attempt=0;attempt<20;attempt++){
    if(attempt>0)await new Promise(resolve=>setTimeout(resolve,4000));
    const resultResponse=await fetch(cfg.url+"/result?issue="+encodeURIComponent(data.issue),{headers:{"Authorization":"Bearer "+cfg.key},cache:"no-store"});
@@ -58,9 +58,10 @@ async function sendManagerInstruction(instruction){
    for(const comment of comments){
     const body=String(comment.body||"").trim();
     const signature=String(comment.author||"")+":"+body;
-    if(!body||signature===lastSignature||body.includes("[RUNTIME_PENDING]"))continue;
-    if(body.startsWith("🤖 **Manager AI:**")){addChat("Manager",body.replace(/^🤖 \*\*Manager AI:\*\*\s*/,""));lastSignature=signature;}
-    else if(body.includes("Agent Runtime")||body.includes("Agent pipeline")||body.includes("Runtime state transition")||body.includes("Assignment recorded")){addChat("Manager",body);lastSignature=signature;}
+    if(!body||seenComments.has(signature)||body.includes("[RUNTIME_PENDING]"))continue;
+    seenComments.add(signature);
+    if(body.startsWith("🤖 **Manager AI:**")){addChat("Manager",body.replace(/^🤖 \*\*Manager AI:\*\*\s*/,""));}
+    else if(body.includes("Agent Runtime")||body.includes("Agent pipeline")||body.includes("Runtime state transition")||body.includes("Assignment recorded")){addChat("Manager",body);}
    }
    const latest=comments.map(c=>String(c.body||"")).join("\n");
    if(latest.includes("Agent pipeline completed successfully")||latest.includes("Agent Runtime command failed")||latest.includes("Runtime state transition applied")||latest.includes("Assignment recorded; execution not started"))return;
