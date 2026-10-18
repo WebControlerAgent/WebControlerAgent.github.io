@@ -501,7 +501,8 @@ function App(){
    }
    setChatBusy(true);
    try{
-     const issue=await createManagerRequest(githubToken,text,siteName,selectedSite);
+     const conversationContext=messages.slice(-12).map(m=>m.from+": "+m.text).join("\n");
+     const issue=await createManagerRequest(githubToken,text,siteName,selectedSite,conversationContext);
      const issueNumber=Number(issue.number);
      setMessages(m=>[...m,{from:"GitHub Actions",text:"Command GitHub ko send ho gayi (#"+issueNumber+"). Manager AI process kar raha hai; result isi chat mein aayega."}]);
      let completed=false;
