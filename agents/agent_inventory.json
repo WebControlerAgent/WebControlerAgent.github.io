@@ -1275,8 +1275,6 @@
     "persistent_roster": true,
     "one_active_site_lock": true,
     "evidence_required_for_completion": true,
-    "minimum_small_agents_per_task": 2,
-    "task_pairing_policy": "primary_worker_plus_independent_checker",
     "ai_provider_adapter_connected": false,
     "child_role_execution_adapter": "pending"
   }
