@@ -5,6 +5,7 @@ import * as THREE from "three";
 import {createRoot} from "react-dom/client";
 import "./styles.css";
 import {managerReply} from "./chat/managerChat";
+import {authorizeGitHubApp,createManagerRequest,readManagerComments,type DevicePrompt} from "./chat/githubDeviceFlow";
 // GitHub-only command handoff: the public Pages app never stores or sends credentials.
 
 type Status="IDLE"|"WALKING"|"WORKING"|"THINKING"|"MEETING"|"SUCCESS"|"ERROR";
@@ -473,18 +474,53 @@ function App(){
  const liveEvents=runtimeEvents.filter((e:any)=>e.site===selectedSite || !e.site).slice(0,8);
  const refreshStatus=()=>fetch("./status.json?ts="+Date.now()).then(r=>r.ok?r.json():null).then(setStatus).catch(()=>{});
  const [chatInput,setChatInput]=useState("");
- const [messages,setMessages]=useState<{from:string;text:string;runtimeAction?:any;aiRequest?:string}[]>([{from:"Manager",text:"Studio online hai. GitHub-only mode active hai: command ko GitHub Issue composer mein bhejo aur wahan Submit new issue karo. GitHub Actions phir Manager AI/runtime process karega. Website mein koi token ya API key nahi chahiye."}]);
- const sendChat=()=>{
-   const text=chatInput.trim();if(!text)return;
+ const [githubClientId,setGithubClientId]=useState("");
+ const [githubToken,setGithubToken]=useState<string|null>(null);
+ const [githubAuthStatus,setGithubAuthStatus]=useState("GitHub account connect nahi hai");
+ const [devicePrompt,setDevicePrompt]=useState<DevicePrompt|null>(null);
+ const [chatBusy,setChatBusy]=useState(false);
+ const [messages,setMessages]=useState<{from:string;text:string;runtimeAction?:any;aiRequest?:string}[]>([{from:"Manager",text:"GitHub-only Manager Chat. Connect GitHub App to send commands directly from this chat; approval token memory mein rahega, browser storage mein save nahi hoga."}]);
+ const connectGitHub=async()=>{
+   setDevicePrompt(null);setGithubAuthStatus("GitHub device authorization shuru ho rahi hai…");
+   try{
+     const token=await authorizeGitHubApp(githubClientId,(prompt)=>setDevicePrompt(prompt),(message)=>setGithubAuthStatus(message));
+     setGithubToken(token);setGithubAuthStatus("Connected and account verified — "+ "WebControlerAgent");
+     setMessages(m=>[...m,{from:"GitHub",text:"Account verify ho gaya. Ab commands isi chat se GitHub Actions Manager AI ko bheji ja sakti hain."}]);
+   }catch(error){setGithubToken(null);setGithubAuthStatus(error instanceof Error?error.message:"GitHub authorization fail hui.");}
+ };
+ const sendChat=async()=>{
+   const text=chatInput.trim();if(!text||chatBusy)return;
    const siteName=sites.find(s=>s.id===selectedSite)?.name??selectedSite;
-   const enriched=text+"\nActive site: "+siteName+" ("+selectedSite+")";
-   const reply=managerReply(enriched,agents,status);
-   if(reply.runtimeAction&&!reply.runtimeAction.site)reply.runtimeAction.site=selectedSite;
-   setMessages(m=>[...m,{from:"You",text},{from:agents.find(a=>a.id===reply.agentId)?.name??"Manager",text:reply.text,runtimeAction:reply.runtimeAction,aiRequest:reply.aiRequest}]);
-   setChatInput("");setSelected(reply.agentId);
-   if(reply.runtimeAction||reply.aiRequest){
-     setMessages(m=>[...m,{from:"GitHub-only",text:"Command tayyar hai. Neeche GitHub link kholo, phir GitHub par “Submit new issue” dabao. Protected GitHub Actions workflow usay process karega; result issue thread mein milega. Koi secret website par enter nahi karna."}]);
+   setChatInput("");
+   setMessages(m=>[...m,{from:"You",text}]);
+   if(!githubToken){
+     const reply=managerReply(text+"\nActive site: "+siteName+" ("+selectedSite+")",agents,status);
+     if(reply.runtimeAction&&!reply.runtimeAction.site)reply.runtimeAction.site=selectedSite;
+     setMessages(m=>[...m,{from:agents.find(a=>a.id===reply.agentId)?.name??"Manager",text:"Pehle GitHub App connect karo, phir main is command ko isi chat se automatically bhej sakta hoon.\n\n"+reply.text,runtimeAction:reply.runtimeAction,aiRequest:reply.aiRequest}]);
+     setGithubAuthStatus("Commands bhejne ke liye GitHub App connection required hai.");
+     return;
    }
+   setChatBusy(true);
+   try{
+     const issue=await createManagerRequest(githubToken,text,siteName,selectedSite);
+     const issueNumber=Number(issue.number);
+     setMessages(m=>[...m,{from:"GitHub Actions",text:"Command GitHub ko send ho gayi (#"+issueNumber+"). Manager AI process kar raha hai; result isi chat mein aayega."}]);
+     let completed=false;
+     for(let attempt=0;attempt<48;attempt++){
+       await new Promise(resolve=>window.setTimeout(resolve,5000));
+       const comments=await readManagerComments(githubToken,issueNumber);
+       if(!Array.isArray(comments))continue;
+       const relevant=comments.filter((c:any)=>typeof c.body==="string"&&(c.body.includes("**Manager AI:**")||c.body.includes("**Agent Runtime")));
+       const finalComment=[...relevant].reverse().find((c:any)=>!c.body.includes("[RUNTIME_PENDING]"));
+       if(finalComment){
+         setMessages(m=>[...m,{from:"Manager AI",text:String(finalComment.body).replace(/<[^>]*>/g,"").slice(0,5000)}]);
+         completed=true;break;
+       }
+     }
+     if(!completed)setMessages(m=>[...m,{from:"Manager AI",text:"Workflow abhi complete nahi hua. Issue thread mein live status dekh sakte ho: "+String(issue.html_url||"https://github.com/WebControlerAgent/WebControlerAgent.github.io/issues/"+issueNumber)}]);
+   }catch(error){
+     setMessages(m=>[...m,{from:"GitHub connection",text:error instanceof Error?error.message:"Command send ya result read nahi ho saka."}]);
+   }finally{setChatBusy(false);}
  };
  const selectedAgent=agents.find(a=>a.id===selected)??agents[0];
  const runtimeSelected=runtimeAgents.find(a=>a.id===selectedAgent.id);
@@ -505,10 +541,16 @@ function App(){
     <div className="activity"><b>LIVE ACTIVITY</b><span><i className="pulse"/> {selectedAgent.name} — {liveTask??"No live task reported by runtime"}</span><small>{liveState?`Runtime: ${liveState}`:"Waiting for runtime event"} • auto-refresh 15s</small></div>
     {sitesOpen&&<SitePanel sites={sites} selectedSite={selectedSite} setSelectedSite={setSelectedSite} onClose={()=>setSitesOpen(false)}/>} {chatOpen&&<div className="chat-panel">
       <div className="chat-head"><div><b>MANAGER CHAT</b><small>Talk to the selected Captain • GitHub Runtime</small></div><button onClick={()=>setChatOpen(false)}>×</button></div>
+      <div className="github-connect">
+        {!githubToken&&<><input value={githubClientId} onChange={e=>setGithubClientId(e.target.value)} placeholder="GitHub App Client ID" aria-label="GitHub App Client ID"/><button onClick={connectGitHub} disabled={!githubClientId.trim()||chatBusy}>Connect GitHub</button></>}
+        {githubToken&&<button onClick={()=>{setGithubToken(null);setDevicePrompt(null);setGithubAuthStatus("Disconnected — session token cleared.");}} disabled={chatBusy}>Disconnect</button>}
+        <small>{githubAuthStatus}</small>
+        {devicePrompt&&<div className="device-prompt"><b>Code: {devicePrompt.userCode}</b><a href={devicePrompt.verificationUri} target="_blank" rel="noreferrer">Open GitHub and enter code</a><small>Approval ke baad website automatically connect ho jayegi.</small></div>}
+      </div>
       <div className="chat-messages">{messages.map((m,i)=><div key={i} className={"chat-msg "+(m.from==="You"?"you":"")}><span>{m.from}</span><p>{m.text}</p>{m.runtimeAction&&<a className="runtime-action" href={`https://github.com/WebControlerAgent/WebControlerAgent.github.io/issues/new?title=${encodeURIComponent("[Agent Runtime] "+m.runtimeAction.action)}&body=${encodeURIComponent("<!-- agent-runtime-command\n"+JSON.stringify(m.runtimeAction,null,2)+"\n-->")}`} target="_blank" rel="noreferrer">⚡ Send to GitHub Runtime</a>}{m.aiRequest&&<a className="runtime-action" href={`https://github.com/WebControlerAgent/WebControlerAgent.github.io/issues/new?title=${encodeURIComponent("[Manager AI] "+m.aiRequest.slice(0,60))}&body=${encodeURIComponent(m.aiRequest)}`} target="_blank" rel="noreferrer">🧠 Send to Manager AI</a>}</div>)}</div>
-      <form className="chat-input" onSubmit={e=>{e.preventDefault();sendChat()}}>
-        <input value={chatInput} onChange={e=>setChatInput(e.target.value)} placeholder="Ask Manager..." aria-label="Message Manager"/>
-        <button type="submit" aria-label="Send message">➤</button>
+      <form className="chat-input" onSubmit={e=>{e.preventDefault();void sendChat()}}>
+        <input value={chatInput} onChange={e=>setChatInput(e.target.value)} placeholder={chatBusy?"Manager AI processing…":"Ask Manager..."} aria-label="Message Manager" disabled={chatBusy}/>
+        <button type="submit" aria-label="Send message" disabled={chatBusy||!chatInput.trim()}>➤</button>
       </form>
     </div>}
    </main>
