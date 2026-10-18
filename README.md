@@ -155,12 +155,12 @@ Older secure-chat integration commits are documented in Git history; inspect `sr
 3. Keep the allowlist narrow, and preserve proposal-only behavior.
 4. Run the worker and independent reviewer again; require Captain review. Do not merge/deploy the generated patch automatically.
 
-### Priority 3 — verify and finish Manager Chat E2E
-1. Verify Cloudflare bridge source and setup against `worker/README.md`.
-2. Confirm the owner has deployed the Worker and configured secrets (we cannot configure their Cloudflare account from GitHub repository tools alone).
-3. Verify `GEMINI_API_KEY` exists as a GitHub Actions secret; never request the key value.
-4. Send one harmless test command from the live website; trace browser → Worker → Manager issue → Manager workflow → runtime workflow → result comment → chat polling.
-5. Fix any failure at the exact step shown in logs; add/update tests and this README.
+### Priority 3 — verify and finish GitHub-only Manager Chat
+1. Open the deployed AIWCU website and enter a harmless Manager AI instruction.
+2. Click the generated **Send to Manager AI** GitHub link and submit the prefilled issue on GitHub.
+3. Confirm the issue title starts with `[Manager AI]`, the account satisfies the workflow authorization check, and `manager-ai.yml` starts.
+4. Verify the Manager AI comment and, when a runtime action is dispatched, the follow-up `agent-command.yml` run and result comment.
+5. Fix any failure at the exact step shown in Actions logs; add/update tests and this README. No Cloudflare deployment or bridge secret is part of this flow.
 
 ### Priority 4 — keep worker scope honest and expand carefully
 - QA and SEO workers are currently deterministic, read-only checkers; they are not general LLM agents and do not edit target sites.
@@ -191,7 +191,7 @@ Start here before asking the user to repeat context:
 Use this section after future work and keep it current:
 
 - **Last updated:** 2026-10-18
-- **Manager Chat frontend bridge:** commit `747c1cfc7479bf6fa4bcd95f1c9da88ba8edb520` added authenticated bridge submission and result polling; follow-up commits `f2a6f14085585544f6304b466dc8256a1e26c58e`, `1972eb38cbe4db8e03cffe64f8e79dd77dd04586`, and `7604b0a071415e9aaed1341323b545aae4a20bfa` corrected URL validation, avoided duplicate result messages, and added `node --check app.js` to CI. [Run 39097177877 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39097177877); [Pages deploy 39097177860 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39097177860).
+- **Manager Chat GitHub-only handoff:** commit `eedaad81b7e75dba5c52c5652b33096f50339842` removed the bridge URL/key prompt and added a manual GitHub Issue handoff. README workflow docs were updated in `34d34161b9c635c6b9996409d62ccab0e219e967`; chat docs were updated in `ce5a002b93725e0ebed1d916cf0ad440ee97fa07`. Build/deploy status for these latest commits still needs to be checked.
 - **Worker API validation:** commits `0aceeedfd8069751ba615b39b857769b9bc8c73d` and `daee3b6c8057b9b2c40efcc1db70a9a2a1608476` return HTTP 400 for invalid JSON/runtime payloads and add tests for runtime validation, result polling, and invalid issue IDs. [Prior bridge test run 39098188620 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39098188620); latest run [39098198794](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39098198794) was running at the time of this update.
 - **Secure bridge deployment prep:** added `worker/wrangler.toml` (commit `7d12a9725d6773c273de601ada64ca3ff9678868`) and CLI deployment/secrets instructions in `worker/README.md` (commit `2541f668a1a37b7ae2107bc3c3af88971d910098`).
 - **Bridge safety tests:** added `worker/index.test.js` and wired it into the existing CI workflow (commit `9c3a3d501448b74d21cf1cf2bb0adbe9a2035701`); [run 39056193187 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39056193187), including Python worker tests and Node bridge tests.
@@ -199,5 +199,5 @@ Use this section after future work and keep it current:
 - **Bounded AI Worker:** [run 39055110977 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39055110977); patch artifact and deterministic scope/risk review succeeded. The proposal changes only the homepage meta description and is `READY_FOR_CAPTAIN_REVIEW`; no source site was modified, and no automatic merge/deploy occurred.
 - **Coding worker completion fix:** commit `9293251c70d2995e68c0c96d6fa193162a238da4`; bounded worker and Pages deployment both succeeded after this fix.
 - **Manager Chat E2E:** still pending Cloudflare account authorization, Worker deployment, secrets configuration, and one verified live command/result round trip.
-- **Next immediate action:** owner deploys `worker/index.js` using `worker/wrangler.toml`, sets `GITHUB_TOKEN`, `AIWCU_CHAT_KEY`, and the exact `ALLOWED_ORIGIN`, then runs the harmless live Manager Chat E2E test. Never put secrets in GitHub source files or chat.
+- **Next immediate action:** verify the latest Pages deployment, then perform a harmless live test by submitting a prefilled `[Manager AI]` issue from the website. Never put secrets in GitHub source files or chat.
 - **SEO note:** keep the Kingdom Raw canonical/live-domain mismatch as a separate Captain-reviewed task; do not apply the demo meta-description patch as a substitute for fixing canonical configuration.
