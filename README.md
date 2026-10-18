@@ -156,12 +156,12 @@ Older secure-chat integration commits are documented in Git history; inspect `sr
 3. Keep the allowlist narrow, and preserve proposal-only behavior.
 4. Run the worker and independent reviewer again; require Captain review. Do not merge/deploy the generated patch automatically.
 
-### Priority 3 — verify and finish GitHub-only Manager Chat
-1. Open the deployed AIWCU website and enter a harmless Manager AI instruction.
-2. Click the generated **Send to Manager AI** GitHub link and submit the prefilled issue on GitHub.
-3. Confirm the issue title starts with `[Manager AI]`, the account satisfies the workflow authorization check, and `manager-ai.yml` starts.
-4. Verify the Manager AI comment and, when a runtime action is dispatched, the follow-up `agent-command.yml` run and result comment.
-5. Fix any failure at the exact step shown in Actions logs; add/update tests and this README. No Cloudflare deployment or bridge secret is part of this flow.
+### Priority 3 — configure and verify direct GitHub-only Manager Chat
+1. Create a GitHub App owned by the repo owner, enable Device Flow, install it only on this repository, and grant only Issues read/write.
+2. Open the deployed AIWCU website, paste the App Client ID into Manager Chat, click **Connect GitHub**, and approve the one-time device code as `WebControlerAgent`.
+3. Send a harmless Manager AI instruction. The page should create a `[Manager AI]` issue automatically without a manual issue submission.
+4. Confirm `manager-ai.yml` starts, then verify the final Manager AI comment and any follow-up `agent-command.yml` runtime result appears in the website chat.
+5. Check Actions logs for any API/CORS/auth/polling issue. Do not grant broad app permissions or add Cloudflare/Supabase. The current implementation is committed but not yet proven by a live end-to-end run.
 
 ### Priority 4 — keep worker scope honest and expand carefully
 - QA and SEO workers are currently deterministic, read-only checkers; they are not general LLM agents and do not edit target sites.
@@ -192,13 +192,13 @@ Start here before asking the user to repeat context:
 Use this section after future work and keep it current:
 
 - **Last updated:** 2026-10-18
-- **Manager Chat GitHub-only handoff:** commit `eedaad81b7e75dba5c52c5652b33096f50339842` removed the bridge URL/key prompt and added a manual GitHub Issue handoff. README workflow docs were updated in `34d34161b9c635c6b9996409d62ccab0e219e967`; chat docs were updated in `ce5a002b93725e0ebed1d916cf0ad440ee97fa07`. Build/deploy status for these latest commits still needs to be checked.
+- **Manager Chat GitHub-only device flow:** added `src/chat/githubDeviceFlow.ts`, direct issue creation, account verification, in-chat comment polling, connection/disconnect controls, and setup documentation. Key commits: `3df1d922d77e6fe14936a51a40778e41e73605a1` (chat flow), `7bd17f3921996d23c595ce8d9d179e481d3d6843` (UI styles), `120b07b225092fcf0c09ee36a1cdc3b5002668f6` (setup docs), `c4eae2ab8c456bcf0b2658db477292e78ba7f3d6` and `d1a57a0cfaddcb4e81ef2b41ad8dd27ca40a6f7a` (polling type fixes), `71c5b74e9ac187602637097e89b737d3a5e7033` (chat docs). Combined commit statuses returned no checks; build/deploy and real device-flow E2E are not yet verified. One-time setup still requires a GitHub App Client ID with Device Flow enabled and only Issues read/write installed on this repository.
 - **Worker API validation:** commits `0aceeedfd8069751ba615b39b857769b9bc8c73d` and `daee3b6c8057b9b2c40efcc1db70a9a2a1608476` return HTTP 400 for invalid JSON/runtime payloads and add tests for runtime validation, result polling, and invalid issue IDs. [Prior bridge test run 39098188620 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39098188620); latest run [39098198794](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39098198794) was running at the time of this update.
 - **Secure bridge deployment prep:** added `worker/wrangler.toml` (commit `7d12a9725d6773c273de601ada64ca3ff9678868`) and CLI deployment/secrets instructions in `worker/README.md` (commit `2541f668a1a37b7ae2107bc3c3af88971d910098`).
 - **Bridge safety tests:** added `worker/index.test.js` and wired it into the existing CI workflow (commit `9c3a3d501448b74d21cf1cf2bb0adbe9a2035701`); [run 39056193187 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39056193187), including Python worker tests and Node bridge tests.
 - **Pages deployment for latest CI commit:** [run 39056193225](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39056193225) was queued at last check.
 - **Bounded AI Worker:** [run 39055110977 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39055110977); patch artifact and deterministic scope/risk review succeeded. The proposal changes only the homepage meta description and is `READY_FOR_CAPTAIN_REVIEW`; no source site was modified, and no automatic merge/deploy occurred.
 - **Coding worker completion fix:** commit `9293251c70d2995e68c0c96d6fa193162a238da4`; bounded worker and Pages deployment both succeeded after this fix.
-- **Manager Chat E2E:** still pending Cloudflare account authorization, Worker deployment, secrets configuration, and one verified live command/result round trip.
-- **Next immediate action:** verify the latest Pages deployment, then perform a harmless live test by submitting a prefilled `[Manager AI]` issue from the website. Never put secrets in GitHub source files or chat.
+- **Manager Chat E2E:** direct GitHub App device authorization is implemented in source; create/install the App, verify Pages deployment, and test one harmless command/result round trip. No Cloudflare Worker is required for this path.
+- **Next immediate action:** configure the GitHub App Client ID and verify the latest Pages build plus a real device-auth → issue → Manager comment → chat result round trip. Never put secrets in GitHub source files or chat.
 - **SEO note:** keep the Kingdom Raw canonical/live-domain mismatch as a separate Captain-reviewed task; do not apply the demo meta-description patch as a substitute for fixing canonical configuration.
