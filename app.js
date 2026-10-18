@@ -29,5 +29,50 @@ async function loadStatus(){
  }catch(e){$("controller").textContent="Waiting";$("managerStatus").textContent="WAIT";$("status").textContent="● WAITING"}
 }
 $("refresh").onclick=loadStatus;$("run").onclick=()=>window.open(ACTIONS_URL,"_blank");
-$("chatForm").addEventListener("submit",e=>{e.preventDefault();const v=$("chatInput").value.trim();if(!v)return;addChat("You",v);$("chatInput").value="";const q=v.toLowerCase();let reply="I’m the Studio Manager. I can read dashboard status, explain the team, and coordinate authorized tasks one site at a time.";if(q.includes("status")||q.includes("haal"))reply="Current dashboard: "+$("controller").textContent+". Sites: "+$("repos").textContent+". Last run: "+$("lastRun").textContent+".";else if(q.includes("site"))reply="Single-site mode is active: one site must finish and verify before the next site starts.";else if(q.includes("agent")||q.includes("employee"))reply="Click any employee in the office to open their character panel. The team includes Manager, Researcher, Image Agent, SEO Agent, Bug Hunter, Idea Builder, Publisher and QA Agent.";else if(q.includes("run")||q.includes("start"))reply="The workflow monitor is ready. Use the Run Monitor button for the authorized GitHub Actions run.";setTimeout(()=>addChat("Manager",reply),250)});
+function getBridgeConfig(){
+ let url=sessionStorage.getItem("aiwcu_bridge_url")||"";
+ let key=sessionStorage.getItem("aiwcu_chat_key")||"";
+ if(!url){url=prompt("Paste your deployed AIWCU Cloudflare Worker URL (https://...workers.dev):")||"";url=url.trim().replace(/\\/+$/,"");}
+ if(!/^https:\\/\\//i.test(url)){addChat("Manager","Secure bridge URL required. Deploy the Worker using worker/README.md, then enter its HTTPS URL.");return null;}
+ if(!key){key=prompt("Enter your private AIWCU chat key (AIWCU_CHAT_KEY):")||"";key=key.trim();}
+ if(!key){addChat("Manager","No private chat key entered. Command was not sent.");return null;}
+ sessionStorage.setItem("aiwcu_bridge_url",url);sessionStorage.setItem("aiwcu_chat_key",key);
+ return {url,key};
+}
+async function sendManagerInstruction(instruction){
+ const cfg=getBridgeConfig();if(!cfg)return;
+ addChat("Manager","Submitting your instruction to the protected GitHub workflow…");
+ try{
+  const response=await fetch(cfg.url+"/command",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+cfg.key},body:JSON.stringify({instruction})});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(data.error||("Bridge request failed ("+response.status+")."));
+  if(!data.issue)throw new Error("Bridge response did not include a GitHub issue number.");
+  addChat("Manager","Command submitted to GitHub Actions (issue #"+data.issue+"). I’m checking for the workflow response now.");
+  let lastSignature="";
+  for(let attempt=0;attempt<20;attempt++){
+   if(attempt>0)await new Promise(resolve=>setTimeout(resolve,4000));
+   const resultResponse=await fetch(cfg.url+"/result?issue="+encodeURIComponent(data.issue),{headers:{"Authorization":"Bearer "+cfg.key},cache:"no-store"});
+   const result=await resultResponse.json().catch(()=>({}));
+   if(!resultResponse.ok)throw new Error(result.error||("Result check failed ("+resultResponse.status+")."));
+   const comments=Array.isArray(result.comments)?result.comments:[];
+   for(const comment of comments){
+    const body=String(comment.body||"").trim();
+    const signature=String(comment.author||"")+":"+body;
+    if(!body||signature===lastSignature||body.includes("[RUNTIME_PENDING]"))continue;
+    if(body.startsWith("🤖 **Manager AI:**")){addChat("Manager",body.replace(/^🤖 \\*\\*Manager AI:\\*\\*\\s*/,""));lastSignature=signature;}
+    else if(body.includes("Agent Runtime")||body.includes("Agent pipeline")||body.includes("Runtime state transition")||body.includes("Assignment recorded")){addChat("Manager",body);lastSignature=signature;}
+   }
+   const latest=comments.map(c=>String(c.body||"")).join("\\n");
+   if(latest.includes("Agent pipeline completed successfully")||latest.includes("Agent Runtime command failed")||latest.includes("Runtime state transition applied")||latest.includes("Assignment recorded; execution not started"))return;
+  }
+  addChat("Manager","GitHub accepted the command, but the final result has not arrived in the chat's 80-second check window. Open the linked issue to follow its Actions run: "+data.issueUrl);
+ }catch(error){addChat("Manager","Command was not confirmed: "+String(error.message||error)+" Check the Worker URL, ALLOWED_ORIGIN, private key, and GitHub token setup.");}
+}
+$("chatForm").addEventListener("submit",async e=>{
+ e.preventDefault();const v=$("chatInput").value.trim();if(!v)return;addChat("You",v);$("chatInput").value="";const q=v.toLowerCase();
+ if(q==="help"||q.includes("what can you do")||q.includes("team members")){addChat("Manager","I can submit authorized instructions to the protected GitHub Manager workflow. Runtime actions are limited by the repository workflows and verification gates. Ask for dashboard status locally, or give a task to send it to GitHub.");return;}
+ if(q.includes("status")||q.includes("haal")){addChat("Manager","Current dashboard: "+$("controller").textContent+". Sites: "+$("repos").textContent+". Last run: "+$("lastRun").textContent+".");return;}
+ if(q.includes("agent")||q.includes("employee")){addChat("Manager","Team shown in the office: Manager, Researcher, Image Agent, SEO Agent, Bug Hunter, Idea Builder, Publisher and QA Agent. Send a specific task if you want it submitted to GitHub.");return;}
+ await sendManagerInstruction(v);
+});
 loadStatus();setInterval(loadStatus,60000);
