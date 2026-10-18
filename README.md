@@ -150,8 +150,8 @@ Older secure-chat integration commits are documented in Git history; inspect `sr
 4. Run the worker and independent reviewer again; require Captain review. Do not merge/deploy the generated patch automatically.
 
 ### Priority 3 — configure and verify direct GitHub-only Manager Chat
-1. Create a GitHub App owned by the repo owner, enable Device Flow, install it only on this repository, and grant only Issues read/write.
-2. Open the deployed AIWCU website, paste the App Client ID into Manager Chat, click **Connect GitHub**, and approve the one-time device code as `WebControlerAgent`.
+1. Create a fine-grained token owned by `WebControlerAgent`, limited to this repository, with Issues read/write only.
+2. Open the deployed AIWCU website, paste the token into Manager Chat, and click **Connect GitHub**.
 3. Send a harmless Manager AI instruction. The page should create a `[Manager AI]` issue automatically without a manual issue submission.
 4. Confirm `manager-ai.yml` starts, then verify the final Manager AI comment and any follow-up `agent-command.yml` runtime result appears in the website chat.
 5. Check Actions logs for any API/CORS/auth/polling issue. Do not grant broad app permissions or add Cloudflare/Supabase. The current implementation is committed but not yet proven by a live end-to-end run.
