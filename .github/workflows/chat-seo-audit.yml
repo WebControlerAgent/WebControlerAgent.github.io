@@ -1,0 +1,100 @@
+name: Chat SEO Audit (Read Only)
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: chat-seo-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    if: ${{ startsWith(github.event.issue.title, '[SEO Audit]') && (github.event.issue.user.login == 'WebControlerAgent' || github.event.issue.author_association == 'OWNER') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout authorized controller
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Build task from authorized site registry
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          python3 - <<'PY'
+          import json, os, re
+          from pathlib import Path
+          body = os.environ.get("ISSUE_BODY", "")
+          match = re.search(r"Active site: .*?\(([A-Za-z0-9_-]+)\)", body)
+          if not match:
+              raise SystemExit("Could not identify the active site from the chat request.")
+          site_id = match.group(1)
+          sites = json.loads(Path("controller/sites.json").read_text(encoding="utf-8"))
+          found = [s for s in sites.get("sites", []) if s.get("id") == site_id and s.get("enabled") is True and s.get("authorized") is True]
+          if len(found) != 1:
+              raise SystemExit("Requested site is not uniquely enabled and authorized.")
+          site = found[0]
+          task = {
+              "task_id": "chat-seo-" + str(os.environ.get("GITHUB_RUN_ID", "run")),
+              "site": site_id,
+              "repository": site["repository"],
+              "task_type": "seo_issue",
+              "objective": "Run a read-only technical SEO audit of the authorized live homepage, robots.txt, and sitemap.xml. Latest user request: " + body[-1500:]
+          }
+          Path("/tmp/seo-task.json").write_text(json.dumps(task, ensure_ascii=False), encoding="utf-8")
+          print("Authorized read-only SEO task created for " + site_id)
+          PY
+
+      - name: Run SEO worker and independent checker
+        id: seo
+        continue-on-error: true
+        run: |
+          python3 controller/seo_worker.py /tmp/seo-task.json --output /tmp/seo-report.json
+          rc=$?
+          echo "worker_exit=$rc" >> "$GITHUB_OUTPUT"
+          if [ ! -f /tmp/seo-report.json ]; then
+            printf '{"state":"BLOCKED","error":"SEO worker did not produce a report."}' > /tmp/seo-report.json
+          fi
+          exit 0
+
+      - name: Report verified SEO evidence to chat
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("/tmp/seo-report.json").read_text(encoding="utf-8")) if Path("/tmp/seo-report.json").exists() else {"state":"BLOCKED","error":"No report produced"}
+          primary = report.get("primary_result", {})
+          checker = report.get("independent_checker_result", {})
+          lines = [
+              "📊 **SEO Audit Result**",
+              "",
+              "State: **" + str(report.get("state", "UNKNOWN")) + "**",
+              "Site: " + str(report.get("site", "unknown")),
+              "Repository: " + str(report.get("repository", "unknown")),
+              "Primary worker: " + str(primary.get("state", "not run")) + " — " + "; ".join(primary.get("evidence", [])),
+              "Independent checker: " + str(checker.get("state", "not run")) + " — " + "; ".join(checker.get("independent_evidence", [])),
+              "Evidence consistent: " + str(report.get("evidence_consistent", False)),
+              "",
+              "Read-only audit only: no site files were edited, merged, or deployed. Google indexing/ranking was not tested."
+          ]
+          if report.get("error"):
+              lines.extend(["", "Error: " + str(report["error"])[:700]])
+          Path("/tmp/seo-comment.md").write_text("\n".join(lines), encoding="utf-8")
+          PY
+          gh issue comment "$ISSUE_NUMBER" --body-file /tmp/seo-comment.md
+          gh issue close "$ISSUE_NUMBER"
