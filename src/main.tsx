@@ -507,7 +507,7 @@ function App(){
      setMessages(m=>[...m,{from:"GitHub Actions",text:"Command GitHub ko send ho gayi (#"+issueNumber+"). Manager AI process kar raha hai; result isi chat mein aayega."}]);
      let completed=false;
      for(let attempt=0;attempt<48;attempt++){
-       await new Promise(resolve=>window.setTimeout(resolve,5000));
+       await new Promise<void>(resolve=>window.setTimeout(()=>resolve(),5000));
        const comments=await readManagerComments(githubToken,issueNumber);
        if(!Array.isArray(comments))continue;
        const relevant=comments.filter((c:any)=>typeof c.body==="string"&&(c.body.includes("**Manager AI:**")||c.body.includes("**Agent Runtime")));
