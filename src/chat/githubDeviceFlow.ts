@@ -32,7 +32,7 @@ export async function authorizeGitHubApp(
   const expiresAt = Date.now() + Number(device.expires_in || 900) * 1000;
 
   while (Date.now() < expiresAt) {
-    await new Promise(resolve => window.setTimeout(resolve, interval * 1000));
+    await new Promise<void>(resolve => window.setTimeout(() => resolve(), interval * 1000));
     const response = await fetch(TOKEN_URL, {
       method: "POST",
       headers: { Accept: "application/json", "Content-Type": "application/x-www-form-urlencoded" },
