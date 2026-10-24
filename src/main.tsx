@@ -25,6 +25,15 @@ const agents:Agent[]=[
 
 const statusTone=(s:Status)=>({IDLE:"#718096",WALKING:"#60a5fa",WORKING:"#4ade80",THINKING:"#c084fc",MEETING:"#fbbf24",SUCCESS:"#34d399",ERROR:"#fb7185"}[s]);
 
+function localQuickReply(input:string):string|null{
+ const normalized=input.toLowerCase().trim().replace(/[.,!?،۔]+$/g,"").replace(/\s+/g," ");
+ const greetings=new Set(["hi","hello","hey","hy","salam","assalam o alaikum","assalamu alaikum","aoa","salaam","good morning","good afternoon","good evening"]);
+ const thanks=new Set(["thanks","thank you","thx","shukriya","jazakallah","jazak allah"]);
+ if(greetings.has(normalized))return "Jee yaar, bolo — kya kaam karna hai? Main sun raha hoon.";
+ if(thanks.has(normalized))return "Khushi hui madad karke! Agla kaam batao.";
+ return null;
+}
+
 
 const CAPTAIN_STARS=[
 {id:"bug-solver",name:"Repair",color:"#ffb36b",accent:"#ffd9a0"},
@@ -458,7 +467,6 @@ function Universe3D({selected,setSelected}:{selected:string|null;setSelected:(id
 }
 
 type SiteRecord={id:string;name:string;repository:string;branch:string;live_url:string;enabled:boolean;authorized:boolean;description?:string;media?:{enabled:boolean;authorized_source:boolean;path:string}};
-const GITHUB_TOKEN_STORAGE_KEY="aiwcu_github_token_v1";
 
 function SitePanel({sites,selectedSite,setSelectedSite,onClose}:{sites:SiteRecord[];selectedSite:string;setSelectedSite:(id:string)=>void;onClose:()=>void}){
  const [openAdd,setOpenAdd]=useState(false); const [form,setForm]=useState({id:"",name:"",repository:"",branch:"main",live_url:"",description:"",media_path:"chapter-images/"});
@@ -480,36 +488,12 @@ function App(){
  const [githubAuthStatus,setGithubAuthStatus]=useState("GitHub account connect nahi hai");
  const [chatBusy,setChatBusy]=useState(false);
  const [messages,setMessages]=useState<{from:string;text:string;runtimeAction?:any;aiRequest?:string}[]>([{from:"Manager",text:"GitHub-only Manager Chat. Connect ke baad connection isi browser par logout tak yaad rahega."}]);
- useEffect(()=>{
-   let cancelled=false;
-   const restore=async()=>{
-     let saved:string|null=null;
-     try{saved=window.localStorage.getItem(GITHUB_TOKEN_STORAGE_KEY);}catch{}
-     if(!saved)return;
-     setGithubAuthStatus("Saved GitHub connection verify ho raha hai…");
-     try{
-       const valid=await verifyGitHubToken(saved);
-       if(!cancelled){setGithubToken(valid);setGithubAuthStatus("Connected and account verified — WebControlerAgent");}
-     }catch{
-       try{window.localStorage.removeItem(GITHUB_TOKEN_STORAGE_KEY);}catch{}
-       if(!cancelled){setGithubToken(null);setGithubAuthStatus("Saved GitHub connection expire ya invalid ho gayi. Dobara connect karo.");}
-     }
-   };
-   const onStorage=(event:StorageEvent)=>{
-     if(event.key!==GITHUB_TOKEN_STORAGE_KEY)return;
-     if(!event.newValue){setGithubToken(null);setGithubTokenInput("");setGithubAuthStatus("Dusre tab se logout ho gaya.");return;}
-     void verifyGitHubToken(event.newValue).then(valid=>{setGithubToken(valid);setGithubAuthStatus("Connected and account verified — WebControlerAgent");}).catch(()=>{setGithubToken(null);setGithubAuthStatus("Saved GitHub connection verify nahi ho saka. Dobara connect karo.");});
-   };
-   window.addEventListener("storage",onStorage);
-   void restore();
-   return()=>{cancelled=true;window.removeEventListener("storage",onStorage);};
- },[]);
+ // Security: scoped GitHub token is memory-only; reload clears it.
  const connectGitHub=async()=>{
    setGithubAuthStatus("Token aur repository access verify ho raha hai…");
    try{
      const token=await verifyGitHubToken(githubTokenInput);
-     try{window.localStorage.setItem(GITHUB_TOKEN_STORAGE_KEY,token);}catch{throw new Error("Browser storage unavailable hai. Is browser mein persistent login save nahi ho saka.");}
-     setGithubToken(token);setGithubTokenInput("");setGithubAuthStatus("Connected and account verified — WebControlerAgent. Is browser mein logout tak saved rahega.");
+     setGithubToken(token);setGithubTokenInput("");setGithubAuthStatus("Connected and account verified — WebControlerAgent. Reload par security ke liye dobara connect karna hoga.");
      setMessages(m=>[...m,{from:"GitHub",text:"GitHub account aur target repository verify ho gayi. Ab commands isi chat se Manager AI ko bheji ja sakti hain."}]);
    }catch(error){setGithubToken(null);setGithubAuthStatus(error instanceof Error?error.message:"GitHub token verify nahi ho saka.");}
  };
@@ -518,6 +502,11 @@ function App(){
    const siteName=sites.find(s=>s.id===selectedSite)?.name??selectedSite;
    setChatInput("");
    setMessages(m=>[...m,{from:"You",text}]);
+   const quick=localQuickReply(text);
+   if(quick){
+     setMessages(m=>[...m,{from:"Manager",text:quick}]);
+     return;
+   }
    if(!githubToken){
      const reply=managerReply(text+"\nActive site: "+siteName+" ("+selectedSite+")",agents,status);
      if(reply.runtimeAction&&!reply.runtimeAction.site)reply.runtimeAction.site=selectedSite;
@@ -569,7 +558,6 @@ function App(){
       <div className="chat-head"><div><b>MANAGER CHAT</b><small>Talk to the selected Captain • GitHub Runtime</small></div><button onClick={()=>setChatOpen(false)}>×</button></div>
       <div className="github-connect">
         {!githubToken&&<><input type="password" autoComplete="off" value={githubTokenInput} onChange={e=>setGithubTokenInput(e.target.value)} placeholder="Fine-grained GitHub token" aria-label="Fine-grained GitHub token"/><button onClick={connectGitHub} disabled={!githubTokenInput.trim()||chatBusy}>Connect GitHub</button><small>Connect ke baad isi browser ke tabs/restarts mein logout tak saved rahega. Sirf apne device par use karo.</small></>}
-        {githubToken&&<button onClick={()=>{try{window.localStorage.removeItem(GITHUB_TOKEN_STORAGE_KEY);}catch{}setGithubToken(null);setGithubTokenInput("");setGithubAuthStatus("Disconnected — saved token cleared from this browser.");}} disabled={chatBusy}>Logout / Disconnect</button>}
         <small>{githubAuthStatus}</small>
       </div>
       <div className="chat-messages">{messages.map((m,i)=><div key={i} className={"chat-msg "+(m.from==="You"?"you":"")}><span>{m.from}</span><p>{m.text}</p>{m.runtimeAction&&<a className="runtime-action" href={`https://github.com/WebControlerAgent/WebControlerAgent.github.io/issues/new?title=${encodeURIComponent("[Agent Runtime] "+m.runtimeAction.action)}&body=${encodeURIComponent("<!-- agent-runtime-command\n"+JSON.stringify(m.runtimeAction,null,2)+"\n-->")}`} target="_blank" rel="noreferrer">⚡ Send to GitHub Runtime</a>}{m.aiRequest&&<a className="runtime-action" href={`https://github.com/WebControlerAgent/WebControlerAgent.github.io/issues/new?title=${encodeURIComponent("[Manager AI] "+m.aiRequest.slice(0,60))}&body=${encodeURIComponent(m.aiRequest)}`} target="_blank" rel="noreferrer">🧠 Send to Manager AI</a>}</div>)}</div>
