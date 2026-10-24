@@ -42,7 +42,7 @@ These are deliberate project rules, not missing features to bypass:
 - A successful build/deployment means the dashboard build shipped; it does not prove Google indexing, live chat E2E, or successful autonomous work on a target website.
 - Never claim indexing, traffic, browser testing, task completion, or successful agent execution without direct evidence.
 
-## 3. Current status (last reviewed: 2026-10-18)
+## 3. Current status (last reviewed: 2026-10-24)
 
 ### Verified completed
 - GitHub Pages build and deployment pipeline is operational.
@@ -62,15 +62,14 @@ These are deliberate project rules, not missing features to bypass:
 - Existing browser QA workflow uses Playwright; its real end-to-end coverage still needs to be checked against the latest site behavior.
 
 ### Latest known successful runs
-- **Agent Runtime Command:** [run 39107686392](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39107686392) — SUCCESS; GitHub-only Manager Chat smoke test on 2026-10-18.
-- **Manager AI Brain:** [run 39107674465](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39107674465) — SUCCESS; processed `[Manager AI] hi` issue #31.
-- **Deploy AIWCU Universe to GitHub Pages:** [run 39106894726](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39106894726) — SUCCESS, latest checked deployment.
-### Still running / last observed
-- **Bounded AI Worker (Patch Only), run 39007689304:** [SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39007689304). The worker executed, exported a patch, passed deterministic patch review, and uploaded an artifact.
-- **Earlier Bounded AI Worker run 39007682449:** [SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39007682449) with an artifact as well.
-- Latest artifact from run 39007689304: `worker-result.json` reports `READY_FOR_INDEPENDENT_CHECK`, changed file `index.html`, `repository_modified: false`, `write_access: false`, `automatic_merge: false`, and `automatic_deploy: false`. `patch-review.json` reports `READY_FOR_CAPTAIN_REVIEW`, but explicitly says human/AI code review is still required.
-- The model attempted the edit twice: the first edit succeeded, the repeated command then failed its old-text assertion. The final patch still contains one scoped meta-description change and passed the deterministic path/risk review. The demo task has now been clarified to make the edit once and not change the canonical URL.
-- Deployment success does not imply that the proposal was applied to the target website.
+- **GitHub Pages deployment:** [run 40083596694](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/40083596694) — SUCCESS after the bounded worker trigger was changed.
+- **Bounded code worker tests:** [run 40083596693](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/40083596693) — SUCCESS.
+- **Paired read-only SEO audit:** [run 40083434908](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/40083434908) — SUCCESS.
+- **SEO chat routing smoke test:** [run 40076686443](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/40076686443) — SUCCESS; this verified the issue-triggered workflow, not the complete website-browser chat round trip.
+
+### Active / unverified
+- **Bounded AI Worker (Patch Only), run 40083434881:** last checked IN PROGRESS in “Execute bounded worker and export proposal”; task authorization and target checkout passed, and Ollama/Qwen setup completed. The worker output, independent patch review, and artifact upload have not yet been confirmed. [Follow run 40083434881](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/40083434881).
+- **Recent deployment and code tests:** latest deployment and test workflows are green, but this does not prove coding-worker success or full browser Manager Chat E2E.
 
 ### Important known mismatch to resolve
 The demo task `tasks/demo-bounded-code-proposal.json` targets the authorized Kingdom Raw repository, whose current homepage source includes MangaReader-style content and a canonical URL pointing at `https://kindgommangaraw.github.io/`, while the registry's live URL is `https://jpmangaatlis.online/`. This canonical/live-domain mismatch is a separate SEO issue and was deliberately kept outside the demo patch's allowed scope. The generated proposal changes only the meta description. **Do not apply that generated proposal until a Captain reviews the target content and decides whether the canonical/domain configuration is correct.** The task objective was clarified so the edit runs only once and the canonical URL is not touched. A proposal is not a deployed fix.
@@ -182,7 +181,7 @@ Start here before asking the user to repeat context:
 
 Use this section after future work and keep it current:
 
-- **Last updated:** 2026-10-18
+- **Last updated:** 2026-10-24
 - **Manager Chat scoped-token connection:** replaced the browser Device Flow approach after GitHub's device-code endpoint blocked cross-origin requests. The chat now accepts a fine-grained token limited to this repository with Issues read/write, verifies account/repository access, and keeps the token in memory only. Deployment and a real command/result round trip still need verification.
 - **Worker API validation:** commits `0aceeedfd8069751ba615b39b857769b9bc8c73d` and `daee3b6c8057b9b2c40efcc1db70a9a2a1608476` return HTTP 400 for invalid JSON/runtime payloads and add tests for runtime validation, result polling, and invalid issue IDs. [Prior bridge test run 39098188620 — SUCCESS](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39098188620); latest run [39098198794](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39098198794) was running at the time of this update.
 - **Secure bridge deployment prep:** added `worker/wrangler.toml` (commit `7d12a9725d6773c273de601ada64ca3ff9678868`) and CLI deployment/secrets instructions in `worker/README.md` (commit `2541f668a1a37b7ae2107bc3c3af88971d910098`).
