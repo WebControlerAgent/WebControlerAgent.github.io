@@ -118,7 +118,7 @@ def validate_plan(result, sites_data, runtime_state):
 def fast_reply(instruction):
     """Answer tiny social turns without a network model call, including wrapped chat requests."""
     match = re.search(
-        r"LATEST USER INSTRUCTION.*?:\\s*(.*)\\Z",
+        r"LATEST USER INSTRUCTION.*?:\s*(.*)\Z",
         instruction,
         flags=re.IGNORECASE | re.DOTALL,
     )
