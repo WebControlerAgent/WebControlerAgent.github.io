@@ -1,13 +1,8 @@
 name: Bounded AI Worker (Patch Only)
 
+# This model-heavy worker is intentionally manual so ordinary code commits
+# do not unexpectedly install Ollama, download a model, and consume Actions time.
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/bounded-worker.yml"
-      - "controller/**"
-      - "tasks/**"
-      - "agents/task_routing.json"
   workflow_dispatch:
     inputs:
       task_file:
