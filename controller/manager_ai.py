@@ -138,10 +138,31 @@ def validate_plan(result, sites_data, runtime_state):
     return {"reply": "Manager plan was rejected; no action was dispatched.", "action": "none"}
 
 
+def fast_reply(instruction):
+    """Answer tiny social turns without a network model call."""
+    normalized = " ".join(instruction.lower().strip().split())
+    normalized = normalized.strip(" .,!?")
+    greetings = {
+        "hi", "hello", "hey", "hy", "salam", "assalam o alaikum",
+        "assalamu alaikum", "aoa", "salaam", "good morning",
+        "good afternoon", "good evening"
+    }
+    thanks = {"thanks", "thank you", "thx", "shukriya", "jazakallah", "jazak allah"}
+    if normalized in greetings:
+        return {"reply": "Jee yaar, bolo - kya kaam karna hai? Main sun raha hoon.", "action": "none"}
+    if normalized in thanks:
+        return {"reply": "Khushi hui madad karke! Agla kaam batao.", "action": "none"}
+    return None
+
 def main():
     instruction = " ".join(sys.argv[1:]).strip()
     if not instruction or len(instruction) > 4000:
         raise ValueError("instruction must be 1-4000 chars")
+
+    quick = fast_reply(instruction)
+    if quick is not None:
+        print(json.dumps(quick, ensure_ascii=False, separators=(",", ":")))
+        return
 
     state = json.load(open("controller/agent_state.json", encoding="utf-8"))
     sites = json.load(open("controller/sites.json", encoding="utf-8"))
