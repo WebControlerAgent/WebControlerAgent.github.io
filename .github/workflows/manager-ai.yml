@@ -52,6 +52,11 @@ jobs:
 
       - name: Persist Manager plan
         run: |
+          action=$(python3 -c 'import json; print(json.load(open("/tmp/manager-plan.json"))["action"])')
+          if [ "$action" = "none" ]; then
+            echo "No runtime action; skipping unnecessary repository write."
+            exit 0
+          fi
           cp /tmp/manager-plan.json controller/manager_plan.json
           git config user.name 'Web Controller Agent'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
