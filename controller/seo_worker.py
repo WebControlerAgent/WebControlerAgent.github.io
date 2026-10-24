@@ -63,7 +63,7 @@ def execute_task(
         checker_fn = check_seo_independently if check_fn is check_seo else check_fn
     primary_ok, primary_detail = check_fn(live_url)
     checker_ok, checker_detail = checker_fn(live_url)
-    consistent = primary_ok == checker_ok
+    consistent = primary_ok == checker_ok and (checker_fn is not check_fn or primary_detail == checker_detail)
     primary = {
         "task_id": task_id, "agent_id": PRIMARY_ID,
         "state": "DONE" if primary_ok else "FAILED",
