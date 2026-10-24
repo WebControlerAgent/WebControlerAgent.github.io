@@ -196,3 +196,10 @@ Use this section after future work and keep it current:
 - **Manager Chat E2E:** scoped-token connection is implemented in source. After Pages deploys, create the minimum-permission fine-grained token and test one harmless command/result round trip. No Cloudflare Worker is required.
 - **Next immediate action:** verify the Pages build, then connect using a token scoped only to this repo and test the issue → Manager comment → in-chat result flow. Never commit tokens or Gemini keys.
 - **SEO note:** keep the Kingdom Raw canonical/live-domain mismatch as a separate Captain-reviewed task; do not apply the demo meta-description patch as a substitute for fixing canonical configuration.
+
+## Manager Chat latency and token security (2026-10-24)
+- Simple greetings and thanks are handled in the public frontend locally; they do not create an issue or call Gemini.
+- For wrapped issue requests, the Manager extracts the latest user instruction before applying its greeting fast path.
+- Gemini uses a 15-second timeout and one attempt per configured fallback model to avoid nested retries multiplying long waits. Complex replies still depend on GitHub Actions startup and Gemini response time.
+- The GitHub fine-grained token is held in React memory only; disconnect or page reload clears it. Do not persist it in localStorage/sessionStorage.
+- Treat these as source changes until the Pages build, Python tests, and live browser round trip are verified.
