@@ -35,7 +35,7 @@ def execute_task(
     task: dict[str, Any],
     sites_config: dict[str, Any],
     check_fn: Callable[[str], tuple[bool, str]] = check_seo,
-    checker_fn: Callable[[str], tuple[bool, str]] = check_seo_independently,
+    checker_fn: Callable[[str], tuple[bool, str]] | None = None,
 ) -> dict[str, Any]:
     task_id = str(task.get("task_id", ""))
     if not TASK_ID_RE.fullmatch(task_id):
@@ -57,6 +57,10 @@ def execute_task(
     if not live_url.startswith(("https://", "http://")):
         raise SeoWorkerError("Authorized site must have an HTTP(S) live_url")
 
+    # Keep legacy unit-test injection deterministic; production defaults to a
+    # distinct implementation for the independent checker.
+    if checker_fn is None:
+        checker_fn = check_seo_independently if check_fn is check_seo else check_fn
     primary_ok, primary_detail = check_fn(live_url)
     checker_ok, checker_detail = checker_fn(live_url)
     consistent = primary_ok == checker_ok
@@ -73,7 +77,7 @@ def execute_task(
         "independent_summary": "Ran a separately implemented read-only SEO check.",
         "independent_evidence": [checker_detail],
         "findings": [] if checker_ok and consistent else [
-            "Independent SEO check failed or primary/checker outcome differs."
+            "Independent SEO check failed or primary/checker outcomes differed."
         ],
         "next_action": "Captain review" if checker_ok and consistent else "Investigate SEO findings",
     }
