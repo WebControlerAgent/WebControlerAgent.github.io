@@ -173,12 +173,14 @@ jobs:
               )
           print("PASS: qwen3:8b returned a native tool call through Ollama /api/chat.")
           PY
-          python3 -m pip install --user mini-swe-agent
+          python3 -m pip install --user mini-swe-agent mcp
+          python3 -c 'import mcp.types; print("PASS: MCP dependency import")'
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           cat > "$RUNNER_TEMP/Dockerfile.mini-swe" <<'DOCKERFILE'
           FROM python:3.12-slim
           RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates && rm -rf /var/lib/apt/lists/*
-          RUN pip install --no-cache-dir mini-swe-agent
+          RUN pip install --no-cache-dir mini-swe-agent mcp
+          RUN python -c 'import mcp.types; print("PASS: MCP dependency import")'
           WORKDIR /workspace
           DOCKERFILE
           docker build -f "$RUNNER_TEMP/Dockerfile.mini-swe" -t bounded-mini-swe-agent:local "$RUNNER_TEMP"
