@@ -1,7 +1,8 @@
-"""Read-only SEO audit worker with an independent checker pass.
+"""Read-only SEO worker with a separately implemented independent checker.
 
-This adapter uses deterministic endpoint checks today. It does not yet invoke
-an external open-source LLM/agent package and does not modify site content.
+The primary audit uses agent_checks.check_seo. The checker uses
+seo_checker.check_seo_independently and does not call the primary function.
+Neither pass edits site content or tests Google indexing/ranking.
 """
 from __future__ import annotations
 
@@ -14,9 +15,11 @@ from typing import Any, Callable
 
 try:
     from .agent_checks import check_seo
+    from .seo_checker import check_seo_independently
     from .worker_contract import validate_result_pair
 except ImportError:
     from agent_checks import check_seo
+    from seo_checker import check_seo_independently
     from worker_contract import validate_result_pair
 
 TASK_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$")
@@ -28,14 +31,18 @@ class SeoWorkerError(ValueError):
     """Raised when a task is outside the read-only SEO worker's scope."""
 
 
-def execute_task(task: dict[str, Any], sites_config: dict[str, Any],
-                 check_fn: Callable[[str], tuple[bool, str]] = check_seo) -> dict[str, Any]:
+def execute_task(
+    task: dict[str, Any],
+    sites_config: dict[str, Any],
+    check_fn: Callable[[str], tuple[bool, str]] = check_seo,
+    checker_fn: Callable[[str], tuple[bool, str]] = check_seo_independently,
+) -> dict[str, Any]:
     task_id = str(task.get("task_id", ""))
     if not TASK_ID_RE.fullmatch(task_id):
         raise SeoWorkerError("task_id must contain 1-100 safe filename characters")
     matches = [
         site for site in sites_config.get("sites", [])
-        if site.get("id") == task.get("site") and site.get("enabled") and site.get("authorized")
+        if site.get("id") == task.get("site") and site.get("enabled") is True and site.get("authorized") is True
     ]
     if len(matches) != 1:
         raise SeoWorkerError("Task site is not uniquely enabled and authorized")
@@ -51,22 +58,22 @@ def execute_task(task: dict[str, Any], sites_config: dict[str, Any],
         raise SeoWorkerError("Authorized site must have an HTTP(S) live_url")
 
     primary_ok, primary_detail = check_fn(live_url)
-    checker_ok, checker_detail = check_fn(live_url)
-    consistent = primary_ok == checker_ok and primary_detail == checker_detail
+    checker_ok, checker_detail = checker_fn(live_url)
+    consistent = primary_ok == checker_ok
     primary = {
         "task_id": task_id, "agent_id": PRIMARY_ID,
         "state": "DONE" if primary_ok else "FAILED",
         "summary": "Read-only SEO endpoint audit completed.",
         "evidence": [primary_detail], "artifacts": [], "changed_files": [],
-        "next_action": "Independent SEO evidence review",
+        "next_action": "Compare independent SEO evidence",
     }
     checker = {
         "task_id": task_id, "agent_id": CHECKER_ID,
         "state": "REVIEWED" if checker_ok and consistent else "BLOCKED",
-        "independent_summary": "Repeated the SEO endpoint audit independently.",
+        "independent_summary": "Ran a separately implemented read-only SEO check.",
         "independent_evidence": [checker_detail],
         "findings": [] if checker_ok and consistent else [
-            "SEO check failed or primary/checker evidence differs."
+            "Independent SEO check failed or primary/checker outcome differs."
         ],
         "next_action": "Captain review" if checker_ok and consistent else "Investigate SEO findings",
     }
@@ -81,7 +88,7 @@ def execute_task(task: dict[str, Any], sites_config: dict[str, Any],
         gate["automatic_merge"] = False
         gate["automatic_deploy"] = False
         gate["captain_approval_required"] = True
-        gate.setdefault("problems", []).append("SEO check failed or evidence was inconsistent.")
+        gate.setdefault("problems", []).append("SEO check failed or primary/checker outcomes differed.")
     return {
         "schema_version": 1, "task_id": task_id, "site": site["id"],
         "repository": site["repository"], "worker_type": "deterministic_read_only_seo",
