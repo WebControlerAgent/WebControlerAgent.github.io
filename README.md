@@ -62,8 +62,8 @@ These are deliberate project rules, not missing features to bypass:
 - Existing browser QA workflow uses Playwright; its real end-to-end coverage still needs to be checked against the latest site behavior.
 
 ### Latest known successful runs
-- **GitHub Pages deployment:** [run 40083596694](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/40083596694) — SUCCESS after the bounded worker trigger was changed.
-- **Bounded code worker tests:** [run 40083596693](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/40083596693) — SUCCESS.
+- **Latest GitHub Pages deployment:** [run 40084312615](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/40084312615) — SUCCESS for commit `ddb3b88bd67e4c88ca2357d13275550f36c4f2ce`.
+- **Latest bounded code worker tests:** [run 40084302114](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/40084302114) — SUCCESS after adding the missing `mcp` dependency and import preflight.
 - **Paired read-only SEO audit:** [run 40083434908](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/40083434908) — SUCCESS.
 - **SEO chat routing smoke test:** [run 40076686443](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/40076686443) — SUCCESS; this verified the issue-triggered workflow, not the complete website-browser chat round trip.
 
