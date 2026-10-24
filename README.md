@@ -135,10 +135,11 @@ Older secure-chat integration commits are documented in Git history; inspect `sr
 ## 7. Next steps — do these in order
 
 ### Priority 1 — close the active bounded-worker run
-1. Re-check runs [39007689304](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39007689304) and [39007682449](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/39007682449).
-2. Confirm whether the model/runtime step finishes, times out, or fails. If it fails, read the job logs and the redacted `*-agent-output.log` artifact before editing code.
-3. Confirm the independent patch-review step and artifact upload actually ran.
-4. Do not accept a patch solely because the workflow job is green; inspect `worker-result.json`, `patch-review.json`, changed paths, and the patch itself.
+1. Check [run 40083434881](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/40083434881), last observed in the model execution step.
+2. Confirm whether execution finishes, times out, or fails. If it fails, inspect the job logs and redacted artifact before changing code.
+3. Verify that independent patch review and artifact upload ran; inspect `worker-result.json`, `patch-review.json`, changed paths, and the patch itself.
+4. This worker is now manual-dispatch only; ordinary pushes should not start the model-heavy Ollama/Qwen job. To run it, use Actions → Bounded AI Worker (Patch Only) → Run workflow and choose a JSON task in `tasks/`.
+5. Do not accept or apply a patch solely because the workflow job is green.
 
 ### Priority 2 — fix the demo task/source mismatch
 1. Inspect the real homepage at `https://jpmangaatlis.online/` and the target repository's current `index.html`.
