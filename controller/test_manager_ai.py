@@ -1,6 +1,6 @@
 import unittest
 
-from controller.manager_ai import validate_plan
+from controller.manager_ai import fast_reply, validate_plan
 
 
 class ManagerPlanValidationTests(unittest.TestCase):
@@ -45,6 +45,26 @@ class ManagerPlanValidationTests(unittest.TestCase):
     def test_state_transition_requires_active_site(self):
         plan = validate_plan({"action": "complete"}, self.sites, self.idle)
         self.assertEqual(plan["action"], "none")
+
+    def test_fast_reply_handles_wrapped_latest_instruction(self):
+        wrapped = """Website Manager Chat request (GitHub-only).
+Active site: kingdom-raw (kingdom-raw)
+
+Recent conversation context (background only):
+(no previous conversation)
+
+LATEST USER INSTRUCTION — this is the only request to answer or act on now:
+hi"""
+        reply = fast_reply(wrapped)
+        self.assertIsNotNone(reply)
+        self.assertEqual(reply["action"], "none")
+        self.assertIn("kya kaam karna hai", reply["reply"])
+
+    def test_fast_reply_handles_roman_urdu_thanks(self):
+        self.assertEqual(fast_reply("shukriya")["action"], "none")
+
+    def test_fast_reply_does_not_match_longer_instruction(self):
+        self.assertIsNone(fast_reply("hi please audit my website"))
 
 
 if __name__ == "__main__":
