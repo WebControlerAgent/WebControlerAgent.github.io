@@ -490,6 +490,8 @@ function App(){
  const [githubAuthStatus,setGithubAuthStatus]=useState("GitHub account connect nahi hai");
  const [chatBusy,setChatBusy]=useState(false);
  const [messages,setMessages]=useState<{from:string;text:string;runtimeAction?:any;aiRequest?:string}[]>([{from:"Manager",text:"GitHub-only Manager Chat. Simple greetings ka reply instant hai; AI tasks ke liye GitHub connect karo."}]);
+ const chatMessagesRef=useRef<HTMLDivElement|null>(null);
+ useEffect(()=>{const el=chatMessagesRef.current;if(el)el.scrollTop=el.scrollHeight;},[messages,chatOpen]);
  // Security: scoped GitHub token is memory-only; reload clears it.
  const connectGitHub=async()=>{
    setGithubAuthStatus("Token aur repository access verify ho raha hai…");
@@ -562,7 +564,7 @@ function App(){
         {!githubToken&&<><input type="password" autoComplete="off" value={githubTokenInput} onChange={e=>setGithubTokenInput(e.target.value)} placeholder="Fine-grained GitHub token" aria-label="Fine-grained GitHub token"/><button onClick={connectGitHub} disabled={!githubTokenInput.trim()||chatBusy}>Connect GitHub</button><small>Token sirf memory mein rehta hai; reload ya logout par clear ho jata hai. Sirf apne device par use karo.</small></>}
         <small>{githubAuthStatus}</small>
       </div>
-      <div className="chat-messages">{messages.map((m,i)=><div key={i} className={"chat-msg "+(m.from==="You"?"you":"")}><span>{m.from}</span><p>{m.text}</p>{m.runtimeAction&&<a className="runtime-action" href={`https://github.com/WebControlerAgent/WebControlerAgent.github.io/issues/new?title=${encodeURIComponent("[Agent Runtime] "+m.runtimeAction.action)}&body=${encodeURIComponent("<!-- agent-runtime-command\n"+JSON.stringify(m.runtimeAction,null,2)+"\n-->")}`} target="_blank" rel="noreferrer">⚡ Send to GitHub Runtime</a>}{m.aiRequest&&<a className="runtime-action" href={`https://github.com/WebControlerAgent/WebControlerAgent.github.io/issues/new?title=${encodeURIComponent("[Manager AI] "+m.aiRequest.slice(0,60))}&body=${encodeURIComponent(m.aiRequest)}`} target="_blank" rel="noreferrer">🧠 Send to Manager AI</a>}</div>)}</div>
+      <div className="chat-messages" ref={chatMessagesRef}>{messages.map((m,i)=><div key={i} className={"chat-msg "+(m.from==="You"?"you":"")}><span>{m.from}</span><p>{m.text}</p>{m.runtimeAction&&<a className="runtime-action" href={`https://github.com/WebControlerAgent/WebControlerAgent.github.io/issues/new?title=${encodeURIComponent("[Agent Runtime] "+m.runtimeAction.action)}&body=${encodeURIComponent("<!-- agent-runtime-command\n"+JSON.stringify(m.runtimeAction,null,2)+"\n-->")}`} target="_blank" rel="noreferrer">⚡ Send to GitHub Runtime</a>}{m.aiRequest&&<a className="runtime-action" href={`https://github.com/WebControlerAgent/WebControlerAgent.github.io/issues/new?title=${encodeURIComponent("[Manager AI] "+m.aiRequest.slice(0,60))}&body=${encodeURIComponent(m.aiRequest)}`} target="_blank" rel="noreferrer">🧠 Send to Manager AI</a>}</div>)}</div>
       <form className="chat-input" onSubmit={e=>{e.preventDefault();void sendChat()}}>
         <input value={chatInput} onChange={e=>setChatInput(e.target.value)} placeholder={chatBusy?"Manager AI processing…":"Ask Manager..."} aria-label="Message Manager" disabled={chatBusy}/>
         <button type="submit" aria-label="Send message" disabled={chatBusy||!chatInput.trim()}>➤</button>
