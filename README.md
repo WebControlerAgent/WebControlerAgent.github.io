@@ -68,7 +68,7 @@ These are deliberate project rules, not missing features to bypass:
 - **SEO chat routing smoke test:** [run 40076686443](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/40076686443) — SUCCESS; this verified the issue-triggered workflow, not the complete website-browser chat round trip.
 
 ### Active / unverified
-- **Bounded AI Worker (Patch Only), run 40083434881:** last checked IN PROGRESS in “Execute bounded worker and export proposal”; task authorization and target checkout passed, and Ollama/Qwen setup completed. The worker output, independent patch review, and artifact upload have not yet been confirmed. [Follow run 40083434881](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/40083434881).
+- **Bounded AI Worker (Patch Only), run 40083434881:** FAILED in model execution because LiteLLM imported the optional `mcp` package but it was not installed (`ModuleNotFoundError: No module named 'mcp'`). The task was authorized and target checkout succeeded; no patch was produced and independent review was skipped. [Failed run and artifact](https://github.com/WebControlerAgent/WebControlerAgent.github.io/actions/runs/40083434881). Fix committed as `a127a834aa298b8b81a02ecb37f8f0f7c9207783`: install `mcp` in both the runner environment and Docker image and verify `import mcp.types`. The fix still needs a manual bounded-worker rerun to prove it works.
 - **Recent deployment and code tests:** latest deployment and test workflows are green, but this does not prove coding-worker success or full browser Manager Chat E2E.
 
 ### Important known mismatch to resolve
