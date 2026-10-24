@@ -138,7 +138,7 @@ def fast_reply(instruction, sites_data=None, runtime_state=None):
 
     # Site-registry questions are factual and should not wait for a model response.
     site_question = bool(re.search(
-        r"\b(site|sites|website|websites|repo|repository|connected|connect|authorized|active)\b|"
+        r"\b(site|sites|website|websites|repo|repository)\b|"
         r"\b(kitni|kon kon|kaun kaun|konsi|kon si)\b",
         normalized,
     ))
@@ -147,7 +147,7 @@ def fast_reply(instruction, sites_data=None, runtime_state=None):
             site for site in sites_data.get("sites", [])
             if isinstance(site, dict) and site.get("enabled") is True and site.get("authorized") is True
         ]
-        if sites and re.search(r"\b(connected|connect|authorized|active|site|sites|website|websites|kitni|kon kon|kaun kaun|konsi|kon si)\b", normalized):
+        if sites:
             if len(sites) == 1:
                 site = sites[0]
                 reply = (
