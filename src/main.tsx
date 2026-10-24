@@ -6,6 +6,8 @@ import {createRoot} from "react-dom/client";
 import "./styles.css";
 import {managerReply} from "./chat/managerChat";
 import {verifyGitHubToken,createManagerRequest,readManagerComments} from "./chat/githubDeviceFlow";
+// Remove the legacy persisted token from older builds; new builds never save it.
+try{window.localStorage.removeItem("aiwcu_github_token_v1");}catch{}
 // GitHub-only command handoff: the public Pages app never stores or sends credentials.
 
 type Status="IDLE"|"WALKING"|"WORKING"|"THINKING"|"MEETING"|"SUCCESS"|"ERROR";
