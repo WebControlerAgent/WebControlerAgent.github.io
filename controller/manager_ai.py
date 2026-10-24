@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
-import time
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
@@ -23,7 +23,6 @@ def call_gemini(prompt):
     key = os.environ.get("GEMINI_API_KEY", "").strip()
     if not key:
         raise RuntimeError("GEMINI_API_KEY is not configured")
-
     payload = {
         "system_instruction": {"parts": [{"text": SYSTEM}]},
         "contents": [{"parts": [{"text": prompt}]}],
@@ -35,56 +34,34 @@ def call_gemini(prompt):
     }
     body = json.dumps(payload).encode("utf-8")
     last_error = None
-
-    for model_index, model in enumerate(dict.fromkeys(FALLBACK_MODELS)):
+    # One bounded attempt per model avoids nested retries multiplying long waits.
+    for model in dict.fromkeys(FALLBACK_MODELS):
         api = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent"
-        req = Request(
-            api,
-            data=body,
-            headers={
-                "Content-Type": "application/json",
-                "x-goog-api-key": key,
-            },
-        )
-
-        for attempt in range(2):
+        req = Request(api, data=body, headers={"Content-Type": "application/json", "x-goog-api-key": key})
+        try:
+            with urlopen(req, timeout=15) as response:
+                data = json.loads(response.read().decode("utf-8"))
+            result = json.loads(data["candidates"][0]["content"]["parts"][0]["text"])
+            if not isinstance(result, dict) or result.get("action") not in {"claim", "assign", "complete", "fail", "none"}:
+                raise ValueError("Invalid AI action")
+            return result
+        except HTTPError as exc:
+            last_error = exc
             try:
-                with urlopen(req, timeout=25) as response:
-                    data = json.loads(response.read().decode("utf-8"))
-                text = data["candidates"][0]["content"]["parts"][0]["text"]
-                result = json.loads(text)
-                if result.get("action") not in {"claim", "assign", "complete", "fail", "none"}:
-                    raise ValueError("Invalid AI action")
-                return result
-            except HTTPError as exc:
-                last_error = exc
-                if exc.code not in RETRYABLE_STATUS:
-                    try:
-                        detail = exc.read().decode("utf-8", errors="replace")
-                    except Exception:
-                        detail = ""
-                    raise RuntimeError(
-                        f"Gemini API HTTP {exc.code} on {model}: {detail[:500]}"
-                    ) from exc
-                if attempt == 1:
-                    break
-                time.sleep(1)
-            except (TimeoutError, OSError) as exc:
-                last_error = exc
-                if attempt == 1:
-                    break
-                time.sleep(2)
-
+                detail = exc.read().decode("utf-8", errors="replace")
+            except Exception:
+                detail = ""
+            if exc.code not in RETRYABLE_STATUS:
+                raise RuntimeError(f"Gemini API HTTP {exc.code} on {model}: {detail[:500]}") from exc
+        except (TimeoutError, OSError, ValueError, KeyError, IndexError, TypeError) as exc:
+            last_error = exc
     if isinstance(last_error, HTTPError):
         try:
             detail = last_error.read().decode("utf-8", errors="replace")
         except Exception:
             detail = ""
-        raise RuntimeError(
-            f"All Gemini models unavailable. Last HTTP {last_error.code}: {detail[:500]}"
-        ) from last_error
+        raise RuntimeError(f"All Gemini models unavailable. Last HTTP {last_error.code}: {detail[:500]}") from last_error
     raise RuntimeError(f"All Gemini model requests failed: {last_error}")
-
 
 def validate_plan(result, sites_data, runtime_state):
     """Fail closed if model output requests an unknown site or invalid state transition."""
@@ -139,9 +116,16 @@ def validate_plan(result, sites_data, runtime_state):
 
 
 def fast_reply(instruction):
-    """Answer tiny social turns without a network model call."""
+    """Answer tiny social turns without a network model call, including wrapped chat requests."""
+    match = re.search(
+        r"LATEST USER INSTRUCTION[^:\\n]*:\\s*(.*)\\Z",
+        instruction,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    if match:
+        instruction = match.group(1)
     normalized = " ".join(instruction.lower().strip().split())
-    normalized = normalized.strip(" .,!?")
+    normalized = normalized.strip(" .,!?،۔")
     greetings = {
         "hi", "hello", "hey", "hy", "salam", "assalam o alaikum",
         "assalamu alaikum", "aoa", "salaam", "good morning",
