@@ -479,11 +479,28 @@ function SitePanel({sites,selectedSite,setSelectedSite,onClose}:{sites:SiteRecor
 function App(){
  const [selected,setSelected]=useState<string|null>("manager"); const [sites,setSites]=useState<SiteRecord[]>([]); const [selectedSite,setSelectedSite]=useState("kingdom-raw"); const [sitesOpen,setSitesOpen]=useState(false); const [now,setNow]=useState(new Date()); const [status,setStatus]=useState<any>(null);
  const [chatOpen,setChatOpen]=useState(true);
- const runtimeAgents=useMemo(()=>{const raw=status?.agent_runtime?.agent_states??{};return agents.map(a=>({...a,runtimeState:raw[a.id]?.state??null,runtimeSite:raw[a.id]?.site??null,runtimeTask:raw[a.id]?.task??null,runtimeError:raw[a.id]?.error??null}));},[status]);
+ const runtimeAgents=useMemo(()=>{const raw=status?.agent_runtime?.agent_states??{};return agents.map(a=>({...a,runtimeState:raw[a.id]?.state??(status?"IDLE":null),runtimeSite:raw[a.id]?.site??null,runtimeTask:raw[a.id]?.task??null,runtimeError:raw[a.id]?.error??null}));},[status]);
  const runtimeTone=(state:string|null,fallback:string)=>state==="FAILED"?"#fb7185":state==="REPAIRING"?"#fbbf24":state==="VERIFYING"?"#60a5fa":state==="COMPLETED"?"#34d399":state==="WORKING"?"#4ade80":fallback;
  const runtimeEvents=useMemo(()=>Array.isArray(status?.agent_runtime?.events)?status.agent_runtime.events.slice(-18).reverse():[],[status]);
  const liveEvents=runtimeEvents.filter((e:any)=>e.site===selectedSite || !e.site).slice(0,8);
  const refreshStatus=()=>fetch("./status.json?ts="+Date.now()).then(r=>r.ok?r.json():null).then(setStatus).catch(()=>{});
+ useEffect(()=>{
+   let alive=true;
+   const refreshSites=()=>fetch("./sites.json?ts="+Date.now())
+     .then(r=>{if(!r.ok)throw new Error("sites unavailable");return r.json();})
+     .then(data=>{
+       if(!alive)return;
+       const list=Array.isArray(data?.sites)?data.sites.filter((s:SiteRecord)=>s&&typeof s.id==="string"&&typeof s.name==="string"):[];
+       setSites(list);
+       setSelectedSite(current=>list.some((s:SiteRecord)=>s.id===current&&s.enabled&&s.authorized)
+         ?current:(list.find((s:SiteRecord)=>s.enabled&&s.authorized)?.id??list[0]?.id??""));
+     })
+     .catch(()=>{if(alive)setSites([]);});
+   void refreshSites();
+   void refreshStatus();
+   const timer=window.setInterval(()=>{void refreshSites();void refreshStatus();},15000);
+   return ()=>{alive=false;window.clearInterval(timer);};
+ },[]);
  const [chatInput,setChatInput]=useState("");
  const [githubTokenInput,setGithubTokenInput]=useState("");
  const [githubToken,setGithubToken]=useState<string|null>(null);
