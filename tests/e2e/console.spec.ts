@@ -36,3 +36,12 @@ test("Manager chat accepts a status query and responds", async ({ page }) => {
   await expect(page.locator(".chat-messages")).toContainText("Actual Runtime:");
   await expect(page.locator(".chat-messages")).toContainText("Working agents:");
 });
+
+
+test("authorized site registry loads and appears in Sites control", async ({ page }) => {
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await expect(page.locator(".site-selector")).toContainText("Kingdom Raw", { timeout: 10000 });
+  await page.getByRole("button", { name: /Sites/ }).click();
+  await expect(page.locator(".site-list")).toContainText("Kingdom Raw");
+  await expect(page.locator(".site-list")).toContainText("kindgommangaraw/kindgommangaraw.github.io");
+});
