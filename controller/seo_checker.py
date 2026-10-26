@@ -161,7 +161,7 @@ def check_seo_independently(base_url: str) -> tuple[bool, str]:
         except (OSError, urllib.error.URLError, TimeoutError, ValueError) as exc:
             findings.append(f"/{endpoint} fetch failed: {type(exc).__name__}: {exc}")
 
-    if robots_text and not re.search(r"(?im)^\s*sitemap\s*:\s*https?://\S+, robots_text):
+    if robots_text and not re.search(r"(?im)^\s*sitemap\s*:\s*https?://\S+", robots_text):
         findings.append("robots.txt has no absolute Sitemap directive.")
     if sitemap_text:
         sitemap_evidence, sitemap_findings = inspect_sitemap(sitemap_text, base)
