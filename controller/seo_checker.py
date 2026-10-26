@@ -45,7 +45,7 @@ def inspect_homepage_metadata(html: str, base_url: str) -> tuple[list[str], list
     """Return evidence and findings for title, description, canonical and robots."""
     parser = _MetadataParser()
     parser.feed(html)
-    title = re.sub(r"\\s+", " ", "".join(parser.title_parts)).strip()
+    title = re.sub(r"\s+", " ", "".join(parser.title_parts)).strip()
     descriptions = parser.meta.get("description", [])
     description = next((m.get("content", "").strip() for m in descriptions if m.get("content", "").strip()), "")
     canonicals = [link.get("href", "").strip() for link in parser.links
@@ -161,7 +161,7 @@ def check_seo_independently(base_url: str) -> tuple[bool, str]:
         except (OSError, urllib.error.URLError, TimeoutError, ValueError) as exc:
             findings.append(f"/{endpoint} fetch failed: {type(exc).__name__}: {exc}")
 
-    if robots_text and not re.search(r"(?im)^\\s*sitemap\\s*:\\s*https?://\\S+", robots_text):
+    if robots_text and not re.search(r"(?im)^\s*sitemap\s*:\s*https?://\S+", robots_text):
         findings.append("robots.txt has no absolute Sitemap directive.")
     if sitemap_text:
         sitemap_evidence, sitemap_findings = inspect_sitemap(sitemap_text, base)
