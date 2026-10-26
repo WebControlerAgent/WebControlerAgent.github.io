@@ -79,6 +79,7 @@ jobs:
           python3 - <<'PY'
           import json
           from pathlib import Path
+          from controller.seo_actions import build_captain_tasks
           report = json.loads(Path("/tmp/seo-report.json").read_text(encoding="utf-8")) if Path("/tmp/seo-report.json").exists() else {"state":"BLOCKED","error":"No report produced"}
           primary = report.get("primary_result", {})
           checker = report.get("independent_checker_result", {})
@@ -94,6 +95,18 @@ jobs:
               "",
               "Read-only audit only: no site files were edited, merged, or deployed. Google indexing/ranking was not tested."
           ]
+          captain_plan = build_captain_tasks(report)
+          lines.extend(["", "🧭 **Captain Review — Proposed SEO Tasks**", ""])
+          for index, item in enumerate(captain_plan.get("tasks", []), start=1):
+              lines.extend([
+                  f"{index}. **[{item['priority'].upper()}] {item['title']}**",
+                  "   - Evidence: " + item["finding"],
+                  "   - Proposed action: " + item["proposed_action"],
+                  "   - Done when: " + item["acceptance_criteria"],
+                  "   - Captain approval required: Yes; automatic changes: No",
+                  "",
+              ])
+          lines.append("These are review-only proposals; no target website files were changed.")
           if report.get("error"):
               lines.extend(["", "Error: " + str(report["error"])[:700]])
           Path("/tmp/seo-comment.md").write_text("\n".join(lines), encoding="utf-8")
