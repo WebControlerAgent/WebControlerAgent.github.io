@@ -63,7 +63,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Run bounded worker and independent checker tests
-        run: python -m unittest controller.test_manager_ai controller.test_code_change_worker controller.test_seo_worker controller.test_task_dispatcher controller.test_open_source_worker_adapter controller.test_worker_execution_bridge controller.test_patch_review -v
+        run: python -m unittest controller.test_manager_ai controller.test_code_change_worker controller.test_seo_worker controller.test_seo_checker controller.test_task_dispatcher controller.test_open_source_worker_adapter controller.test_worker_execution_bridge controller.test_patch_review -v
       - name: Set up Node.js for secure bridge tests
         uses: actions/setup-node@v4
         with:
