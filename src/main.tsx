@@ -542,8 +542,12 @@ function App(){
      const issueNumber=Number(issue.number);
      setMessages(m=>[...m,{from:"GitHub Actions",text:"Command GitHub ko send ho gayi (#"+issueNumber+"). Manager AI process kar raha hai; result isi chat mein aayega."}]);
      let completed=false;
-     for(let attempt=0;attempt<48;attempt++){
-       await new Promise<void>(resolve=>window.setTimeout(()=>resolve(),2000));
+     // GitHub Actions can take several minutes; poll with backoff to avoid
+     // exhausting the user's GitHub API rate limit while waiting for a real result.
+     let pollDelay=2000;
+     const pollDeadline=Date.now()+5*60*1000;
+     while(Date.now()<pollDeadline){
+       await new Promise<void>(resolve=>window.setTimeout(resolve,pollDelay));
        const comments=await readManagerComments(githubToken,issueNumber);
        if(!Array.isArray(comments))continue;
        const relevant=comments.filter((c:any)=>typeof c.body==="string"&&(c.body.includes("**Manager AI:**")||c.body.includes("**SEO Audit Result**")||c.body.includes("**Agent Runtime")||c.body.includes("**Agent pipeline completed successfully.**")||c.body.includes("**Assignment recorded; execution not started.**")||c.body.includes("**Runtime state transition applied:")||c.body.includes("**Agent Runtime command failed.**")));
@@ -552,6 +556,7 @@ function App(){
          setMessages(m=>[...m,{from:"Manager AI",text:String(finalComment.body).replace(/<[^>]*>/g,"").slice(0,5000)}]);
          completed=true;break;
        }
+       pollDelay=Math.min(Math.round(pollDelay*1.5),8000);
      }
      if(!completed)setMessages(m=>[...m,{from:"Manager AI",text:"Workflow abhi complete nahi hua. Issue thread mein live status dekh sakte ho: "+String(issue.html_url||"https://github.com/WebControlerAgent/WebControlerAgent.github.io/issues/"+issueNumber)}]);
    }catch(error){
