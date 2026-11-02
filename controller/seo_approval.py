@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 MARKER_RE = re.compile(
-    r"<!--\\s*seo-captain-tasks-b64\\s*([A-Za-z0-9+/=]+)\\s*-->",
+    r"<!--\s*seo-captain-tasks-b64\s*([A-Za-z0-9+/=]+)\s*-->",
     re.DOTALL,
 )
 COMMAND_RE = re.compile(r"^/approve-seo-task\s+([A-Za-z0-9_-]{1,40})\s*$")
