@@ -100,6 +100,7 @@ jobs:
           for index, item in enumerate(captain_plan.get("tasks", []), start=1):
               lines.extend([
                   f"{index}. **[{item['priority'].upper()}] {item['title']}**",
+                  "   - Task ID: `" + item["id"] + "`",
                   "   - Evidence: " + item["finding"],
                   "   - Proposed action: " + item["proposed_action"],
                   "   - Done when: " + item["acceptance_criteria"],
