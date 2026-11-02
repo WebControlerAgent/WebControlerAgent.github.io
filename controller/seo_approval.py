@@ -70,7 +70,7 @@ def build_approved_task(
     if not marker:
         raise ApprovalError("Captain task metadata is malformed.")
     try:
-        plan_json = base64.urlsafe_b64decode(marker.group(1).encode("ascii"))
+        plan_json = base64.b64decode(marker.group(1).encode("ascii"))
         plan = json.loads(plan_json.decode("utf-8"))
     except json.JSONDecodeError as exc:
         raise ApprovalError("Captain task metadata is not valid JSON.") from exc
