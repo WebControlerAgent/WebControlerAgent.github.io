@@ -107,6 +107,16 @@ jobs:
                   "",
               ])
           lines.append("These are review-only proposals; no target website files were changed.")
+          lines.extend([
+              "",
+              "To request a bounded patch proposal for an eligible finding, the repository owner can comment:",
+              "`/approve-seo-task seo-01`",
+              "Use the exact task ID shown in the machine-readable Captain plan below. Clean-audit baseline tasks cannot launch a code worker.",
+              "",
+              "<!-- seo-captain-tasks-json",
+              json.dumps(captain_plan, ensure_ascii=False),
+              "-->",
+          ])
           if report.get("error"):
               lines.extend(["", "Error: " + str(report["error"])[:700]])
           Path("/tmp/seo-comment.md").write_text("\n".join(lines), encoding="utf-8")
