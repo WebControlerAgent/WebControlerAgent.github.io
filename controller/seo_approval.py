@@ -49,6 +49,12 @@ def build_approved_task(
     if not command:
         raise ApprovalError("Use exactly: /approve-seo-task <task-id>")
     selected_id = command.group(1)
+    issue_number = int(issue.get("number", 0))
+    if issue_number < 1:
+        raise ApprovalError("Issue number is missing.")
+    dispatch_marker = f"SEO_APPROVAL_DISPATCHED:{issue_number}:{selected_id}"
+    if any(dispatch_marker in str(item.get("body", "")) for item in comments if isinstance(item, dict)):
+        raise ApprovalError("This task approval has already been dispatched.")
 
     audit_comments = [
         item for item in comments
@@ -92,9 +98,6 @@ def build_approved_task(
     if len(matches) != 1:
         raise ApprovalError("The audit site is not uniquely enabled and authorized.")
 
-    issue_number = int(issue.get("number", 0))
-    if issue_number < 1:
-        raise ApprovalError("Issue number is missing.")
     task_id = f"seo-{issue_number}-{selected_id}"
     objective = (
         f"Prepare a patch proposal for the Captain-approved SEO finding on {site_id}. "
