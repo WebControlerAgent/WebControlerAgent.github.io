@@ -54,6 +54,9 @@ jobs:
           path = os.environ.get("TASK_FILE", "").strip()
           if raw_json:
               task = json.loads(raw_json)
+              approval = task.get("captain_approval", {})
+              if approval.get("approved") is not True or task.get("origin_captain") != "seo-agent":
+                  raise SystemExit("BLOCKED: runtime task JSON must carry an explicit SEO Captain approval.")
               task_id = str(task.get("task_id", ""))
               if not re.fullmatch(r"[A-Za-z0-9_-]{1,80}", task_id):
                   raise SystemExit("BLOCKED: unsafe task_id in approved task JSON.")
