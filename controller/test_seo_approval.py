@@ -1,4 +1,6 @@
 """Security and scope tests for explicit SEO Captain approval."""
+import base64
+import json
 import unittest
 
 from controller.seo_approval import ApprovalError, build_approved_task
