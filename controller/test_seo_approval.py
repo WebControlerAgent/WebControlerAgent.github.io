@@ -85,6 +85,14 @@ class SeoApprovalTests(unittest.TestCase):
         with self.assertRaises(ApprovalError):
             build_approved_task(event("/approve-seo-task seo-01 please"), COMMENTS, SITES)
 
+    def test_duplicate_approval_dispatch_is_rejected(self):
+        comments = COMMENTS + [{
+            "body": "<!-- SEO_APPROVAL_DISPATCHED:51:seo-01 -->",
+            "created_at": "2026-11-02T10:01:00Z",
+        }]
+        with self.assertRaises(ApprovalError):
+            build_approved_task(event(), comments, SITES)
+
 
 if __name__ == "__main__":
     unittest.main()
