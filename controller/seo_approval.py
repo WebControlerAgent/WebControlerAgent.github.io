@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 MARKER_RE = re.compile(
-    r"<!--\s*seo-captain-tasks-json\s*(\{.*?\})\s*-->",
+    r"<!--\s*seo-captain-tasks-b64\s*(\{.*?\})\s*-->",
     re.DOTALL,
 )
 COMMAND_RE = re.compile(r"^/approve-seo-task\s+([A-Za-z0-9_-]{1,40})\s*$")
@@ -61,7 +61,7 @@ def build_approved_task(
         item for item in comments
         if isinstance(item, dict)
         and isinstance(item.get("body"), str)
-        and "seo-captain-tasks-json" in item["body"]
+        and "seo-captain-tasks-b64" in item["body"]
     ]
     if not audit_comments:
         raise ApprovalError("No machine-readable Captain task plan exists on this issue.")
