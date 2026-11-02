@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import binascii
 import json
 import re
 from pathlib import Path
@@ -72,8 +73,8 @@ def build_approved_task(
     try:
         plan_json = base64.b64decode(marker.group(1).encode("ascii"))
         plan = json.loads(plan_json.decode("utf-8"))
-    except json.JSONDecodeError as exc:
-        raise ApprovalError("Captain task metadata is not valid JSON.") from exc
+    except (json.JSONDecodeError, binascii.Error, UnicodeDecodeError) as exc:
+        raise ApprovalError("Captain task metadata is not valid encoded JSON.") from exc
 
     tasks = plan.get("tasks", [])
     selected = next(
