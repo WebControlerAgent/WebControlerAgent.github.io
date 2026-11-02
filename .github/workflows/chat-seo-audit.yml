@@ -77,6 +77,7 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           python3 - <<'PY'
+          import base64
           import json
           from pathlib import Path
           from controller.seo_actions import build_captain_tasks
@@ -100,6 +101,7 @@ jobs:
           for index, item in enumerate(captain_plan.get("tasks", []), start=1):
               lines.extend([
                   f"{index}. **[{item['priority'].upper()}] {item['title']}**",
+                  "   - Task ID: `" + item["id"] + "`",
                   "   - Evidence: " + item["finding"],
                   "   - Proposed action: " + item["proposed_action"],
                   "   - Done when: " + item["acceptance_criteria"],
@@ -107,6 +109,14 @@ jobs:
                   "",
               ])
           lines.append("These are review-only proposals; no target website files were changed.")
+          lines.extend([
+              "",
+              "To request a bounded patch proposal for an eligible finding, the repository owner can comment:",
+              "`/approve-seo-task seo-01`",
+              "Use the exact task ID shown in the machine-readable Captain plan below. Clean-audit baseline tasks cannot launch a code worker.",
+              "",
+              "<!-- seo-captain-tasks-b64 " + base64.b64encode(json.dumps(captain_plan, ensure_ascii=False).encode("utf-8")).decode("ascii") + " -->",
+          ])
           if report.get("error"):
               lines.extend(["", "Error: " + str(report["error"])[:700]])
           Path("/tmp/seo-comment.md").write_text("\n".join(lines), encoding="utf-8")
