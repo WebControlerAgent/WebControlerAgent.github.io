@@ -115,7 +115,7 @@ jobs:
               "`/approve-seo-task seo-01`",
               "Use the exact task ID shown in the machine-readable Captain plan below. Clean-audit baseline tasks cannot launch a code worker.",
               "",
-              "<!-- seo-captain-tasks-b64 " + base64.urlsafe_b64encode(json.dumps(captain_plan, ensure_ascii=False).encode("utf-8")).decode("ascii") + " -->",
+              "<!-- seo-captain-tasks-b64 " + base64.b64encode(json.dumps(captain_plan, ensure_ascii=False).encode("utf-8")).decode("ascii") + " -->",
           ])
           if report.get("error"):
               lines.extend(["", "Error: " + str(report["error"])[:700]])
