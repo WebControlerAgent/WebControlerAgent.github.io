@@ -6,9 +6,13 @@ on:
   workflow_dispatch:
     inputs:
       task_file:
-        description: "Task JSON path inside tasks/"
-        required: true
-        default: "tasks/demo-bounded-code-proposal.json"
+        description: "Existing task JSON path inside tasks/ (leave blank when using task_json)"
+        required: false
+        default: ""
+        type: string
+      task_json:
+        description: "One-time approved task JSON supplied by the Captain approval workflow"
+        required: false
         type: string
       timeout_minutes:
         description: "Hard time limit"
@@ -38,20 +42,32 @@ jobs:
         id: task
         shell: bash
         env:
-          TASK_FILE: ${{ inputs.task_file || 'tasks/demo-bounded-code-proposal.json' }}
+          TASK_FILE: ${{ inputs.task_file }}
+          TASK_JSON: ${{ inputs.task_json }}
         run: |
           set -euo pipefail
           python3 - <<'PY'
           import json, os, re
           from pathlib import Path
 
-          path = os.environ["TASK_FILE"]
-          if not re.fullmatch(r"tasks/[A-Za-z0-9._-]+\.json", path) or ".." in Path(path).parts:
-              raise SystemExit("BLOCKED: choose a JSON file directly inside tasks/.")
-          task_path = Path(path)
-          if not task_path.is_file():
-              raise SystemExit("BLOCKED: task file does not exist.")
-          task = json.loads(task_path.read_text(encoding="utf-8"))
+          raw_json = os.environ.get("TASK_JSON", "").strip()
+          path = os.environ.get("TASK_FILE", "").strip()
+          if raw_json:
+              task = json.loads(raw_json)
+              task_id = str(task.get("task_id", ""))
+              if not re.fullmatch(r"[A-Za-z0-9_-]{1,80}", task_id):
+                  raise SystemExit("BLOCKED: unsafe task_id in approved task JSON.")
+              path = f"tasks/runtime-approved-{task_id}.json"
+              Path(path).write_text(json.dumps(task, indent=2, ensure_ascii=False) + "\\n", encoding="utf-8")
+          else:
+              if not path:
+                  path = "tasks/demo-bounded-code-proposal.json"
+              if not re.fullmatch(r"tasks/[A-Za-z0-9._-]+\\.json", path) or ".." in Path(path).parts:
+                  raise SystemExit("BLOCKED: choose a JSON file directly inside tasks/.")
+              task_path = Path(path)
+              if not task_path.is_file():
+                  raise SystemExit("BLOCKED: task file does not exist.")
+              task = json.loads(task_path.read_text(encoding="utf-8"))
           sites = json.loads(Path("controller/sites.json").read_text(encoding="utf-8"))
           routing = json.loads(Path("agents/task_routing.json").read_text(encoding="utf-8"))
 
