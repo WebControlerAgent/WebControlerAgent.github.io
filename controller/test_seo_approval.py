@@ -33,7 +33,7 @@ PLAN = {
 }
 COMMENTS = [{
     "created_at": "2026-11-02T10:00:00Z",
-    "body": "<!-- seo-captain-tasks-json\n" + __import__("json").dumps(PLAN) + "\n-->",
+    "body": "<!-- seo-captain-tasks-b64\n" + base64.b64encode(json.dumps(PLAN).encode("utf-8")).decode("ascii") + "\n-->",
 }]
 
 
@@ -75,7 +75,7 @@ class SeoApprovalTests(unittest.TestCase):
             "finding": "Unknown issue", "proposed_action": "Investigate",
             "acceptance_criteria": "Verified",
         }]}
-        comments = [{"body": "<!-- seo-captain-tasks-json\n" + __import__("json").dumps(changed) + "\n-->"}]
+        comments = [{"body": "<!-- seo-captain-tasks-b64\n" + base64.b64encode(json.dumps(changed).encode("utf-8")).decode("ascii") + "\n-->"}]
         with self.assertRaises(ApprovalError):
             build_approved_task(event("/approve-seo-task seo-02"), comments, SITES)
 
