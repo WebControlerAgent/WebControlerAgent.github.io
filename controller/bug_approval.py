@@ -14,10 +14,10 @@ from pathlib import Path
 from typing import Any
 
 MARKER_RE = re.compile(
-    r"<!--\\s*bug-captain-tasks-b64\\s*([A-Za-z0-9+/=]+)\\s*-->",
+    r"<!--\s*bug-captain-tasks-b64\s*([A-Za-z0-9+/=]+)\s*-->",
     re.DOTALL,
 )
-COMMAND_RE = re.compile(r"^/approve-bug-task\\s+([A-Za-z0-9_-]{1,40})\\s*$")
+COMMAND_RE = re.compile(r"^/approve-bug-task\s+([A-Za-z0-9_-]{1,40})\s*$")
 FORBIDDEN_PARTS = {
     ".git", ".github", "admin", "ads", "secrets", "credentials",
 }
@@ -185,7 +185,7 @@ def main() -> int:
         comments = json.loads(Path(args.comments).read_text(encoding="utf-8"))
         sites = json.loads(Path(args.sites).read_text(encoding="utf-8"))
         task = build_approved_task(event, comments, sites)
-        Path(args.output).write_text(json.dumps(task, indent=2, ensure_ascii=False) + "\\n", encoding="utf-8")
+        Path(args.output).write_text(json.dumps(task, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         print(json.dumps({"state": "APPROVED_FOR_PATCH_PROPOSAL", "task_id": task["task_id"]}))
         return 0
     except (OSError, json.JSONDecodeError, ApprovalError, TypeError, ValueError) as exc:
