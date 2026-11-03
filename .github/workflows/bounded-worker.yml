@@ -55,8 +55,17 @@ jobs:
           if raw_json:
               task = json.loads(raw_json)
               approval = task.get("captain_approval", {})
-              if approval.get("approved") is not True or task.get("origin_captain") != "seo-agent":
-                  raise SystemExit("BLOCKED: runtime task JSON must carry an explicit SEO Captain approval.")
+              origin = task.get("origin_captain")
+              allowed_origins = {"seo-agent": "bug-solver", "bug-hunter": "bug-solver"}
+              if (
+                  approval.get("approved") is not True
+                  or origin not in allowed_origins
+                  or task.get("parent_captain") != allowed_origins.get(origin)
+                  or not approval.get("approved_by")
+                  or not approval.get("approval_issue")
+                  or not approval.get("approved_task_id")
+              ):
+                  raise SystemExit("BLOCKED: runtime task JSON must carry a valid owner-approved SEO or Bug Hunter Captain authorization.")
               task_id = str(task.get("task_id", ""))
               if not re.fullmatch(r"[A-Za-z0-9_-]{1,80}", task_id):
                   raise SystemExit("BLOCKED: unsafe task_id in approved task JSON.")
