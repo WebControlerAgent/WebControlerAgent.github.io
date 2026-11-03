@@ -1,0 +1,74 @@
+name: Bug Hunter Captain Approval Gate
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+  actions: write
+
+concurrency:
+  group: bug-captain-approval-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  approve-and-dispatch:
+    if: ${{ github.event.issue.pull_request == null && startsWith(github.event.issue.title, '[Bug Review]') && (github.event.comment.user.login == 'WebControlerAgent' || github.event.comment.author_association == 'OWNER') && startsWith(github.event.comment.body, '/approve-bug-task ') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout controller policy
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build strictly scoped approved task
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" > /tmp/bug-comments.json
+          python3 -m controller.bug_approval \
+            --event "$GITHUB_EVENT_PATH" \
+            --comments /tmp/bug-comments.json \
+            --sites controller/sites.json \
+            --output /tmp/approved-bug-task.json
+
+      - name: Dispatch proposal-only worker
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh workflow run bounded-worker.yml \
+            -f task_json="$(cat /tmp/approved-bug-task.json)" \
+            -f timeout_minutes=15
+          echo "Owner-approved Bug Hunter task dispatched to the bounded patch-proposal workflow."
+
+      - name: Record approval and worker dispatch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          APPROVER: ${{ github.event.comment.user.login }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+        run: |
+          set -euo pipefail
+          TASK_ID="$(printf '%s' "$COMMENT_BODY" | awk '{print $2}')"
+          gh issue comment "$ISSUE_NUMBER" --body "$(cat <<EOF
+          Approved for a bounded patch proposal.
+
+          Task: `$TASK_ID`
+          Approved by: `$APPROVER`
+
+          The worker uses a read-only target checkout and can publish only a patch artifact. It cannot push, merge, or deploy target-site changes. Review the workflow run and artifact before deciding on any change.
+
+          <!-- BUG_APPROVAL_DISPATCHED:$ISSUE_NUMBER:$TASK_ID -->
+          EOF
+          )"
