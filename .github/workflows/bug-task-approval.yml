@@ -61,4 +61,14 @@ jobs:
         run: |
           set -euo pipefail
           TASK_ID="$(printf '%s' "$COMMENT_BODY" | awk '{print $2}')"
-          gh issue comment "$ISSUE_NUMBER" --body "Approved for a bounded patch proposal.\n\nTask: `$TASK_ID`\nApproved by: `$APPROVER`\n\nThe worker uses a read-only target checkout and can publish only a patch artifact. It cannot push, merge, or deploy target-site changes. Review the workflow run and artifact before deciding on any change.\n\n<!-- BUG_APPROVAL_DISPATCHED:$ISSUE_NUMBER:$TASK_ID -->"
+          gh issue comment "$ISSUE_NUMBER" --body "$(cat <<EOF
+          Approved for a bounded patch proposal.
+
+          Task: `$TASK_ID`
+          Approved by: `$APPROVER`
+
+          The worker uses a read-only target checkout and can publish only a patch artifact. It cannot push, merge, or deploy target-site changes. Review the workflow run and artifact before deciding on any change.
+
+          <!-- BUG_APPROVAL_DISPATCHED:$ISSUE_NUMBER:$TASK_ID -->
+          EOF
+          )"
