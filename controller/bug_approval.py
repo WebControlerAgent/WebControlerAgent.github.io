@@ -105,12 +105,13 @@ def build_approved_task(
     if not isinstance(plan, dict) or not isinstance(plan.get("tasks"), list):
         raise ApprovalError("Bug Hunter plan must contain a tasks list.")
 
-    selected = next(
-        (item for item in plan["tasks"] if isinstance(item, dict) and item.get("id") == selected_id),
-        None,
-    )
-    if selected is None:
-        raise ApprovalError("The requested task ID was not present in the latest Bug Hunter plan.")
+    matches = [
+        item for item in plan["tasks"]
+        if isinstance(item, dict) and item.get("id") == selected_id
+    ]
+    if len(matches) != 1:
+        raise ApprovalError("The requested task ID must appear exactly once in the latest Bug Hunter plan.")
+    selected = matches[0]
     if selected.get("requires_captain_approval") is not True or selected.get("auto_apply") is not False:
         raise ApprovalError("Task metadata must explicitly require Captain approval and disable auto-apply.")
 
